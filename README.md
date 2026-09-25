@@ -1,4 +1,4 @@
-# ClubSync (Syncura) 📅⚡
+# Who's Free 📅⚡
 
 > **Smart Availability & Overlap Scheduling Platform**
 >
