@@ -24,3 +24,11 @@ __pycache__/
 .vscode/
 *.suo
 *.user
+
+# AI Agent & instructions
+.agents
+FE/.agents
+GEMINI.md
+FE/GEMINI.md
+AGENTS.md
+FE/AGENTS.md
