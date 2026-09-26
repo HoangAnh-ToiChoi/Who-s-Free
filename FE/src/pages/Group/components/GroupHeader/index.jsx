@@ -5,11 +5,12 @@ import {
   CalendarPlus,
   UserPlus,
   Bot,
+  Grid3X3,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { CreateCalendarModal } from "~/components/Modals";
 
-function GroupInfoBar({
+function GroupHeader({
   group,
   sessionsCount = 3,
   onCreateCalendar,
@@ -22,6 +23,7 @@ function GroupInfoBar({
 
   const tabs = [
     { id: "calendars", label: t("groupDetail.tabCalendars"), count: sessionsCount, minW: "min-w-[105px]" },
+    { id: "matrix", label: t("groupDetail.tabMatrix") || "Ma trận rảnh/bận", minW: "min-w-[130px]" },
     { id: "members", label: t("groupDetail.tabMembers"), count: group?.memberCount || 12, minW: "min-w-[110px]" },
     { id: "settings", label: t("groupDetail.tabSettings"), minW: "min-w-[85px]" },
   ];
@@ -98,7 +100,7 @@ function GroupInfoBar({
             variant="outline"
             className="h-9.5 min-w-[140px] justify-center gap-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs rounded-xl whitespace-nowrap"
           >
-            <UserPlus size={15} className="shrink-0" />
+            <UserPlus size={14} className="text-slate-500 shrink-0" />
             <span>{t("groupDetail.inviteMembers")}</span>
           </Button>
 
@@ -106,7 +108,7 @@ function GroupInfoBar({
             onClick={() => setModalOpen(true)}
             className="h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap"
           >
-            <CalendarPlus size={15} strokeWidth={2.2} className="shrink-0" />
+            <CalendarPlus size={14} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
           </Button>
 
@@ -114,46 +116,45 @@ function GroupInfoBar({
           <CreateCalendarModal
             open={modalOpen}
             onOpenChange={setModalOpen}
+            groupId={group?.id}
             onSubmit={onCreateCalendar}
             isSubmitting={isCreatingCalendar}
           />
         </div>
       </div>
 
-      {/* Bottom Tabs: Calendars, Members, Settings */}
-      <div className="border-b border-slate-200 pt-2">
-        <nav className="flex items-center gap-6">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange?.(tab.id)}
-                className={`relative pb-3 text-sm font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2 ${tab.minW} whitespace-nowrap ${
-                  isActive
-                    ? "text-indigo-600 border-b-2 border-indigo-600"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                      isActive
-                        ? "bg-indigo-50 text-indigo-700 border border-indigo-200/60"
-                        : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+      {/* Bottom Section: Tabs Navigation */}
+      <div className="flex items-center gap-1 border-b border-slate-200 pt-2 overflow-x-auto">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange?.(tab.id)}
+              className={`h-9 ${tab.minW} flex items-center justify-center gap-2 border-b-2 px-4 text-xs font-semibold transition-all cursor-pointer select-none whitespace-nowrap ${
+                isActive
+                  ? "border-indigo-600 text-indigo-700 font-bold"
+                  : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800"
+              }`}
+            >
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                    isActive
+                      ? "bg-indigo-100 text-indigo-700"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-export default GroupInfoBar;
+export default GroupHeader;

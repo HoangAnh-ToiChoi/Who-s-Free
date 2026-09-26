@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 
@@ -12,7 +12,20 @@ import { mockWorkspaces, mockCurrentUser } from "~/data/mockData";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
-  const [activeWorkspace, setActiveWorkspace] = useState(mockWorkspaces[0]);
+  const location = useLocation();
+
+  // Kiểm tra xem hiện tại đang đứng ở chi tiết nhóm (/groups/:groupId) hay ở trang chủ/danh sách
+  const groupMatch = location.pathname.match(/\/groups\/([^/]+)/);
+  const currentGroupId = groupMatch ? groupMatch[1] : null;
+
+  // Nếu không có groupId trong URL => Đang ở Trang chủ (chưa chọn nhóm nào)
+  const activeWorkspace = currentGroupId
+    ? mockWorkspaces.find((ws) => String(ws.id) === String(currentGroupId)) || {
+        id: currentGroupId,
+        name: `Group #${currentGroupId}`,
+        role: "Member",
+      }
+    : null;
 
   const isVietnamese = i18n.language?.startsWith("vi");
 
@@ -27,8 +40,8 @@ function Topbar() {
         <AppLogo />
       </div>
 
-      {/* Center — SearchBar */}
-      <div className="flex flex-1 items-center justify-center">
+      {/* Center — SearchBar (Dịch nhẹ sang phải translate-x để cân bằng thị giác với cụm điều khiển bên phải) */}
+      <div className="flex flex-1 items-center justify-center translate-x-6 sm:translate-x-12">
         <SearchBar />
       </div>
 
@@ -37,7 +50,6 @@ function Topbar() {
         <GroupSelector
           workspaces={mockWorkspaces}
           activeWorkspace={activeWorkspace}
-          onChange={setActiveWorkspace}
         />
 
         {/* Quick Language Toggle Button — Cố định kích thước min-w và h chống giật */}

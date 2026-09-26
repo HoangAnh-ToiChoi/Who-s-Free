@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
@@ -7,14 +7,16 @@ import { groupService } from "~/service/groupService";
 import { calendarService } from "~/service/calendarService";
 import { Button } from "~/components/ui/button";
 
-import GroupInfoBar from "./components/GroupInfoBar";
-import ActivePlanningSessions from "./components/ActivePlanningSessions";
+import GroupHeader from "./components/GroupHeader";
 import GroupMetricsBar from "./components/GroupMetricsBar";
+import GroupSessions from "./subpages/GroupSessions";
+import GroupMatrix from "./subpages/GroupMatrix";
+import GroupMembers from "./subpages/GroupMembers";
+import GroupSettings from "./subpages/GroupSettings";
 
-function GroupDetail() {
+function Group() {
   const { t } = useTranslation();
   const { groupId = "ws-1" } = useParams();
-  const navigate = useNavigate();
 
   // 1. Data states
   const [group, setGroup] = useState(null);
@@ -66,7 +68,6 @@ function GroupDetail() {
         groupId,
         calendarPayload
       );
-      // Cập nhật danh sách sessions
       setSessions((prev) => [createdSession, ...prev]);
       return { success: true, data: createdSession };
     } catch (err) {
@@ -132,10 +133,10 @@ function GroupDetail() {
           </Button>
         </div>
       ) : (
-        /* --- Case 3: Hiển thị đầy đủ --- */
+        /* --- Case 3: Hiển thị đầy đủ theo Subpage / Tabs --- */
         <>
           {/* Group Overview Header + Modal Trigger */}
-          <GroupInfoBar
+          <GroupHeader
             group={group}
             sessionsCount={sessions.length}
             onCreateCalendar={handleCreateCalendar}
@@ -144,10 +145,10 @@ function GroupDetail() {
             onTabChange={setActiveTab}
           />
 
-          {/* Tab 1: Calendars / Planning Sessions */}
+          {/* Subpage 1: Calendars / Planning Sessions */}
           {activeTab === "calendars" && (
             <>
-              <ActivePlanningSessions sessions={sessions} />
+              <GroupSessions sessions={sessions} />
               <GroupMetricsBar
                 activeSessionsCount={sessions.length}
                 turnoutRate={group?.responseRate || 88}
@@ -155,18 +156,19 @@ function GroupDetail() {
             </>
           )}
 
-          {/* Tab 2: Members */}
-          {activeTab === "members" && (
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-              {t("groupDetail.membersComingSoon")}
-            </div>
+          {/* Subpage 2: Availability Matrix */}
+          {activeTab === "matrix" && (
+            <GroupMatrix group={group} />
           )}
 
-          {/* Tab 3: Settings */}
+          {/* Subpage 3: Members */}
+          {activeTab === "members" && (
+            <GroupMembers group={group} />
+          )}
+
+          {/* Subpage 4: Settings */}
           {activeTab === "settings" && (
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-              {t("groupDetail.settingsComingSoon")}
-            </div>
+            <GroupSettings group={group} />
           )}
         </>
       )}
@@ -174,4 +176,4 @@ function GroupDetail() {
   );
 }
 
-export default GroupDetail;
+export default Group;
