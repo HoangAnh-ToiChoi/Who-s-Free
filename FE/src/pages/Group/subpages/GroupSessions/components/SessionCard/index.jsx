@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { calcPercentage } from "~/utils";
 
 // Tách hàm xác định style cho từng loại thẻ session
 function getSessionTheme(tagColor) {
@@ -50,6 +51,12 @@ function SessionCard({ session }) {
   const theme = getSessionTheme(session.tagColor);
   const HighlightIcon = theme.highlightIcon;
 
+  // Sử dụng hàm tiện ích chung để tính tỷ lệ phản hồi / quorum
+  const quorumPercent =
+    session.quorumPercent !== undefined
+      ? session.quorumPercent
+      : calcPercentage(session.respondedCount, session.totalMembers);
+
   return (
     <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
       {/* Top Header: Tag & Options Menu */}
@@ -89,7 +96,7 @@ function SessionCard({ session }) {
                 total: session.totalMembers,
               })}
             </span>
-            <span className="text-slate-900 shrink-0">{session.quorumPercent}%</span>
+            <span className="text-slate-900 shrink-0">{quorumPercent}%</span>
           </div>
 
           <div
@@ -100,7 +107,7 @@ function SessionCard({ session }) {
           >
             <div
               className={cn("h-full rounded-full transition-all duration-500", theme.progressBar)}
-              style={{ width: `${session.quorumPercent}%` }}
+              style={{ width: `${quorumPercent}%` }}
             />
           </div>
         </div>
@@ -145,20 +152,20 @@ function SessionCard({ session }) {
         {theme.buttonPrimary ? (
           <Link to={`/matrix?session=${session.id}`}>
             <Button
-              className="w-full justify-center gap-2 bg-indigo-600 text-white font-semibold shadow-xs hover:bg-indigo-700 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap"
+              className="group/btn w-full justify-center gap-2 bg-indigo-600 text-white font-semibold shadow-xs hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/20 active:scale-[0.99] transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap"
             >
               <span>{t("groupDetail.openAsLead")}</span>
-              <ArrowRight size={14} className="shrink-0" />
+              <ArrowRight size={14} className="shrink-0 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </Button>
           </Link>
         ) : (
           <Link to={`/matrix?session=${session.id}`}>
             <Button
               variant="outline"
-              className="w-full justify-center gap-2 border-slate-200 bg-white font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap"
+              className="group/btn w-full justify-center gap-2 border-slate-200 bg-white font-medium text-slate-700 shadow-2xs hover:bg-indigo-50/80 hover:border-indigo-300 hover:text-indigo-700 hover:shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap"
             >
               <span>{t("groupDetail.openCalendar")}</span>
-              <ArrowRight size={14} className="shrink-0" />
+              <ArrowRight size={14} className="shrink-0 text-slate-400 transition-all duration-200 group-hover/btn:translate-x-1 group-hover/btn:text-indigo-600" />
             </Button>
           </Link>
         )}

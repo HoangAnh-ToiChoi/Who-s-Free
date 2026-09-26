@@ -1,4 +1,3 @@
-import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 
@@ -8,24 +7,13 @@ import SearchBar from "./components/SearchBar";
 import NotificationBell from "./components/NotificationBell";
 import UserAvatar from "./components/UserAvatar";
 
+import { useActiveWorkspace } from "~/hooks";
 import { mockWorkspaces, mockCurrentUser } from "~/data/mockData";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
-  const location = useLocation();
-
-  // Kiểm tra xem hiện tại đang đứng ở chi tiết nhóm (/groups/:groupId) hay ở trang chủ/danh sách
-  const groupMatch = location.pathname.match(/\/groups\/([^/]+)/);
-  const currentGroupId = groupMatch ? groupMatch[1] : null;
-
-  // Nếu không có groupId trong URL => Đang ở Trang chủ (chưa chọn nhóm nào)
-  const activeWorkspace = currentGroupId
-    ? mockWorkspaces.find((ws) => String(ws.id) === String(currentGroupId)) || {
-        id: currentGroupId,
-        name: `Group #${currentGroupId}`,
-        role: "Member",
-      }
-    : null;
+  // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
+  const { activeWorkspace } = useActiveWorkspace(mockWorkspaces);
 
   const isVietnamese = i18n.language?.startsWith("vi");
 

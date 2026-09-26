@@ -1,99 +1,36 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Users, AlertCircle, RefreshCw } from "lucide-react";
 
-import { groupService } from "~/service/groupService";
+import { useGroups } from "~/hooks";
 import { Button } from "~/components/ui/button";
 import HomeHeader from "./components/HomeHeader";
 import GroupCard from "./components/GroupCard";
 
 function Home() {
   const { t } = useTranslation();
-  // 1. Data & Async states (quản lý tập trung tại Page cha theo SRP)
-  const [groups, setGroups] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState(null);
 
-  // 2. UI Filter & Search states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
-
-  /**
-   * Gọi Service lấy danh sách nhóm
-   */
-  const loadGroups = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await groupService.getGroups();
-      setGroups(data);
-    } catch (err) {
-      console.error("Failed to load groups:", err);
-      setError(err?.message || "Failed to load groups. Please check your connection.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  /**
-   * Kích hoạt gọi API khi mount component qua useEffect
-   */
-  useEffect(() => {
-    loadGroups();
-  }, [loadGroups]);
-
-  /**
-   * Hàm xử lý khi component con (Modal) gửi dữ liệu ngược lên để tạo group
-   * @param {Object} newGroupPayload - { name, capacity }
-   */
-  const handleCreateGroup = async (newGroupPayload) => {
-    try {
-      setIsCreating(true);
-      const createdGroup = await groupService.createGroup(newGroupPayload);
-      setGroups((prev) => [createdGroup, ...prev]);
-      return { success: true, data: createdGroup };
-    } catch (err) {
-      console.error("Create group error:", err);
-      return {
-        success: false,
-        error: err?.message || "Unable to create group. Please try again.",
-      };
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  /**
-   * Lọc danh sách nhóm theo filter role & search query
-   */
-  const filteredGroups = useMemo(() => {
-    return groups.filter((g) => {
-      // Filter theo role
-      if (activeFilter === "owner" && g.role !== "Owner") return false;
-      if (activeFilter === "joined" && g.role !== "Joined") return false;
-
-      // Filter theo từ khóa tìm kiếm (nếu có)
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchName = g.name.toLowerCase().includes(query);
-        const matchDesc = g.description?.toLowerCase().includes(query);
-        const matchCohort = g.cohort?.toLowerCase().includes(query);
-        return matchName || matchDesc || matchCohort;
-      }
-
-      return true;
-    });
-  }, [groups, activeFilter, searchQuery]);
+  // Sử dụng Domain Hook chuyên biệt, đóng gói toàn bộ state async, filter & create group
+  const {
+    groups,
+    filteredGroups,
+    isLoading,
+    isCreating,
+    error,
+    activeFilter,
+    setActiveFilter,
+    setSearchQuery,
+    loadGroups,
+    createGroup,
+  } = useGroups();
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-12">
-      {/* Header component con: nhận totalCount, filter, callback tạo group và state isCreating */}
+      {/* Header component: Nhận dữ liệu và handler từ custom hook */}
       <HomeHeader
         totalCount={groups.length}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
-        onCreateGroup={handleCreateGroup}
+        onCreateGroup={createGroup}
         isCreating={isCreating}
       />
 

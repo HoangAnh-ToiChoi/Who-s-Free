@@ -1,16 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
-import { groupService } from "~/service/groupService";
-import { calendarService } from "~/service/calendarService";
+import { useGroupDetail } from "~/hooks";
 import { Button } from "~/components/ui/button";
 
 import GroupHeader from "./components/GroupHeader";
 import GroupMetricsBar from "./components/GroupMetricsBar";
 import GroupSessions from "./subpages/GroupSessions";
-import GroupMatrix from "./subpages/GroupMatrix";
 import GroupMembers from "./subpages/GroupMembers";
 import GroupSettings from "./subpages/GroupSettings";
 
@@ -18,68 +15,18 @@ function Group() {
   const { t } = useTranslation();
   const { groupId = "ws-1" } = useParams();
 
-  // 1. Data states
-  const [group, setGroup] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingCalendar, setIsCreatingCalendar] = useState(false);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("calendars");
-
-  /**
-   * Tải thông tin group và danh sách sessions đồng thời (Tách hàm fetch rõ ràng)
-   */
-  const loadGroupAndCalendars = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Gọi đồng thời cả 2 services
-      const [groupRes, sessionsRes] = await Promise.all([
-        groupService.getGroupById(groupId).catch(() => null),
-        calendarService.getGroupCalendars(groupId),
-      ]);
-
-      setGroup(groupRes);
-      setSessions(sessionsRes);
-    } catch (err) {
-      console.error("Failed to load group details:", err);
-      setError(err?.message || "Failed to load group calendar sessions.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [groupId]);
-
-  /**
-   * Kích hoạt gọi API qua useEffect khi mount hoặc khi groupId thay đổi
-   */
-  useEffect(() => {
-    loadGroupAndCalendars();
-  }, [loadGroupAndCalendars]);
-
-  /**
-   * Hàm xử lý khi Modal tạo Calendar gửi dữ liệu ngược lên (Events Up)
-   * @param {Object} calendarPayload - Dữ liệu session mới
-   */
-  const handleCreateCalendar = async (calendarPayload) => {
-    try {
-      setIsCreatingCalendar(true);
-      const createdSession = await calendarService.createCalendar(
-        groupId,
-        calendarPayload
-      );
-      setSessions((prev) => [createdSession, ...prev]);
-      return { success: true, data: createdSession };
-    } catch (err) {
-      console.error("Failed to create calendar:", err);
-      return {
-        success: false,
-        error: err?.message || "Unable to create calendar session.",
-      };
-    } finally {
-      setIsCreatingCalendar(false);
-    }
-  };
+  // Sử dụng Domain Hook đóng gói toàn bộ state async và thao tác tạo calendar
+  const {
+    group,
+    sessions,
+    isLoading,
+    isCreatingCalendar,
+    error,
+    activeTab,
+    setActiveTab,
+    loadGroupData,
+    createCalendar,
+  } = useGroupDetail(groupId);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-12">
@@ -125,7 +72,7 @@ function Group() {
           </h3>
           <p className="mt-1 max-w-sm text-sm text-slate-500">{error}</p>
           <Button
-            onClick={loadGroupAndCalendars}
+            onClick={loadGroupData}
             className="mt-5 gap-2 bg-indigo-600 px-4 py-2 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer h-9.5 min-w-[120px] justify-center"
           >
             <RefreshCw size={15} />
@@ -139,7 +86,7 @@ function Group() {
           <GroupHeader
             group={group}
             sessionsCount={sessions.length}
-            onCreateCalendar={handleCreateCalendar}
+            onCreateCalendar={createCalendar}
             isCreatingCalendar={isCreatingCalendar}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -156,17 +103,12 @@ function Group() {
             </>
           )}
 
-          {/* Subpage 2: Availability Matrix */}
-          {activeTab === "matrix" && (
-            <GroupMatrix group={group} />
-          )}
-
-          {/* Subpage 3: Members */}
+          {/* Subpage 2: Members */}
           {activeTab === "members" && (
             <GroupMembers group={group} />
           )}
 
-          {/* Subpage 4: Settings */}
+          {/* Subpage 3: Settings */}
           {activeTab === "settings" && (
             <GroupSettings group={group} />
           )}

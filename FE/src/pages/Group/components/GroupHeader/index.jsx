@@ -5,7 +5,6 @@ import {
   CalendarPlus,
   UserPlus,
   Bot,
-  Grid3X3,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { CreateCalendarModal } from "~/components/Modals";
@@ -23,7 +22,6 @@ function GroupHeader({
 
   const tabs = [
     { id: "calendars", label: t("groupDetail.tabCalendars"), count: sessionsCount, minW: "min-w-[105px]" },
-    { id: "matrix", label: t("groupDetail.tabMatrix") || "Ma trận rảnh/bận", minW: "min-w-[130px]" },
     { id: "members", label: t("groupDetail.tabMembers"), count: group?.memberCount || 12, minW: "min-w-[110px]" },
     { id: "settings", label: t("groupDetail.tabSettings"), minW: "min-w-[85px]" },
   ];
