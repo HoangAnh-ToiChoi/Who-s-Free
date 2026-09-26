@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 
@@ -8,11 +7,13 @@ import SearchBar from "./components/SearchBar";
 import NotificationBell from "./components/NotificationBell";
 import UserAvatar from "./components/UserAvatar";
 
+import { useActiveWorkspace } from "~/hooks";
 import { mockWorkspaces, mockCurrentUser } from "~/data/mockData";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
-  const [activeWorkspace, setActiveWorkspace] = useState(mockWorkspaces[0]);
+  // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
+  const { activeWorkspace } = useActiveWorkspace(mockWorkspaces);
 
   const isVietnamese = i18n.language?.startsWith("vi");
 
@@ -27,8 +28,8 @@ function Topbar() {
         <AppLogo />
       </div>
 
-      {/* Center — SearchBar */}
-      <div className="flex flex-1 items-center justify-center">
+      {/* Center — SearchBar (Dịch nhẹ sang phải translate-x để cân bằng thị giác với cụm điều khiển bên phải) */}
+      <div className="flex flex-1 items-center justify-center translate-x-6 sm:translate-x-12">
         <SearchBar />
       </div>
 
@@ -37,7 +38,6 @@ function Topbar() {
         <GroupSelector
           workspaces={mockWorkspaces}
           activeWorkspace={activeWorkspace}
-          onChange={setActiveWorkspace}
         />
 
         {/* Quick Language Toggle Button — Cố định kích thước min-w và h chống giật */}

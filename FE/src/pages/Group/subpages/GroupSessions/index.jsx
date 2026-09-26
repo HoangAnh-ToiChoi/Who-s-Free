@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { SlidersHorizontal, Calendar, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import SessionCard from "../SessionCard";
+import SessionCard from "./components/SessionCard";
 
-function ActivePlanningSessions({ sessions = [], onOpenCreateModal }) {
+function GroupSessions({ sessions = [], onOpenCreateModal }) {
   const { t } = useTranslation();
 
   return (
@@ -68,4 +68,4 @@ function ActivePlanningSessions({ sessions = [], onOpenCreateModal }) {
   );
 }
 
-export default ActivePlanningSessions;
+export default GroupSessions;

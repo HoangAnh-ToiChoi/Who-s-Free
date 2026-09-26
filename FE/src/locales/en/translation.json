@@ -14,6 +14,7 @@
     "switchLanguage": "Switch Language"
   },
   "topbar": {
+    "home": "Home",
     "searchPlaceholder": "Jump to event, member, or agenda...",
     "yourWorkspaces": "Your Workspaces",
     "selectGroup": "Select group",

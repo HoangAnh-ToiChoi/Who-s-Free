@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { CreateGroupModal } from "~/components/Modals";
 
-function GroupsHeader({
+function HomeHeader({
   totalCount,
   activeFilter,
   onFilterChange,
@@ -84,4 +84,4 @@ function GroupsHeader({
   );
 }
 
-export default GroupsHeader;
+export default HomeHeader;

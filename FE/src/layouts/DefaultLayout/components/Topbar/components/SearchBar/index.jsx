@@ -23,7 +23,7 @@ function SearchBar({ value, onChange, placeholder, ...props }) {
   return (
     <div
       onClick={() => inputRef.current?.focus()}
-      className="flex h-9 w-80 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm text-slate-400 transition-all hover:border-slate-300 hover:bg-white focus-within:border-slate-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 cursor-text"
+      className="flex h-9 w-80 items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm text-slate-400 transition-all hover:border-slate-300 hover:bg-white focus-within:border-indigo-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 cursor-text"
     >
       <Search size={16} className="shrink-0 text-slate-400" />
       <Input

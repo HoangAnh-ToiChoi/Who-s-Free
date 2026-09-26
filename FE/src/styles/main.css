@@ -113,3 +113,53 @@ body {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
 }
+
+/* ─── Group Theme Color Tokens (CSS Custom Properties) ─── */
+.group-theme-indigo {
+    --theme-bg: #eef2ff;
+    --theme-text: #4338ca;
+    --theme-border: #c7d2fe;
+    --theme-badge: #e0e7ff;
+    --theme-badge-text: #3730a3;
+    --theme-progress: #4f46e5;
+}
+.group-theme-teal {
+    --theme-bg: #f0fdfa;
+    --theme-text: #0f766e;
+    --theme-border: #99f6e4;
+    --theme-badge: #ccfbf1;
+    --theme-badge-text: #115e59;
+    --theme-progress: #0d9488;
+}
+.group-theme-emerald {
+    --theme-bg: #ecfdf5;
+    --theme-text: #047857;
+    --theme-border: #a7f3d0;
+    --theme-badge: #d1fae5;
+    --theme-badge-text: #065f46;
+    --theme-progress: #059669;
+}
+.group-theme-amber {
+    --theme-bg: #fffbeb;
+    --theme-text: #b45309;
+    --theme-border: #fde68a;
+    --theme-badge: #fef3c7;
+    --theme-badge-text: #92400e;
+    --theme-progress: #d97706;
+}
+.group-theme-purple {
+    --theme-bg: #faf5ff;
+    --theme-text: #7e22ce;
+    --theme-border: #e9d5ff;
+    --theme-badge: #f3e8ff;
+    --theme-badge-text: #6b21a8;
+    --theme-progress: #9333ea;
+}
+.group-theme-blue {
+    --theme-bg: #eff6ff;
+    --theme-text: #1d4ed8;
+    --theme-border: #bfdbfe;
+    --theme-badge: #dbeafe;
+    --theme-badge-text: #1e40af;
+    --theme-progress: #2563eb;
+}
