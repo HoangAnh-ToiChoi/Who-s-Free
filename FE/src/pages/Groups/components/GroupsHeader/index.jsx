@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { CreateGroupModal } from "~/components/Modals";
@@ -11,12 +12,13 @@ function GroupsHeader({
   onGroupCreated,
   isCreating = false,
 }) {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
   const filters = [
-    { id: "all", label: "All Groups" },
-    { id: "owner", label: "Owned by you" },
-    { id: "joined", label: "Joined" },
+    { id: "all", label: t("groups.filterAll"), minW: "min-w-[90px]" },
+    { id: "owner", label: t("groups.filterOwner"), minW: "min-w-[125px]" },
+    { id: "joined", label: t("groups.filterJoined"), minW: "min-w-[95px]" },
   ];
 
   return (
@@ -26,25 +28,25 @@ function GroupsHeader({
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Groups
+              {t("groups.title")}
             </h1>
-            <span className="rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
-              {totalCount} total
+            <span className="inline-flex min-w-[65px] justify-center rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 whitespace-nowrap">
+              {t("groups.totalCount", { count: totalCount })}
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            Coordinate availability matrices, weekly meeting schedules, and member rosters.
+            {t("groups.subtitle")}
           </p>
         </div>
 
-        {/* Action Button */}
-        <div>
+        {/* Action Button - Cố định min-width và height để chống giật giao diện */}
+        <div className="shrink-0">
           <Button
             onClick={() => setModalOpen(true)}
-            className="gap-2 bg-indigo-600 px-4 py-2 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer"
+            className="h-10 min-w-[170px] gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer whitespace-nowrap justify-center"
           >
-            <Plus size={16} strokeWidth={2.5} />
-            <span>Create New Group</span>
+            <Plus size={16} strokeWidth={2.5} className="shrink-0" />
+            <span>{t("groups.createNewGroup")}</span>
           </Button>
 
           <CreateGroupModal
@@ -58,7 +60,7 @@ function GroupsHeader({
 
       {/* Bottom row: Filter Tabs */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-        {/* Filter Pills */}
+        {/* Filter Pills - Cố định min-width trên từng pill */}
         <div className="flex items-center gap-1.5 overflow-x-auto">
           {filters.map((f) => {
             const isActive = activeFilter === f.id;
@@ -66,7 +68,7 @@ function GroupsHeader({
               <button
                 key={f.id}
                 onClick={() => onFilterChange(f.id)}
-                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer select-none ${
+                className={`h-8 ${f.minW} flex items-center justify-center rounded-lg px-3.5 text-xs font-semibold transition-colors cursor-pointer select-none whitespace-nowrap ${
                   isActive
                     ? "bg-indigo-600 text-white shadow-xs"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Users, AlertCircle, RefreshCw } from "lucide-react";
 
 import { groupService } from "~/service/groupService";
@@ -7,6 +8,7 @@ import GroupsHeader from "./components/GroupsHeader";
 import GroupCard from "./components/GroupCard";
 
 function Groups() {
+  const { t } = useTranslation();
   // 1. Data & Async states (quản lý tập trung tại Page cha)
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,15 +137,15 @@ function Groups() {
             <AlertCircle size={24} />
           </div>
           <h3 className="mt-4 text-base font-semibold text-slate-900">
-            Failed to load groups
+            {t("groups.failedLoad")}
           </h3>
           <p className="mt-1 max-w-sm text-sm text-slate-500">{error}</p>
           <Button
             onClick={loadGroups}
-            className="mt-5 gap-2 bg-indigo-600 px-4 py-2 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer"
+            className="mt-5 gap-2 bg-indigo-600 px-4 py-2 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer h-9.5 min-w-[120px] justify-center"
           >
             <RefreshCw size={15} />
-            <span>Try Again</span>
+            <span>{t("common.tryAgain")}</span>
           </Button>
         </div>
       ) : filteredGroups.length > 0 ? (
@@ -153,7 +155,7 @@ function Groups() {
             <GroupCard
               key={group.id}
               group={group}
-              to={`/matrix?group=${group.id}`}
+              to={`/groups/${group.id}`}
             />
           ))}
         </div>
@@ -164,11 +166,10 @@ function Groups() {
             <Users size={24} />
           </div>
           <h3 className="mt-4 text-sm font-semibold text-slate-900">
-            No groups match your criteria
+            {t("groups.emptyTitle")}
           </h3>
           <p className="mt-1 max-w-xs text-xs text-slate-500">
-            Try adjusting your search terms or filter settings to find what you
-            are looking for.
+            {t("groups.emptyDesc")}
           </p>
           <Button
             variant="ghost"
@@ -177,9 +178,9 @@ function Groups() {
               setSearchQuery("");
               setActiveFilter("all");
             }}
-            className="mt-4 cursor-pointer text-xs font-semibold text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+            className="mt-4 cursor-pointer text-xs font-semibold text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 h-8 min-w-[110px] justify-center"
           >
-            Clear filters
+            {t("groups.clearFilters")}
           </Button>
         </div>
       )}
