@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  base: "/Who-s-Free/",
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] }),

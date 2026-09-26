@@ -1,10 +1,14 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { Input } from "~/components/ui/input";
 
-function SearchBar({ value, onChange, placeholder = "Search...", ...props }) {
+function SearchBar({ value, onChange, placeholder, ...props }) {
+  const { t } = useTranslation();
   const [internalValue, setInternalValue] = useState("");
   const inputRef = useRef(null);
+
+  const displayPlaceholder = placeholder || t("topbar.searchPlaceholder");
 
   const isControlled = value !== undefined;
   const currentValue = isControlled ? value : internalValue;
@@ -27,7 +31,7 @@ function SearchBar({ value, onChange, placeholder = "Search...", ...props }) {
         type="text"
         value={currentValue}
         onChange={handleChange}
-        placeholder={placeholder}
+        placeholder={displayPlaceholder}
         className="h-full flex-1 rounded-none border-0 bg-transparent px-0 py-0 text-sm text-slate-800 placeholder:text-slate-400 shadow-none outline-none focus-visible:border-0 focus-visible:ring-0"
         {...props}
       />

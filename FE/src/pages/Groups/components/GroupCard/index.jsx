@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import {
   Users,
   Calendar,
@@ -54,18 +55,19 @@ const COLOR_STYLES = {
 };
 
 function GroupCard({ group, to = "/matrix", onClick }) {
+  const { t } = useTranslation();
   const styles = COLOR_STYLES[group.color] || COLOR_STYLES.indigo;
   const isOwner = group.role === "Owner";
   const capacityPercent = Math.min(
     Math.round((group.memberCount / group.capacity) * 100),
-    100,
+    100
   );
 
   return (
     <Link
       to={to}
       onClick={onClick}
-      className="group relative block flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 select-none hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-md"
+      className="group relative flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-200 select-none hover:-translate-y-0.5 hover:border-indigo-500/40 hover:shadow-md"
     >
       {/* Top Section */}
       <div>
@@ -77,17 +79,17 @@ function GroupCard({ group, to = "/matrix", onClick }) {
             {group.name.charAt(0)}
           </div>
 
-          {/* Role badge */}
-          <div className="flex items-center gap-1.5">
+          {/* Role badge - Cố định min-width để chống giật khi đổi ngôn ngữ */}
+          <div className="flex items-center gap-1.5 shrink-0">
             {isOwner ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
+              <span className="inline-flex min-w-[76px] justify-center items-center gap-1 rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 whitespace-nowrap">
                 <ShieldCheck size={13} className="shrink-0" />
-                Owner
+                <span>{t("groupCard.owner")}</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+              <span className="inline-flex min-w-[86px] justify-center items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 whitespace-nowrap">
                 <UserCheck size={13} className="shrink-0 text-slate-400" />
-                Member
+                <span>{t("groupCard.joined")}</span>
               </span>
             )}
           </div>
@@ -105,7 +107,7 @@ function GroupCard({ group, to = "/matrix", onClick }) {
               {group.cohort}
             </span>
           )}
-          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-700">
+          <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-slate-700">
             {group.description}
           </p>
         </div>
@@ -116,17 +118,17 @@ function GroupCard({ group, to = "/matrix", onClick }) {
         {/* Capacity / Member Stats */}
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5 font-medium text-slate-700">
-            <Users size={14} className="text-slate-600" />
+            <Users size={14} className="text-slate-600 shrink-0" />
             <span>
               {group.memberCount}
               <span className="font-normal text-slate-600">
                 {" "}
-                / {group.capacity} members
+                / {group.capacity} {t("groupCard.members")}
               </span>
             </span>
           </div>
-          <span className="text-[11px] font-semibold text-slate-600">
-            {capacityPercent}% filled
+          <span className="text-[11px] font-semibold text-slate-600 shrink-0">
+            {capacityPercent}%
           </span>
         </div>
 
@@ -141,7 +143,7 @@ function GroupCard({ group, to = "/matrix", onClick }) {
         {/* Active sessions & Avatars stack */}
         <div className="mt-4 flex items-center justify-between">
           {/* Member avatars */}
-          <div className="flex items-center -space-x-2 overflow-hidden">
+          <div className="flex items-center -space-x-2 overflow-hidden shrink-0">
             {group.avatarPreviews?.slice(0, 3).map((avatar, idx) => (
               <img
                 key={idx}
@@ -158,9 +160,11 @@ function GroupCard({ group, to = "/matrix", onClick }) {
           </div>
 
           {/* Active sessions tag */}
-          <div className="flex items-center gap-1 text-xs font-medium text-slate-700">
-            <Calendar size={13} className="text-emerald-700" />
-            <span>{group.activeSessionsCount} active polls</span>
+          <div className="flex items-center gap-1 text-xs font-medium text-slate-700 whitespace-nowrap">
+            <Calendar size={13} className="text-emerald-700 shrink-0" />
+            <span>
+              {t("groupCard.sessionsCount", { count: group.activeSessionsCount })}
+            </span>
           </div>
         </div>
 
@@ -171,7 +175,9 @@ function GroupCard({ group, to = "/matrix", onClick }) {
             className="flex h-10 w-full items-center justify-between rounded-xl px-3.5 pointer-events-none transition-all duration-200 group-hover:bg-indigo-50 group-hover:text-indigo-800"
           >
             <div className="flex w-full items-center justify-between">
-              <span className="text-xs font-semibold">Open Schedule</span>
+              <span className="text-xs font-semibold whitespace-nowrap">
+                {t("groupCard.openWorkspace")}
+              </span>
               <ArrowRight
                 size={15}
                 className="shrink-0 text-slate-500 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-indigo-700"

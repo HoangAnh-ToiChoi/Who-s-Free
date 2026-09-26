@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, X, ChevronDown, Info, Zap, Check, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { useClickOutside } from "~/hooks";
 
 import {
   Dialog,
@@ -13,9 +15,9 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
 const CAPACITY_OPTIONS = [
-  { value: "5", label: "5 members (Small team)" },
-  { value: "10", label: "10 members (Standard club)" },
-  { value: "200", label: "200 members (Large organization)" },
+  { value: "5", label: "5 members (Small team)", viLabel: "5 thành viên (Nhóm nhỏ)" },
+  { value: "10", label: "10 members (Standard club)", viLabel: "10 thành viên (Câu lạc bộ chuẩn)" },
+  { value: "200", label: "200 members (Large organization)", viLabel: "200 thành viên (Tổ chức lớn)" },
 ];
 
 function CreateGroupModal({
@@ -25,6 +27,7 @@ function CreateGroupModal({
   onSuccess,
   isSubmitting: externalIsSubmitting = false,
 }) {
+  const { t, i18n } = useTranslation();
   const [groupName, setGroupName] = useState("");
   const [capacity, setCapacity] = useState("10");
   const [selectOpen, setSelectOpen] = useState(false);
@@ -32,6 +35,7 @@ function CreateGroupModal({
   const [internalSubmitting, setInternalSubmitting] = useState(false);
   const selectRef = useRef(null);
 
+  const isVietnamese = i18n.language?.startsWith("vi");
   const isSubmitting = externalIsSubmitting || internalSubmitting;
 
   // Reset form when modal opens or closes
@@ -43,15 +47,7 @@ function CreateGroupModal({
     }
   }, [open]);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (selectRef.current && !selectRef.current.contains(e.target)) {
-        setSelectOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  useClickOutside(selectRef, () => setSelectOpen(false));
 
   const selectedOption =
     CAPACITY_OPTIONS.find((opt) => opt.value === capacity) ||
@@ -62,7 +58,7 @@ function CreateGroupModal({
 
     const trimmedName = groupName.trim();
     if (!trimmedName) {
-      setErrorMessage("Please enter a group name");
+      setErrorMessage(t("createGroupModal.errorNameRequired"));
       return;
     }
 
@@ -108,7 +104,7 @@ function CreateGroupModal({
                 <Plus size={16} strokeWidth={2.5} />
               </div>
               <DialogTitle className="text-lg font-bold text-slate-900">
-                Create New Group
+                {t("createGroupModal.title")}
               </DialogTitle>
             </div>
             <DialogClose
@@ -129,13 +125,13 @@ function CreateGroupModal({
           {/* Field: Group Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-              Group Name
+              {t("createGroupModal.groupName")}
             </label>
             <Input
               type="text"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              placeholder="e.g. Robotics Hardware Sprint"
+              placeholder={t("createGroupModal.groupNamePlaceholder")}
               className="h-11 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 transition-all hover:border-slate-300 hover:bg-white focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-500/20"
               autoFocus
             />
@@ -145,9 +141,11 @@ function CreateGroupModal({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                Member Limit / Capacity
+                {t("createGroupModal.memberLimit")}
               </label>
-              <span className="text-xs text-slate-400">Recommended: 10</span>
+              <span className="text-xs text-slate-400">
+                {t("createGroupModal.recommended")}
+              </span>
             </div>
 
             <div ref={selectRef} className="relative">
@@ -162,7 +160,7 @@ function CreateGroupModal({
                 )}
               >
                 <span className="font-normal text-slate-800">
-                  {selectedOption.label}
+                  {isVietnamese ? selectedOption.viLabel : selectedOption.label}
                 </span>
                 <ChevronDown
                   size={16}
@@ -192,7 +190,7 @@ function CreateGroupModal({
                             : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                         )}
                       >
-                        <span>{opt.label}</span>
+                        <span>{isVietnamese ? opt.viLabel : opt.label}</span>
                         {isSelected && (
                           <Check size={14} className="text-indigo-600" />
                         )}
@@ -206,9 +204,7 @@ function CreateGroupModal({
             {/* Helper note */}
             <div className="mt-1 flex items-start gap-1.5 text-xs text-slate-500">
               <Info size={14} className="mt-0.5 shrink-0 text-slate-400" />
-              <span>
-                You can adjust capacity and invite team members after creation.
-              </span>
+              <span>{t("createGroupModal.helperNote")}</span>
             </div>
           </div>
 
@@ -220,15 +216,15 @@ function CreateGroupModal({
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-slate-800">
-                  Auto-generated workspace space
+                  {t("createGroupModal.autoGenerated")}
                 </span>
                 <span className="text-xs text-slate-400">
-                  CalDAV & ICS sync ready
+                  {t("createGroupModal.calDavSync")}
                 </span>
               </div>
             </div>
             <span className="rounded-md bg-teal-50 border border-teal-200/60 px-2 py-0.5 text-[11px] font-semibold text-teal-700">
-              Active
+              {t("common.active")}
             </span>
           </div>
 
@@ -239,31 +235,31 @@ function CreateGroupModal({
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Cố định height và min-w chống giật */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="ghost"
               disabled={isSubmitting}
               onClick={() => onOpenChange?.(false)}
-              className="h-10 cursor-pointer px-4 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+              className="h-10 min-w-[80px] cursor-pointer px-4 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 justify-center"
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-10 cursor-pointer gap-2 bg-indigo-600 px-5 font-medium text-white shadow-xs hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="h-10 min-w-[140px] cursor-pointer gap-2 bg-indigo-600 px-5 font-medium text-white shadow-xs hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed justify-center whitespace-nowrap"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  <span>Creating...</span>
+                  <span>{t("createGroupModal.creating")}</span>
                 </>
               ) : (
                 <>
                   <Check size={16} strokeWidth={2.5} />
-                  <span>Create Group</span>
+                  <span>{t("createGroupModal.createGroup")}</span>
                 </>
               )}
             </Button>
