@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Users, UserPlus, Shield } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
-function GroupMembers({ group }) {
+function GroupMembers({ group, onOpenInvite }) {
   const { t } = useTranslation();
 
   return (
@@ -18,8 +18,10 @@ function GroupMembers({ group }) {
       </p>
       <div className="mt-6 flex justify-center">
         <Button
+          type="button"
+          onClick={onOpenInvite}
           variant="outline"
-          className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 text-xs h-9 min-w-[140px] justify-center"
+          className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 text-xs h-9 min-w-[140px] justify-center cursor-pointer shadow-2xs"
         >
           <UserPlus size={14} />
           <span>{t("groupDetail.inviteMembers")}</span>

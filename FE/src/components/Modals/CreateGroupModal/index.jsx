@@ -1,16 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, X, ChevronDown, Info, Zap, Check, Loader2 } from "lucide-react";
+import { Plus, ChevronDown, Info, Zap, Check, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useClickOutside } from "~/hooks";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "~/components/ui/dialog";
+import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
@@ -91,37 +85,19 @@ function CreateGroupModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="gap-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl sm:max-w-[460px]"
-      >
-        {/* Header */}
-        <DialogHeader className="gap-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-indigo-600 text-indigo-600">
-                <Plus size={16} strokeWidth={2.5} />
-              </div>
-              <DialogTitle className="text-lg font-bold text-slate-900">
-                {t("createGroupModal.title")}
-              </DialogTitle>
-            </div>
-            <DialogClose
-              render={
-                <Button
-                  variant="ghost"
-                  className="-mr-2 -mt-1 h-9 w-9 cursor-pointer rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                />
-              }
-            >
-              <X size={22} strokeWidth={2.2} />
-            </DialogClose>
-          </div>
-        </DialogHeader>
-
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <BaseModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("createGroupModal.title")}
+      titleClassName="text-lg"
+      icon={<Plus size={16} strokeWidth={2.5} />}
+      iconWrapperClassName="h-7 w-7 rounded-full border-2 border-indigo-600 text-indigo-600"
+      closeButtonClassName="-mr-2 -mt-1 h-9 w-9 rounded-xl hover:bg-red-50 hover:text-red-600"
+      closeIconSize={22}
+      className="gap-6 sm:max-w-[460px]"
+    >
+      {/* Form Body */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {/* Field: Group Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
@@ -265,8 +241,7 @@ function CreateGroupModal({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </BaseModal>
   );
 }
 
