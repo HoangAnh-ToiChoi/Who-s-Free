@@ -174,8 +174,6 @@ function CreateCalendarModal({
       subtitle={t("createCalendarModal.subtitle")}
       icon={<CalendarPlus size={18} strokeWidth={2.2} />}
       iconWrapperClassName="h-8 w-8 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-600"
-      closeButtonClassName="-mr-2 -mt-1 h-9 w-9 rounded-xl hover:bg-red-50 hover:text-red-600"
-      closeIconSize={20}
       className="gap-5 sm:max-w-[500px]"
     >
       {/* Form Body */}

@@ -83,7 +83,7 @@ function Home() {
             <GroupCard
               key={group.id}
               group={group}
-              to={`/groups/${group.id}`}
+              to={`/groups/${group.slug || group.id}`}
             />
           ))}
         </div>

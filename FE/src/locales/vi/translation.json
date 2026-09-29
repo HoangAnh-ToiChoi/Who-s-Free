@@ -11,7 +11,8 @@
     "language": "Ngôn ngữ",
     "vietnamese": "Tiếng Việt",
     "english": "English",
-    "switchLanguage": "Đổi ngôn ngữ"
+    "switchLanguage": "Đổi ngôn ngữ",
+    "backToHome": "Về trang chủ"
   },
   "topbar": {
     "home": "Trang chủ",
@@ -62,6 +63,7 @@
     "overlap": "TRÙNG RẢNH",
     "openAsLead": "Mở chế độ Lead (Ma trận)",
     "openCalendar": "Xem lịch trình",
+    "backToGroup": "Quay lại nhóm",
     "noSessionsTitle": "Chưa có lịch trình khảo sát nào",
     "noSessionsDesc": "Tạo cuộc khảo sát lịch rảnh đầu tiên hoặc phiên đồng bộ lịch cho nhóm này.",
     "createSession": "Tạo lịch trình",
@@ -145,5 +147,30 @@
       "emailInvalid": "Định dạng email không hợp lệ",
       "sendFailed": "Không thể gửi lời mời, vui lòng thử lại"
     }
+  },
+  "slotPopover": {
+    "editSlot": "Chỉnh sửa lịch",
+    "newSlot": "Thêm lịch rảnh",
+    "durationInvalid": "Không hợp lệ",
+    "noteLabel": "Ghi chú / Tên slot",
+    "optional": "Tùy chọn",
+    "notePlaceholder": "vd: Rảnh sau giờ học, Ưu tiên họp sáng...",
+    "invalidTime": "Giờ kết thúc phải sau giờ bắt đầu",
+    "apply": "Áp dụng",
+    "delete": "Xóa",
+    "cancel": "Hủy"
+  },
+  "gridToolbar": {
+    "today": "Hôm nay",
+    "prevWeek": "Tuần trước",
+    "nextWeek": "Tuần sau",
+    "timezone": "GMT+7 (Bangkok/Jakarta)",
+    "slotsSelected": "• Đã chọn {{count}} slot (tổng {{hours}}h)",
+    "clearSelections": "Xóa lựa chọn",
+    "noSlotsSelected": "Chưa có khung giờ nào được chọn"
+  },
+  "matrix": {
+    "switchToLeadMode": "Chế độ Lead",
+    "leadModeActive": "Đang xem: Lead"
   }
 }

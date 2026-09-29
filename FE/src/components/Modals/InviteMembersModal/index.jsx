@@ -75,11 +75,9 @@ function InviteMembersModal({ open, onOpenChange, group }) {
       onOpenChange={onOpenChange}
       title={t("inviteModal.title")}
       subtitle={t("inviteModal.subtitle", { groupName })}
-      icon={<UserPlus size={22} />}
-      iconWrapperClassName="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100/80 shadow-2xs"
-      closeButtonClassName="h-8 w-8 rounded-xl border border-indigo-200/80 hover:border-indigo-400 hover:bg-slate-50"
-      closeIconSize={16}
-      className="sm:max-w-[480px] border-slate-200/90"
+      icon={<UserPlus size={18} strokeWidth={2.2} />}
+      iconWrapperClassName="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 shadow-2xs"
+      className="p-7 sm:p-8 sm:max-w-[520px] border-slate-200/90"
       footer={
         <>
           <button
@@ -106,7 +104,7 @@ function InviteMembersModal({ open, onOpenChange, group }) {
       }
     >
       {/* Section 1: SHARE INVITATION LINK */}
-      <div className="mt-5">
+      <div className="mt-1">
         <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase select-none">
           {t("inviteModal.shareLinkHeader")}
         </span>

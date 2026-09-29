@@ -1,5 +1,6 @@
 import http from "~/utils/http";
 import { mockSessions } from "~/data/mockData";
+import { slugify } from "~/utils/slugify";
 
 // Local in-memory store for mock development
 let sessionsStore = [...mockSessions];
@@ -27,17 +28,19 @@ export const calendarService = {
   },
 
   /**
-   * Lấy chi tiết một calendar / session theo ID
-   * @param {string|number} calendarId
+   * Lấy chi tiết một calendar / session theo ID hoặc Slug
+   * @param {string|number} calendarIdentifier - ID hoặc slug của session
    * @returns {Promise<Object>}
    */
-  async getCalendarById(calendarId) {
+  async getCalendarById(calendarIdentifier) {
     // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.get(`/api/calendars/${calendarId}`);
+    // return await http.get(`/api/calendars/${calendarIdentifier}`);
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const found = sessionsStore.find((s) => s.id === calendarId);
+        const found = sessionsStore.find(
+          (s) => s.slug === calendarIdentifier || s.id === calendarIdentifier
+        );
         if (found) resolve(found);
         else reject(new Error("Calendar session not found"));
       }, 200);
@@ -56,8 +59,10 @@ export const calendarService = {
 
     return new Promise((resolve) => {
       setTimeout(() => {
+        const autoSlug = slugify(payload.title) || `session-${Date.now()}`;
         const newSession = {
           id: `sess-${Date.now()}`,
+          slug: payload.slug || autoSlug,
           refCode: `Ref #${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
           title: payload.title,
           description:
@@ -83,17 +88,19 @@ export const calendarService = {
   },
 
   /**
-   * Xóa một calendar session
-   * @param {string|number} calendarId
+   * Xóa một calendar session theo ID hoặc Slug
+   * @param {string|number} calendarIdentifier
    */
-  async deleteCalendar(calendarId) {
+  async deleteCalendar(calendarIdentifier) {
     // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.del(`/api/calendars/${calendarId}`);
+    // return await http.del(`/api/calendars/${calendarIdentifier}`);
 
     return new Promise((resolve) => {
       setTimeout(() => {
-        sessionsStore = sessionsStore.filter((s) => s.id !== calendarId);
-        resolve({ success: true, id: calendarId });
+        sessionsStore = sessionsStore.filter(
+          (s) => s.id !== calendarIdentifier && s.slug !== calendarIdentifier
+        );
+        resolve({ success: true, id: calendarIdentifier });
       }, 250);
     });
   },

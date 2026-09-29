@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Calendar,
@@ -45,6 +45,7 @@ function getSessionTheme(tagColor) {
 
 function SessionCard({ session }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const theme = getSessionTheme(session.tagColor);
   const HighlightIcon = theme.highlightIcon;
 
@@ -54,8 +55,13 @@ function SessionCard({ session }) {
       ? session.quorumPercent
       : calcPercentage(session.respondedCount, session.totalMembers);
 
+  const matrixUrl = `/matrix?session=${session.slug || session.id}`;
+
   return (
-    <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+    <div
+      onClick={() => navigate(matrixUrl)}
+      className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer"
+    >
       {/* Top Header: Tag & Options Menu */}
       <div>
         <div className="flex items-center justify-between">
@@ -146,18 +152,17 @@ function SessionCard({ session }) {
 
       {/* CTA Button - Cố định height h-10 chống giật, hover vào card thì hiện style primary như calendar 1 */}
       <div className="mt-5 pt-3 border-t border-slate-100/80">
-        <Link to={`/matrix?session=${session.id}`}>
-          <Button
-            variant="outline"
-            className="w-full justify-center gap-2 border-slate-200 bg-white font-medium text-slate-700 shadow-2xs transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white group-hover:font-semibold group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!bg-indigo-700 hover:!border-indigo-700 active:scale-[0.99]"
-          >
-            <span>{t("groupDetail.openCalendar")}</span>
-            <ArrowRight
-              size={14}
-              className="shrink-0 text-slate-400 transition-all duration-200 group-hover:text-white group-hover:translate-x-1"
-            />
-          </Button>
-        </Link>
+        <Button
+          variant="outline"
+          onClick={(e) => { e.stopPropagation(); navigate(matrixUrl); }}
+          className="w-full justify-center gap-2 border-slate-200 bg-white font-medium text-slate-700 shadow-2xs transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white group-hover:font-semibold group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!bg-indigo-700 hover:!border-indigo-700 active:scale-[0.99]"
+        >
+          <span>{t("groupDetail.openCalendar")}</span>
+          <ArrowRight
+            size={14}
+            className="shrink-0 text-slate-400 transition-all duration-200 group-hover:text-white group-hover:translate-x-1"
+          />
+        </Button>
       </div>
     </div>
   );
