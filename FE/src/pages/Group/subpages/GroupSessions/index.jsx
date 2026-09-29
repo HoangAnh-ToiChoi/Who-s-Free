@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { SlidersHorizontal, Calendar, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import SessionCard from "./components/SessionCard";
+import SessionCard from "~/pages/Group/subpages/GroupSessions/components/SessionCard";
 
 function GroupSessions({ sessions = [], onOpenCreateModal }) {
   const { t } = useTranslation();

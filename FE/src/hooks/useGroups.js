@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { groupService } from "~/service/groupService";
+import { groupService } from "~/service/groupService/groupService";
 
 /**
  * Custom hook quản lý toàn bộ vòng đời dữ liệu, tìm kiếm, lọc và tạo nhóm tại Trang chủ (Home).

@@ -22,7 +22,6 @@ function getSessionTheme(tagColor) {
         progressBar: "bg-indigo-600",
         highlightBg: "bg-indigo-50/80 border-indigo-200/60 text-indigo-800",
         highlightIcon: Star,
-        buttonPrimary: true,
       };
     case "secondary": // Technical Sprint
       return {
@@ -31,7 +30,6 @@ function getSessionTheme(tagColor) {
         progressBar: "bg-purple-600",
         highlightBg: "bg-purple-50/80 border-purple-200/60 text-purple-800",
         highlightIcon: CheckCircle2,
-        buttonPrimary: false,
       };
     case "tertiary": // External Outreach
     default:
@@ -41,7 +39,6 @@ function getSessionTheme(tagColor) {
         progressBar: "bg-amber-600",
         highlightBg: "bg-amber-50/80 border-amber-200/60 text-amber-800",
         highlightIcon: Clock,
-        buttonPrimary: false,
       };
   }
 }
@@ -147,28 +144,20 @@ function SessionCard({ session }) {
         </div>
       </div>
 
-      {/* CTA Button - Cố định height h-10 chống giật */}
+      {/* CTA Button - Cố định height h-10 chống giật, hover vào card thì hiện style primary như calendar 1 */}
       <div className="mt-5 pt-3 border-t border-slate-100/80">
-        {theme.buttonPrimary ? (
-          <Link to={`/matrix?session=${session.id}`}>
-            <Button
-              className="group/btn w-full justify-center gap-2 bg-indigo-600 text-white font-semibold shadow-xs hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/20 active:scale-[0.99] transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap"
-            >
-              <span>{t("groupDetail.openAsLead")}</span>
-              <ArrowRight size={14} className="shrink-0 transition-transform duration-200 group-hover/btn:translate-x-1" />
-            </Button>
-          </Link>
-        ) : (
-          <Link to={`/matrix?session=${session.id}`}>
-            <Button
-              variant="outline"
-              className="group/btn w-full justify-center gap-2 border-slate-200 bg-white font-medium text-slate-700 shadow-2xs hover:bg-indigo-50/80 hover:border-indigo-300 hover:text-indigo-700 hover:shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap"
-            >
-              <span>{t("groupDetail.openCalendar")}</span>
-              <ArrowRight size={14} className="shrink-0 text-slate-400 transition-all duration-200 group-hover/btn:translate-x-1 group-hover/btn:text-indigo-600" />
-            </Button>
-          </Link>
-        )}
+        <Link to={`/matrix?session=${session.id}`}>
+          <Button
+            variant="outline"
+            className="w-full justify-center gap-2 border-slate-200 bg-white font-medium text-slate-700 shadow-2xs transition-all duration-200 cursor-pointer text-xs h-10 rounded-xl whitespace-nowrap group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white group-hover:font-semibold group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!bg-indigo-700 hover:!border-indigo-700 active:scale-[0.99]"
+          >
+            <span>{t("groupDetail.openCalendar")}</span>
+            <ArrowRight
+              size={14}
+              className="shrink-0 text-slate-400 transition-all duration-200 group-hover:text-white group-hover:translate-x-1"
+            />
+          </Button>
+        </Link>
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 
-import AppLogo from "./components/AppLogo";
-import GroupSelector from "./components/GroupSelector";
-import SearchBar from "./components/SearchBar";
-import NotificationBell from "./components/NotificationBell";
-import UserAvatar from "./components/UserAvatar";
+import AppLogo from "~/layouts/DefaultLayout/components/Topbar/components/AppLogo";
+import GroupSelector from "~/layouts/DefaultLayout/components/Topbar/components/GroupSelector";
+import SearchBar from "~/layouts/DefaultLayout/components/Topbar/components/SearchBar";
+import NotificationBell from "~/layouts/DefaultLayout/components/Topbar/components/NotificationBell";
+import UserAvatar from "~/layouts/DefaultLayout/components/Topbar/components/UserAvatar";
 
 import { useActiveWorkspace } from "~/hooks";
 import { mockWorkspaces, mockCurrentUser } from "~/data/mockData";

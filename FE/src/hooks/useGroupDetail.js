@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { groupService } from "~/service/groupService";
-import { calendarService } from "~/service/calendarService";
+import { groupService } from "~/service/groupService/groupService";
+import { calendarService } from "~/service/calendarService/calendarService";
 
 /**
  * Custom hook quản lý dữ liệu chi tiết nhóm, danh sách lịch khảo sát và thao tác tạo lịch.
