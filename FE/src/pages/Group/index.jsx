@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { useGroupDetail } from "~/hooks";
 import { Button } from "~/components/ui/button";
+import { InviteMembersModal } from "~/components/Modals";
 
 import GroupHeader from "~/pages/Group/components/GroupHeader";
 import GroupMetricsBar from "~/pages/Group/components/GroupMetricsBar";
@@ -27,6 +29,9 @@ function Group() {
     loadGroupData,
     createCalendar,
   } = useGroupDetail(groupId);
+
+  // Quản lý trạng thái mở modal Mời thành viên (dùng chung cho cả Header và Tab Members)
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-12">
@@ -90,6 +95,7 @@ function Group() {
             isCreatingCalendar={isCreatingCalendar}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            onOpenInvite={() => setIsInviteModalOpen(true)}
           />
 
           {/* Subpage 1: Calendars / Planning Sessions */}
@@ -105,13 +111,23 @@ function Group() {
 
           {/* Subpage 2: Members */}
           {activeTab === "members" && (
-            <GroupMembers group={group} />
+            <GroupMembers
+              group={group}
+              onOpenInvite={() => setIsInviteModalOpen(true)}
+            />
           )}
 
           {/* Subpage 3: Settings */}
           {activeTab === "settings" && (
             <GroupSettings group={group} />
           )}
+
+          {/* Modal Mời Thành Viên - Dùng chung cấp Group */}
+          <InviteMembersModal
+            open={isInviteModalOpen}
+            onOpenChange={setIsInviteModalOpen}
+            group={group}
+          />
         </>
       )}
     </div>

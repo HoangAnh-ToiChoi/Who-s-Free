@@ -116,5 +116,34 @@
     "creatingSession": "Creating Session...",
     "errorTitleRequired": "Please enter a session or calendar title.",
     "errorDateRequired": "Please select a target date range."
+  },
+  "inviteModal": {
+    "title": "Invite Members",
+    "subtitle": "Invite your teammates to {{groupName}} to sync schedules.",
+    "shareLinkHeader": "SHARE INVITATION LINK",
+    "shareLinkDesc": "Anyone with this active key can view schedules and submit availability matrices.",
+    "copyLink": "Copy Link",
+    "copied": "Copied!",
+    "orDirect": "or send direct invitation",
+    "inviteEmailHeader": "INVITE BY EMAIL",
+    "emailPlaceholder": "name@university.edu",
+    "rolePrefix": "Role:",
+    "roleMember": "Member",
+    "roleAdmin": "Admin",
+    "roleViewer": "Viewer",
+    "send": "Send",
+    "sending": "Sending...",
+    "expiryNote": "Pending invites expire in 7 days • University SSO verified",
+    "pendingHeader": "Recent Pending Invites",
+    "awaitingCount": "{{count}} awaiting verification",
+    "resend": "Resend",
+    "resending": "Sending...",
+    "managePermissions": "Manage permissions in Settings",
+    "done": "Done",
+    "validation": {
+      "emailRequired": "Please enter an email address",
+      "emailInvalid": "Invalid email address format",
+      "sendFailed": "Could not send invitation, please try again"
+    }
   }
 }

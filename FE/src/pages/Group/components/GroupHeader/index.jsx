@@ -16,6 +16,7 @@ function GroupHeader({
   isCreatingCalendar = false,
   activeTab = "calendars",
   onTabChange,
+  onOpenInvite,
 }) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,6 +96,8 @@ function GroupHeader({
         {/* Right: Actions - Cố định height và min-width chống giật layout */}
         <div className="flex items-center gap-3 shrink-0">
           <Button
+            type="button"
+            onClick={onOpenInvite}
             variant="outline"
             className="h-9.5 min-w-[140px] justify-center gap-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs rounded-xl whitespace-nowrap"
           >

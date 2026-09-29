@@ -116,5 +116,34 @@
     "creatingSession": "Đang tạo...",
     "errorTitleRequired": "Vui lòng nhập tên cuộc họp hoặc lịch trình.",
     "errorDateRequired": "Vui lòng chọn khoảng thời gian cần khảo sát."
+  },
+  "inviteModal": {
+    "title": "Mời thành viên",
+    "subtitle": "Mời đồng đội tham gia {{groupName}} để cùng đồng bộ lịch trình.",
+    "shareLinkHeader": "LIÊN KẾT MỜI THAM GIA",
+    "shareLinkDesc": "Bất kỳ ai có liên kết này đều có thể xem lịch và gửi ma trận thời gian rảnh.",
+    "copyLink": "Sao chép liên kết",
+    "copied": "Đã sao chép!",
+    "orDirect": "hoặc gửi lời mời trực tiếp",
+    "inviteEmailHeader": "MỜI QUA EMAIL",
+    "emailPlaceholder": "name@university.edu",
+    "rolePrefix": "Vai trò:",
+    "roleMember": "Thành viên",
+    "roleAdmin": "Quản trị viên",
+    "roleViewer": "Người xem",
+    "send": "Gửi",
+    "sending": "Đang gửi...",
+    "expiryNote": "Lời mời có hiệu lực trong 7 ngày • Xác thực SSO",
+    "pendingHeader": "Lời mời đang chờ phản hồi",
+    "awaitingCount": "{{count}} đang chờ xác thực",
+    "resend": "Gửi lại",
+    "resending": "Đang gửi...",
+    "managePermissions": "Quản lý phân quyền trong Cài đặt",
+    "done": "Xong",
+    "validation": {
+      "emailRequired": "Vui lòng nhập email",
+      "emailInvalid": "Định dạng email không hợp lệ",
+      "sendFailed": "Không thể gửi lời mời, vui lòng thử lại"
+    }
   }
 }

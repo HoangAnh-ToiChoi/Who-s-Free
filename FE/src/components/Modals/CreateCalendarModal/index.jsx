@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   CalendarPlus,
-  X,
   ChevronDown,
   Check,
   Loader2,
@@ -12,13 +11,7 @@ import {
 import { cn } from "~/lib/utils";
 import { useClickOutside } from "~/hooks";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "~/components/ui/dialog";
+import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
@@ -174,42 +167,19 @@ function CreateCalendarModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="gap-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl sm:max-w-[500px]"
-      >
-        {/* Header */}
-        <DialogHeader className="gap-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-600">
-                <CalendarPlus size={18} strokeWidth={2.2} />
-              </div>
-              <div>
-                <DialogTitle className="text-base font-bold text-slate-900">
-                  {t("createCalendarModal.title")}
-                </DialogTitle>
-                <p className="text-xs text-slate-500">
-                  {t("createCalendarModal.subtitle")}
-                </p>
-              </div>
-            </div>
-            <DialogClose
-              render={
-                <Button
-                  variant="ghost"
-                  className="-mr-2 -mt-1 h-9 w-9 cursor-pointer rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                />
-              }
-            >
-              <X size={20} strokeWidth={2.2} />
-            </DialogClose>
-          </div>
-        </DialogHeader>
-
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <BaseModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("createCalendarModal.title")}
+      subtitle={t("createCalendarModal.subtitle")}
+      icon={<CalendarPlus size={18} strokeWidth={2.2} />}
+      iconWrapperClassName="h-8 w-8 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-600"
+      closeButtonClassName="-mr-2 -mt-1 h-9 w-9 rounded-xl hover:bg-red-50 hover:text-red-600"
+      closeIconSize={20}
+      className="gap-5 sm:max-w-[500px]"
+    >
+      {/* Form Body */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Field: Session Title */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
@@ -419,8 +389,7 @@ function CreateCalendarModal({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </BaseModal>
   );
 }
 

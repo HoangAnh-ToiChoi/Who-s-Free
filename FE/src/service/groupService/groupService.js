@@ -4,6 +4,25 @@ import { mockGroups } from "~/data/mockData";
 // Local in-memory store for mock development so created items persist during user session
 let groupsStore = [...mockGroups];
 
+let pendingInvitesStore = [
+  {
+    id: "inv-1",
+    groupId: "ws-1",
+    email: "k.zhang@robotics.edu",
+    role: "Member",
+    invitedAt: "2h ago",
+    status: "pending",
+  },
+  {
+    id: "inv-2",
+    groupId: "ws-1",
+    email: "m.alvarez@robotics.edu",
+    role: "Member",
+    invitedAt: "1d ago",
+    status: "pending",
+  },
+];
+
 /**
  * Service quản lý các API liên quan đến Groups / Workspaces.
  * Hiện tại đang chạy trên Mock Data để phục vụ UI.
@@ -131,6 +150,72 @@ export const groupService = {
         groupsStore = groupsStore.filter((g) => g.id !== id);
         resolve({ success: true, id });
       }, 300);
+    });
+  },
+
+  /**
+   * Lấy thông tin link mời và danh sách pending invites của nhóm
+   * @param {string|number} groupId
+   * @returns {Promise<{ inviteCode: string, inviteLink: string, pendingInvites: Array }>}
+   */
+  async getGroupInviteInfo(groupId) {
+    // === KHI CÓ API BACKEND THẬT: ===
+    // return await http.get(`/api/groups/${groupId}/invitations`);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const group = groupsStore.find((g) => g.id === groupId);
+        const code = group?.code || "ROBO-2026";
+        const origin = window.location.origin;
+        resolve({
+          inviteCode: code,
+          inviteLink: `${origin}/join/${code}`,
+          pendingInvites: pendingInvitesStore.filter((i) => !groupId || i.groupId === groupId),
+        });
+      }, 150);
+    });
+  },
+
+  /**
+   * Gửi lời mời thành viên qua Email
+   * @param {string|number} groupId
+   * @param {Object} payload { email, role }
+   * @returns {Promise<Object>}
+   */
+  async sendGroupInvite(groupId, { email, role = "Member" }) {
+    // === KHI CÓ API BACKEND THẬT: ===
+    // return await http.post(`/api/groups/${groupId}/invitations`, { email, role });
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const newInvite = {
+          id: `inv-${Date.now()}`,
+          groupId,
+          email,
+          role,
+          invitedAt: "Just now",
+          status: "pending",
+        };
+        pendingInvitesStore = [newInvite, ...pendingInvitesStore];
+        resolve(newInvite);
+      }, 250);
+    });
+  },
+
+  /**
+   * Gửi lại lời mời cho một thành viên đang chờ xác thực
+   * @param {string|number} groupId
+   * @param {string} inviteId
+   * @returns {Promise<Object>}
+   */
+  async resendGroupInvite(groupId, inviteId) {
+    // === KHI CÓ API BACKEND THẬT: ===
+    // return await http.post(`/api/groups/${groupId}/invitations/${inviteId}/resend`);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ success: true, inviteId });
+      }, 200);
     });
   },
 };
