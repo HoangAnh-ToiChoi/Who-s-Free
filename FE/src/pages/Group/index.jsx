@@ -5,11 +5,11 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { useGroupDetail } from "~/hooks";
 import { Button } from "~/components/ui/button";
 
-import GroupHeader from "./components/GroupHeader";
-import GroupMetricsBar from "./components/GroupMetricsBar";
-import GroupSessions from "./subpages/GroupSessions";
-import GroupMembers from "./subpages/GroupMembers";
-import GroupSettings from "./subpages/GroupSettings";
+import GroupHeader from "~/pages/Group/components/GroupHeader";
+import GroupMetricsBar from "~/pages/Group/components/GroupMetricsBar";
+import GroupSessions from "~/pages/Group/subpages/GroupSessions";
+import GroupMembers from "~/pages/Group/subpages/GroupMembers";
+import GroupSettings from "~/pages/Group/subpages/GroupSettings";
 
 function Group() {
   const { t } = useTranslation();

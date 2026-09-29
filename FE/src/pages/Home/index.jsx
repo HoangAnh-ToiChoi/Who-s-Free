@@ -3,8 +3,8 @@ import { Users, AlertCircle, RefreshCw } from "lucide-react";
 
 import { useGroups } from "~/hooks";
 import { Button } from "~/components/ui/button";
-import HomeHeader from "./components/HomeHeader";
-import GroupCard from "./components/GroupCard";
+import HomeHeader from "~/pages/Home/components/HomeHeader";
+import GroupCard from "~/pages/Home/components/GroupCard";
 
 function Home() {
   const { t } = useTranslation();
