@@ -19,7 +19,11 @@ export function useActiveWorkspace(workspaces = []) {
   const currentGroupId = groupMatch ? groupMatch[1] : null;
 
   const activeWorkspace = currentGroupId
-    ? workspaces.find((ws) => String(ws.id) === String(currentGroupId)) || {
+    ? workspaces.find(
+        (ws) =>
+          String(ws.id) === String(currentGroupId) ||
+          String(ws.slug) === String(currentGroupId)
+      ) || {
         id: currentGroupId,
         name: `Group #${currentGroupId}`,
         role: "Member",

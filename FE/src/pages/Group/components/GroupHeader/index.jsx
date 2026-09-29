@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Users,
   CalendarPlus,
   UserPlus,
   Bot,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { CreateCalendarModal } from "~/components/Modals";
@@ -29,7 +31,16 @@ function GroupHeader({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Top Section: Badges, Title, Avatars, Actions */}
+      {/* Back to Home breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs">
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 font-semibold transition-colors shrink-0 group"
+        >
+          <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
+          <span className="hidden sm:inline">{t("common.backToHome")}</span>
+        </Link>
+      </div>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         {/* Left: Info */}
         <div className="max-w-3xl">

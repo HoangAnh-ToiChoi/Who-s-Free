@@ -11,7 +11,8 @@
     "language": "Language",
     "vietnamese": "Tiếng Việt",
     "english": "English",
-    "switchLanguage": "Switch Language"
+    "switchLanguage": "Switch Language",
+    "backToHome": "Back to Home"
   },
   "topbar": {
     "home": "Home",
@@ -62,6 +63,7 @@
     "overlap": "OVERLAP",
     "openAsLead": "Open as Lead (Matrix View)",
     "openCalendar": "Open Calendar",
+    "backToGroup": "Back to Group",
     "noSessionsTitle": "No active planning sessions",
     "noSessionsDesc": "Create your first availability poll or calendar sync session for this group.",
     "createSession": "Create Calendar Session",
@@ -145,5 +147,30 @@
       "emailInvalid": "Invalid email address format",
       "sendFailed": "Could not send invitation, please try again"
     }
+  },
+  "slotPopover": {
+    "editSlot": "Edit Slot",
+    "newSlot": "New Availability",
+    "durationInvalid": "Invalid",
+    "noteLabel": "Note / Slot Title",
+    "optional": "Optional",
+    "notePlaceholder": "e.g. Available after class, Prefer morning sync...",
+    "invalidTime": "End time must be after start time",
+    "apply": "Apply",
+    "delete": "Delete",
+    "cancel": "Cancel"
+  },
+  "gridToolbar": {
+    "today": "Today",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "timezone": "GMT+7 (Bangkok/Jakarta)",
+    "slotsSelected": "• {{count}} slots selected ({{hours}}h total)",
+    "clearSelections": "Clear selections",
+    "noSlotsSelected": "No time slots selected"
+  },
+  "matrix": {
+    "switchToLeadMode": "Lead Mode",
+    "leadModeActive": "Viewing: Lead"
   }
 }

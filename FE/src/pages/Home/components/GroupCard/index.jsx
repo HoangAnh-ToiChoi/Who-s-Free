@@ -10,7 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { calcPercentage } from "~/utils";
 
-function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
+function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick }) {
   const { t } = useTranslation();
   const isOwner = group.role === "Owner";
 
@@ -125,8 +125,8 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
         {/* Action Button */}
         <div className="mt-4 border-t border-slate-100 pt-3">
           <Button
-            variant="ghost"
-            className="flex h-10 w-full items-center justify-between rounded-xl px-3.5 pointer-events-none transition-all duration-200 group-hover:bg-indigo-50 group-hover:text-indigo-800"
+            variant="outline"
+            className="flex h-10 w-full items-center justify-between rounded-xl px-3.5 pointer-events-none border-slate-200 bg-white text-slate-700 shadow-2xs transition-all duration-200 group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white group-hover:font-semibold group-hover:shadow-md group-hover:shadow-indigo-500/20"
           >
             <div className="flex w-full items-center justify-between">
               <span className="text-xs font-semibold whitespace-nowrap">
@@ -134,7 +134,7 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
               </span>
               <ArrowRight
                 size={15}
-                className="shrink-0 text-slate-500 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-indigo-700"
+                className="shrink-0 text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-white"
               />
             </div>
           </Button>

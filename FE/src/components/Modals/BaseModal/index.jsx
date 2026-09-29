@@ -25,7 +25,7 @@ function BaseModal({
   titleClassName,
   headerClassName,
   closeButtonClassName,
-  closeIconSize = 18,
+  closeIconSize = 20,
   className,
   children,
   footer,
@@ -77,8 +77,8 @@ function BaseModal({
             type="button"
             onClick={() => onOpenChange?.(false)}
             className={cn(
-              "flex shrink-0 items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer transition-colors",
-              closeButtonClassName || "-mr-1 -mt-1 h-8 w-8 rounded-xl hover:bg-slate-100"
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 cursor-pointer",
+              closeButtonClassName
             )}
             aria-label="Close"
           >

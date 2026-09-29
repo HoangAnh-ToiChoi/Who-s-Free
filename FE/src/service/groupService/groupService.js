@@ -74,7 +74,7 @@ export const groupService = {
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const found = groupsStore.find((g) => g.id === id);
+        const found = groupsStore.find((g) => g.id === id || g.slug === id);
         if (found) resolve(found);
         else reject(new Error("Group not found"));
       }, 200);

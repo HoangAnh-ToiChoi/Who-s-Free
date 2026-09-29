@@ -92,8 +92,6 @@ function CreateGroupModal({
       titleClassName="text-lg"
       icon={<Plus size={16} strokeWidth={2.5} />}
       iconWrapperClassName="h-7 w-7 rounded-full border-2 border-indigo-600 text-indigo-600"
-      closeButtonClassName="-mr-2 -mt-1 h-9 w-9 rounded-xl hover:bg-red-50 hover:text-red-600"
-      closeIconSize={22}
       className="gap-6 sm:max-w-[460px]"
     >
       {/* Form Body */}
