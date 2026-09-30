@@ -224,7 +224,7 @@ function InviteMembersModal({ open, onOpenChange, group }) {
           <Button
             type="submit"
             disabled={isSending || !emailInput.trim()}
-            className="h-10 px-3.5 rounded-xl text-xs font-semibold gap-1.5 shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs hover:shadow-md hover:shadow-indigo-500/20 transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap min-w-[80px] justify-center disabled:opacity-50"
+            className="h-10 px-3.5 rounded-xl text-xs font-semibold gap-1.5 shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs hover:shadow-md hover:shadow-indigo-500/20 transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap min-w-20 justify-center disabled:opacity-50"
           >
             {isSending ? (
               <>
