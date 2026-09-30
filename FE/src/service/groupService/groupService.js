@@ -167,9 +167,11 @@ export const groupService = {
         const group = groupsStore.find((g) => g.id === groupId);
         const code = group?.code || "ROBO-2026";
         const origin = window.location.origin;
+        const baseUrl = import.meta.env.BASE_URL || "/";
+        const cleanBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
         resolve({
           inviteCode: code,
-          inviteLink: `${origin}/join/${code}`,
+          inviteLink: `${origin}${cleanBase}join/${code}`,
           pendingInvites: pendingInvitesStore.filter((i) => !groupId || i.groupId === groupId),
         });
       }, 150);
