@@ -76,7 +76,7 @@ function InviteMembersModal({ open, onOpenChange, group }) {
       title={t("inviteModal.title")}
       subtitle={t("inviteModal.subtitle", { groupName })}
       icon={<UserPlus size={18} strokeWidth={2.2} />}
-      maxWidth="sm:max-w-[520px]"
+      maxWidth="sm:max-w-[560px]"
       className="p-7 sm:p-8 border-slate-200/90"
       footer={
         <>
@@ -115,7 +115,7 @@ function InviteMembersModal({ open, onOpenChange, group }) {
         <div className="mt-2.5 flex items-center gap-2 min-w-0">
           <div className="flex-1 min-w-0 flex items-center gap-2 px-3 h-10 bg-slate-50/90 border border-slate-200/80 rounded-xl text-xs text-slate-700 font-mono overflow-hidden">
             <LinkIcon size={14} className="text-slate-400 shrink-0" />
-            <span className="truncate select-all">
+            <span className="truncate select-all min-w-0 flex-1">
               {isLoading ? "Generating link..." : inviteLink || "https://whosfree.app/join/..."}
             </span>
           </div>
