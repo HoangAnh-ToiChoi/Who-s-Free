@@ -1,11 +1,18 @@
 import { useRef } from "react";
+import { Clock } from "lucide-react";
 import GridToolbar from "../GridToolbar";
 import GridHeader from "./GridHeader";
 import TimeColumn from "./TimeColumn";
 import DayColumn from "./DayColumn";
 import SlotPopover from "../SlotPopover";
 
-import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "../../helper/timeUtils";
+import {
+  START_HOUR,
+  END_HOUR,
+  HOUR_HEIGHT,
+  minutesToTimeString,
+  formatDuration,
+} from "../../helper/timeUtils";
 import { useWeekNavigation } from "../../hooks/useWeekNavigation";
 import { useAvailabilitySlots } from "../../hooks/useAvailabilitySlots";
 import { useGridDrag } from "../../hooks/useGridDrag";
@@ -66,31 +73,80 @@ function AvailabilityGrid() {
     closePopover,
   } = useSlotPopover();
 
-  // 4. Hook quản lý cơ chế kéo thả chuột thời gian thực
+  // 4. Hook quản lý cơ chế kéo thả chuột thời gian thực (hỗ trợ kéo 2 chiều & kéo chéo nhiều ngày)
   const {
+    isDragging,
     dragPreview,
     startDrag,
   } = useGridDrag({
     containerRef,
     columnRefs,
-    onDragComplete: ({ dayIndex, startMinutes, endMinutes, anchorRect, containerRect }) => {
-      const selectedDay = weekDays[dayIndex];
-      const newDraftSlot = {
-        id: `slot-${Date.now()}`,
-        dayIndex,
-        dateStr: selectedDay?.dateStr,
-        startMinutes,
-        endMinutes,
-        label: "Available",
-        note: "",
-      };
+    onDragComplete: ({
+      dayIndices,
+      dayIndex,
+      startMinutes,
+      endMinutes,
+      anchorRect,
+      containerRect,
+    }) => {
+      const selectedDay =
+        weekDays.find((d) => d.dayIndex === dayIndex) ||
+        weekDays[dayIndex] ||
+        weekDays[0];
 
-      openPopover({
-        mode: "new",
-        slotData: newDraftSlot,
-        anchorRect,
-        containerRect,
-      });
+      if (dayIndices && dayIndices.length > 1) {
+        const createdSlots = dayIndices.map((dIdx) => {
+          const dObj = weekDays.find((d) => d.dayIndex === dIdx);
+          return {
+            id: `slot-${Date.now()}-${dIdx}`,
+            dayIndex: dIdx,
+            dateStr: dObj?.dateStr,
+            startMinutes,
+            endMinutes,
+            label: "Available",
+            note: "",
+          };
+        });
+
+        // 1. Lưu lại vùng đã chọn vào lưới trước
+        saveSlot(createdSlots);
+
+        // 2. Mở popover để người dùng xem và tuỳ chỉnh
+        const activeCreatedSlot =
+          createdSlots.find((s) => s.dayIndex === dayIndex) ||
+          createdSlots[createdSlots.length - 1];
+
+        openPopover({
+          mode: "edit",
+          slotData: {
+            ...activeCreatedSlot,
+            dayIndices,
+          },
+          anchorRect,
+          containerRect,
+        });
+      } else {
+        const newSlot = {
+          id: `slot-${Date.now()}`,
+          dayIndex,
+          dateStr: selectedDay?.dateStr,
+          startMinutes,
+          endMinutes,
+          label: "Available",
+          note: "",
+        };
+
+        // 1. Lưu lại vùng đã chọn vào lưới trước
+        saveSlot(newSlot);
+
+        // 2. Mở popover để người dùng xem và tuỳ chỉnh
+        openPopover({
+          mode: "edit",
+          slotData: newSlot,
+          anchorRect,
+          containerRect,
+        });
+      }
     },
   });
 
@@ -134,7 +190,20 @@ function AvailabilityGrid() {
           slotData={popover.slotData}
           anchorPos={popover.anchorPos}
           onSave={(slotData) => {
-            saveSlot(slotData);
+            if (slotData.dayIndices && slotData.dayIndices.length > 1) {
+              const multiSlots = slotData.dayIndices.map((dIdx) => {
+                const dayObj = weekDays.find((d) => d.dayIndex === dIdx);
+                return {
+                  ...slotData,
+                  id: `slot-${Date.now()}-${dIdx}`,
+                  dayIndex: dIdx,
+                  dateStr: dayObj?.dateStr,
+                };
+              });
+              saveSlot(multiSlots);
+            } else {
+              saveSlot(slotData);
+            }
             closePopover();
           }}
           onDelete={(slotId) => {
@@ -143,6 +212,31 @@ function AvailabilityGrid() {
           }}
           onClose={closePopover}
         />
+
+        {/* Floating Range Indicator bám sát con trỏ chuột khi đang kéo */}
+        {isDragging && dragPreview && (
+          <div
+            style={{
+              top: `${Math.max(12, dragPreview.cursorY - 50)}px`,
+              left: `${Math.min(window.innerWidth - 240, dragPreview.cursorX + 16)}px`,
+            }}
+            className="fixed z-50 pointer-events-none flex items-center gap-2 rounded-xl bg-slate-900/95 text-white px-3 py-1.5 shadow-2xl backdrop-blur-md border border-white/20 text-xs font-semibold select-none animate-in fade-in-0 duration-75"
+          >
+            <Clock size={13} className="text-indigo-400 shrink-0" />
+            <span className="text-indigo-200">
+              {dragPreview.startDayIndex === dragPreview.endDayIndex
+                ? weekDays.find((d) => d.dayIndex === dragPreview.startDayIndex)?.dayName || ""
+                : `${weekDays.find((d) => d.dayIndex === dragPreview.startDayIndex)?.dayName || ""} – ${weekDays.find((d) => d.dayIndex === dragPreview.endDayIndex)?.dayName || ""}`}
+              :
+            </span>
+            <span className="text-white font-bold">
+              {minutesToTimeString(dragPreview.startMinutes)} – {minutesToTimeString(dragPreview.endMinutes)}
+            </span>
+            <span className="text-[10px] text-slate-300 font-medium bg-white/10 px-1.5 py-0.5 rounded-md">
+              {formatDuration(dragPreview.startMinutes, dragPreview.endMinutes)}
+            </span>
+          </div>
+        )}
 
         {/* Khung cuộn ngang nếu màn hình nhỏ */}
         <div className="flex flex-col flex-1 overflow-x-auto min-h-0">

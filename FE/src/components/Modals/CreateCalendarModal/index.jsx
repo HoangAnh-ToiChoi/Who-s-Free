@@ -173,8 +173,8 @@ function CreateCalendarModal({
       title={t("createCalendarModal.title")}
       subtitle={t("createCalendarModal.subtitle")}
       icon={<CalendarPlus size={18} strokeWidth={2.2} />}
-      iconWrapperClassName="h-8 w-8 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-600"
-      className="gap-5 sm:max-w-[500px]"
+      maxWidth="sm:max-w-[500px]"
+      className="gap-5"
     >
       {/* Form Body */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

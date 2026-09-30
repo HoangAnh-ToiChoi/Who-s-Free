@@ -91,8 +91,8 @@ function CreateGroupModal({
       title={t("createGroupModal.title")}
       titleClassName="text-lg"
       icon={<Plus size={16} strokeWidth={2.5} />}
-      iconWrapperClassName="h-7 w-7 rounded-full border-2 border-indigo-600 text-indigo-600"
-      className="gap-6 sm:max-w-[460px]"
+      maxWidth="sm:max-w-[460px]"
+      className="gap-6"
     >
       {/* Form Body */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">

@@ -171,6 +171,7 @@
   },
   "matrix": {
     "switchToLeadMode": "Lead Mode",
-    "leadModeActive": "Viewing: Lead"
+    "leadModeActive": "Viewing: Lead",
+    "available": "Free time"
   }
 }
