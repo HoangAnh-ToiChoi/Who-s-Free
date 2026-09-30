@@ -171,6 +171,7 @@
   },
   "matrix": {
     "switchToLeadMode": "Chế độ Lead",
-    "leadModeActive": "Đang xem: Lead"
+    "leadModeActive": "Đang xem: Lead",
+    "available": "Lịch trống"
   }
 }

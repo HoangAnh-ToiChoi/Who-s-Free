@@ -27,17 +27,22 @@ const DayColumn = forwardRef(function DayColumn(
   },
   ref
 ) {
-  const isDraggingOnThisDay = dragPreview && dragPreview.dayIndex === day.dayIndex;
+  const isDraggingOnThisDay =
+    dragPreview &&
+    day.dayIndex >= dragPreview.startDayIndex &&
+    day.dayIndex <= dragPreview.endDayIndex;
   const isWeekend = day.dayIndex >= 5;
 
   let previewStyle = null;
   let previewText = "";
+  let previewHeight = 0;
 
   if (isDraggingOnThisDay) {
     const { top, height } = calculateSlotGeometry(
       dragPreview.startMinutes,
       dragPreview.endMinutes
     );
+    previewHeight = height;
     previewStyle = { top: `${top}px`, height: `${height}px` };
     previewText = `${minutesToTimeString(dragPreview.startMinutes)} – ${minutesToTimeString(dragPreview.endMinutes)} (${formatDuration(dragPreview.startMinutes, dragPreview.endMinutes)})`;
   }
@@ -78,14 +83,29 @@ const DayColumn = forwardRef(function DayColumn(
       {isDraggingOnThisDay && previewStyle && (
         <div
           style={previewStyle}
-          className="absolute left-1 right-1 z-30 rounded-xl border-2 border-dashed border-indigo-600 bg-indigo-500/25 p-2 pointer-events-none shadow-md flex items-center justify-between animate-in fade-in-0 duration-75"
+          className="absolute left-1 right-1 z-30 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden backdrop-blur-2xs transition-all duration-75"
         >
-          <span className="text-[11px] font-bold text-indigo-950 truncate">
-            {previewText}
-          </span>
-          <span className="rounded-md bg-indigo-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-3xs">
-            Selecting...
-          </span>
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] font-bold text-indigo-950 truncate leading-tight">
+              {previewText}
+            </span>
+            {previewHeight >= 48 && (
+              <span className="shrink-0 rounded-md bg-indigo-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-3xs">
+                Selecting
+              </span>
+            )}
+          </div>
+          {previewHeight >= 72 && (
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-indigo-800">
+              <span className="rounded bg-indigo-100/90 px-1 py-0.5">
+                {minutesToTimeString(dragPreview.startMinutes)}
+              </span>
+              <span>→</span>
+              <span className="rounded bg-indigo-100/90 px-1 py-0.5">
+                {minutesToTimeString(dragPreview.endMinutes)}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

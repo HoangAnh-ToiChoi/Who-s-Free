@@ -48,8 +48,24 @@ function createInitialSlots() {
 export function useAvailabilitySlots(initialData = null) {
   const [slots, setSlots] = useState(() => initialData || createInitialSlots());
 
-  // Thêm mới hoặc cập nhật slot
+  // Thêm mới hoặc cập nhật slot (hỗ trợ cả 1 slot hoặc danh sách nhiều slot cùng lúc)
   const saveSlot = useCallback((slotPayload) => {
+    if (Array.isArray(slotPayload)) {
+      setSlots((prev) => {
+        let next = [...prev];
+        slotPayload.forEach((item) => {
+          const idx = next.findIndex((s) => s.id === item.id);
+          if (idx !== -1) {
+            next[idx] = { ...next[idx], ...item };
+          } else {
+            next.push(item);
+          }
+        });
+        return next;
+      });
+      return;
+    }
+
     setSlots((prev) => {
       const idx = prev.findIndex((s) => s.id === slotPayload.id);
       if (idx !== -1) {

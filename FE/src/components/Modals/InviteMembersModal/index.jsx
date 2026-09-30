@@ -76,8 +76,8 @@ function InviteMembersModal({ open, onOpenChange, group }) {
       title={t("inviteModal.title")}
       subtitle={t("inviteModal.subtitle", { groupName })}
       icon={<UserPlus size={18} strokeWidth={2.2} />}
-      iconWrapperClassName="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 shadow-2xs"
-      className="p-7 sm:p-8 sm:max-w-[520px] border-slate-200/90"
+      maxWidth="sm:max-w-[520px]"
+      className="p-7 sm:p-8 border-slate-200/90"
       footer={
         <>
           <button

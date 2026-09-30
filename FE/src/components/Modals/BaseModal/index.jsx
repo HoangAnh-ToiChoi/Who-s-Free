@@ -26,6 +26,7 @@ function BaseModal({
   headerClassName,
   closeButtonClassName,
   closeIconSize = 20,
+  maxWidth = "sm:max-w-[520px]",
   className,
   children,
   footer,
@@ -35,7 +36,8 @@ function BaseModal({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "w-full rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl overflow-visible",
+          "w-full rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl",
+          maxWidth,
           className
         )}
       >

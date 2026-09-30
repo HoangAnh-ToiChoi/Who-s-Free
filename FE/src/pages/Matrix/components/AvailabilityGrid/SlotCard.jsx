@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import {
   calculateSlotGeometry,
@@ -11,12 +12,16 @@ import {
  * - Bảng màu tím Indigo thương hiệu Who's Free.
  */
 function SlotCard({ slot, isActive, onClick, onResizeStart }) {
+  const { t } = useTranslation();
   const { top, height } = calculateSlotGeometry(slot.startMinutes, slot.endMinutes);
   const timeRangeText = `${minutesToTimeString(slot.startMinutes)} – ${minutesToTimeString(slot.endMinutes)}`;
   const durationText = formatDuration(slot.startMinutes, slot.endMinutes);
 
-  // Note chính là tiêu đề hiển thị của slot card
-  const title = slot.note?.trim() || slot.label || "Lịch trống";
+  // Note chính là tiêu đề hiển thị của slot card, nếu không có note thì lấy t("matrix.available")
+  const title =
+    slot.note?.trim() ||
+    (slot.label && slot.label !== "Available" ? slot.label : null) ||
+    t("matrix.available");
 
   return (
     <div
