@@ -112,8 +112,8 @@ function InviteMembersModal({ open, onOpenChange, group }) {
           {t("inviteModal.shareLinkDesc")}
         </p>
 
-        <div className="mt-2.5 flex items-center gap-2">
-          <div className="flex-1 flex items-center gap-2 px-3 h-10 bg-slate-50/90 border border-slate-200/80 rounded-xl text-xs text-slate-700 font-mono overflow-hidden">
+        <div className="mt-2.5 flex items-center gap-2 min-w-0">
+          <div className="flex-1 min-w-0 flex items-center gap-2 px-3 h-10 bg-slate-50/90 border border-slate-200/80 rounded-xl text-xs text-slate-700 font-mono overflow-hidden">
             <LinkIcon size={14} className="text-slate-400 shrink-0" />
             <span className="truncate select-all">
               {isLoading ? "Generating link..." : inviteLink || "https://whosfree.app/join/..."}
@@ -125,7 +125,7 @@ function InviteMembersModal({ open, onOpenChange, group }) {
             onClick={copyLink}
             disabled={isLoading || !inviteLink}
             className={cn(
-              "h-10 px-4 rounded-xl text-xs font-semibold gap-1.5 shrink-0 transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap min-w-[105px] justify-center",
+              "h-10 px-4 rounded-xl text-xs font-semibold gap-1.5 shrink-0 transition-all active:scale-[0.98] cursor-pointer whitespace-nowrap min-w-26 justify-center",
               copied
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                 : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs hover:shadow-md hover:shadow-indigo-500/20"
@@ -160,9 +160,9 @@ function InviteMembersModal({ open, onOpenChange, group }) {
           {t("inviteModal.inviteEmailHeader")}
         </span>
 
-        <form onSubmit={handleSend} className="mt-2 flex items-center gap-2">
+        <form onSubmit={handleSend} className="mt-2 flex items-center gap-2 min-w-0">
           {/* Email Input */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Mail
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
