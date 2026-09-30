@@ -6,7 +6,8 @@ import DefaultLayout from "~/layouts/DefaultLayout";
 // Pages
 import Home from "~/pages/Home";
 import Group from "~/pages/Group";
-import Matrix from "~/pages/Matrix";
+import MemberMatrix from "~/pages/MemberMatrix";
+import LeadMatrix from "~/pages/LeadMatrix";
 
 function AppRoutes() {
   return (
@@ -22,7 +23,9 @@ function AppRoutes() {
           <Route path="/groups/:groupId" element={<Group />} />
           {/* More pages */}
           <Route path="/overview" element={<div className="p-8 text-zinc-400">Overview — coming soon</div>} />
-          <Route path="/matrix" element={<Matrix />} />
+          {/* Matrix pages — MemberMatrix (kéo thả lịch) & LeadMatrix (heatmap leader) */}
+          <Route path="/matrix" element={<MemberMatrix />} />
+          <Route path="/lead-matrix" element={<LeadMatrix />} />
           <Route path="/time-grid" element={<div className="p-8 text-zinc-400">Time Grid — coming soon</div>} />
           <Route path="/settings" element={<div className="p-8 text-zinc-400">Settings — coming soon</div>} />
         </Route>

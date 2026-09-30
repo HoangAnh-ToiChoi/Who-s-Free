@@ -9,23 +9,28 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { CreateCalendarModal } from "~/components/Modals";
 
 function GroupHeader({
   group,
-  sessionsCount = 3,
+  sessionsCount = 0,
   onCreateCalendar,
   isCreatingCalendar = false,
   activeTab = "calendars",
   onTabChange,
   onOpenInvite,
+  onOpenCreateCalendar,
 }) {
   const { t } = useTranslation();
-  const [modalOpen, setModalOpen] = useState(false);
+
+  const memberAvatars =
+    group?.avatarPreviews ||
+    group?.members?.map((m) => m.avatar || m.avatarUrl).filter(Boolean) ||
+    [];
+  const remainingCount = Math.max(0, (group?.memberCount || 0) - memberAvatars.length);
 
   const tabs = [
     { id: "calendars", label: t("groupDetail.tabCalendars"), count: sessionsCount, minW: "min-w-[105px]" },
-    { id: "members", label: t("groupDetail.tabMembers"), count: group?.memberCount || 12, minW: "min-w-[110px]" },
+    { id: "members", label: t("groupDetail.tabMembers"), count: group?.memberCount || 0, minW: "min-w-[110px]" },
     { id: "settings", label: t("groupDetail.tabSettings"), minW: "min-w-[85px]" },
   ];
 
@@ -48,59 +53,62 @@ function GroupHeader({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200/70 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold tracking-wider text-indigo-700 uppercase">
               <Bot size={12} className="text-indigo-600" />
-              <span>{group?.name || "Club Robotics & AI"}</span>
+              <span>{group?.name || ""}</span>
             </span>
 
             <span className="inline-flex min-w-[95px] justify-center items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100/70 px-2 py-0.5 text-[10px] font-semibold text-slate-700 whitespace-nowrap">
               <Users size={12} className="text-slate-500" />
-              <span>{t("groupDetail.membersCount", { count: group?.memberCount || 12 })}</span>
+              <span>{t("groupDetail.membersCount", { count: group?.memberCount || 0 })}</span>
             </span>
 
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100/70 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-              <span>{group?.cohort || "Fall 2026 Cohort"}</span>
-            </span>
+            {group?.cohort && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100/70 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                <span>{group.cohort}</span>
+              </span>
+            )}
           </div>
 
           {/* Group Title */}
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            {group?.name || "Club Robotics & AI"}
+            {group?.name || ""}
           </h1>
 
           {/* Description */}
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-[40px]">
-            {group?.description ||
-              "Autonomous systems research, hardware prototyping, and intercollegiate competition squad. Centralized availability matrix and agenda sync."}
-          </p>
+          {group?.description && (
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-[40px]">
+              {group.description}
+            </p>
+          )}
 
           {/* Avatars & Lead Admin */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <div className="flex -space-x-2 overflow-hidden shrink-0">
-              {(
-                group?.avatarPreviews || [
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
-                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
-                ]
-              ).map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt="Member avatar"
-                  className="inline-block h-7 w-7 rounded-full ring-2 ring-white object-cover"
-                />
-              ))}
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white text-[10px] font-bold text-slate-600">
-                +9
+            {memberAvatars.length > 0 && (
+              <div className="flex -space-x-2 overflow-hidden shrink-0">
+                {memberAvatars.slice(0, 4).map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt="Member avatar"
+                    className="inline-block h-7 w-7 rounded-full ring-2 ring-white object-cover"
+                  />
+                ))}
+                {remainingCount > 0 && (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white text-[10px] font-bold text-slate-600">
+                    +{remainingCount}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
-            <span className="text-xs text-slate-500 font-medium">
-              {t("groupDetail.leadAdmin")}{" "}
-              <strong className="text-slate-800 font-semibold">
-                {group?.leadAdmin || "Maya Lin (You)"}
-              </strong>
-            </span>
+            {group?.leadAdmin && (
+              <span className="text-xs text-slate-500 font-medium">
+                {t("groupDetail.leadAdmin")}{" "}
+                <strong className="text-slate-800 font-semibold">
+                  {group.leadAdmin}
+                </strong>
+              </span>
+            )}
           </div>
         </div>
 
@@ -117,21 +125,12 @@ function GroupHeader({
           </Button>
 
           <Button
-            onClick={() => setModalOpen(true)}
+            onClick={onOpenCreateCalendar}
             className="h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap"
           >
             <CalendarPlus size={14} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
           </Button>
-
-          {/* Modal Tạo Calendar Session */}
-          <CreateCalendarModal
-            open={modalOpen}
-            onOpenChange={setModalOpen}
-            groupId={group?.id}
-            onSubmit={onCreateCalendar}
-            isSubmitting={isCreatingCalendar}
-          />
         </div>
       </div>
 

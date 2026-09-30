@@ -3,11 +3,12 @@ import {
   getMondayOfWeek,
   calculateWeekDates,
   formatWeekRangeLabel,
-} from "../helper/dateUtils";
+} from "~/utils/dateUtils";
 
 /**
  * Hook quản lý riêng biệt việc chuyển mốc thời gian ngày tháng (Google Calendar Navigation)
  * Chỉ tập trung vào một nhiệm vụ: Điều hướng tuần, tính toán ngày động.
+ * Dùng chung cho cả MemberMatrix và LeadMatrix.
  */
 export function useWeekNavigation(initialDate = new Date()) {
   const [currentMonday, setCurrentMonday] = useState(() => getMondayOfWeek(initialDate));

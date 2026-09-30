@@ -1,84 +1,96 @@
 import http from "~/utils/http";
-import { mockGroups } from "~/data/mockData";
+import { slugify } from "~/utils/slugify";
 
-// Local in-memory store for mock development so created items persist during user session
-let groupsStore = [...mockGroups];
-
-let pendingInvitesStore = [
-  {
-    id: "inv-1",
-    groupId: "ws-1",
-    email: "k.zhang@robotics.edu",
-    role: "Member",
-    invitedAt: "2h ago",
-    status: "pending",
-  },
-  {
-    id: "inv-2",
-    groupId: "ws-1",
-    email: "m.alvarez@robotics.edu",
-    role: "Member",
-    invitedAt: "1d ago",
-    status: "pending",
-  },
-];
+// Local in-memory cache for fallback
+let groupsStore = [];
 
 /**
  * Service quản lý các API liên quan đến Groups / Workspaces.
- * Hiện tại đang chạy trên Mock Data để phục vụ UI.
- * Khi Backend sẵn sàng, chỉ cần uncomment các lệnh gọi `http` tương ứng.
+ * Đọc ghi trực tiếp từ REST API (db.json).
  */
 export const groupService = {
   /**
-   * Lấy danh sách groups (hỗ trợ lọc/search nếu có)
+   * Lấy danh sách groups (hỗ trợ lọc/search)
    * @param {Object} params - query params { search, filter }
    * @returns {Promise<Array>} Danh sách groups
    */
   async getGroups(params = {}) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.get("/api/groups", { params });
+    try {
+      const res = await http.get("/groups");
+      let result = Array.isArray(res) ? res : [...groupsStore];
 
-    // === HIỆN TẠI VỚI MOCK DATA: ===
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let result = [...groupsStore];
+      if (params.filter === "owner") {
+        result = result.filter((g) => g.role === "Owner");
+      } else if (params.filter === "joined") {
+        result = result.filter((g) => g.role === "Joined");
+      }
 
-        if (params.filter === "owner") {
-          result = result.filter((g) => g.role === "Owner");
-        } else if (params.filter === "joined") {
-          result = result.filter((g) => g.role === "Joined");
-        }
+      if (params.search?.trim()) {
+        const q = params.search.toLowerCase();
+        result = result.filter(
+          (g) =>
+            g.name.toLowerCase().includes(q) ||
+            g.description?.toLowerCase().includes(q)
+        );
+      }
 
-        if (params.search?.trim()) {
-          const q = params.search.toLowerCase();
-          result = result.filter(
-            (g) =>
-              g.name.toLowerCase().includes(q) ||
-              g.description?.toLowerCase().includes(q)
-          );
-        }
+      return result;
+    } catch {
+      let result = [...groupsStore];
 
-        resolve(result);
-      }, 300); // Giả lập độ trễ mạng thực tế
-    });
+      if (params.filter === "owner") {
+        result = result.filter((g) => g.role === "Owner");
+      } else if (params.filter === "joined") {
+        result = result.filter((g) => g.role === "Joined");
+      }
+
+      if (params.search?.trim()) {
+        const q = params.search.toLowerCase();
+        result = result.filter(
+          (g) =>
+            g.name.toLowerCase().includes(q) ||
+            g.description?.toLowerCase().includes(q)
+        );
+      }
+
+      return result;
+    }
   },
 
   /**
-   * Lấy chi tiết một group theo ID
+   * Lấy chi tiết một group theo ID hoặc Slug
    * @param {string|number} id
    * @returns {Promise<Object>}
    */
   async getGroupById(id) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.get(`/api/groups/${id}`);
+    try {
+      const res = await http.get(`/groups/${id}`).catch(async () => {
+        const list = await http.get(`/groups?slug=${id}`);
+        return Array.isArray(list) ? list[0] : null;
+      });
+      if (res) return res;
+    } catch (err) {
+      console.warn("API error fetching group, using store:", err);
+    }
 
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const found = groupsStore.find((g) => g.id === id || g.slug === id);
-        if (found) resolve(found);
-        else reject(new Error("Group not found"));
-      }, 200);
-    });
+    const found = groupsStore.find((g) => g.id === id || g.slug === id);
+    if (found) return found;
+    throw new Error("Group not found");
+  },
+
+  /**
+   * Lấy danh sách thành viên của nhóm từ db.json
+   * @param {string|number} groupId
+   * @returns {Promise<Array>}
+   */
+  async getMembers(groupId) {
+    try {
+      const res = await http.get("/members");
+      return Array.isArray(res) ? res : [];
+    } catch (err) {
+      console.warn("Failed to get members:", err);
+      return [];
+    }
   },
 
   /**
@@ -87,35 +99,49 @@ export const groupService = {
    * @returns {Promise<Object>} Group vừa tạo
    */
   async createGroup(payload) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.post("/api/groups", payload);
+    const slug = slugify(payload.name) || `group-${Date.now()}`;
+    const category = payload.category || "work";
+    const color = payload.color || (category === "hangout" ? "emerald" : category === "other" ? "amber" : "indigo");
+    const icon = category === "hangout" ? "Coffee" : category === "other" ? "Sparkles" : "BookOpen";
+    const defaultDesc =
+      category === "hangout"
+        ? "Nhóm bạn thân, tụ tập cafe, ăn uống, xem phim và du lịch."
+        : category === "other"
+          ? "Nhóm sinh hoạt chung, chia sẻ lịch rảnh và sự kiện."
+          : "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.";
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newGroup = {
-          id: `ws-${Date.now()}`,
-          name: payload.name,
-          description:
-            payload.description ||
-            "Newly created group workspace. CalDAV & ICS sync active.",
-          icon: "Bot",
-          color: "indigo",
-          role: "Owner",
-          memberCount: 1,
-          capacity: parseInt(payload.capacity, 10) || 10,
-          leadAdmin: "Maya Lin (You)",
-          cohort: "Fall 2026",
-          activeSessionsCount: 0,
-          responseRate: 100,
-          avatarPreviews: [
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-          ],
-        };
+    const newGroup = {
+      id: `ws-${Date.now()}`,
+      slug,
+      name: payload.name,
+      category,
+      description: payload.description || defaultDesc,
+      icon,
+      color,
+      role: "Owner",
+      memberCount: 1,
+      capacity: parseInt(payload.capacity, 10) || 10,
+      leadAdmin: "Maya Lin (You)",
+      cohort: "2026",
+      activeSessionsCount: 0,
+      responseRate: 100,
+      avatarPreviews: [
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+      ],
+    };
 
-        groupsStore = [newGroup, ...groupsStore];
-        resolve(newGroup);
-      }, 400); // Giả lập mạng lúc tạo
-    });
+    try {
+      const res = await http.post("/groups", newGroup);
+      if (res) {
+        groupsStore = [res, ...groupsStore];
+        return res;
+      }
+    } catch (err) {
+      console.warn("API error creating group, using store:", err);
+    }
+
+    groupsStore = [newGroup, ...groupsStore];
+    return newGroup;
   },
 
   /**
@@ -124,17 +150,20 @@ export const groupService = {
    * @param {Object} payload
    */
   async updateGroup(id, payload) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.put(`/api/groups/${id}`, payload);
+    try {
+      const res = await http.patch(`/groups/${id}`, payload);
+      if (res) {
+        groupsStore = groupsStore.map((g) => (g.id === id ? { ...g, ...res } : g));
+        return res;
+      }
+    } catch (err) {
+      console.warn("API error updating group, using store:", err);
+    }
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        groupsStore = groupsStore.map((g) =>
-          g.id === id ? { ...g, ...payload } : g
-        );
-        resolve(groupsStore.find((g) => g.id === id));
-      }, 300);
-    });
+    groupsStore = groupsStore.map((g) =>
+      g.id === id ? { ...g, ...payload } : g
+    );
+    return groupsStore.find((g) => g.id === id);
   },
 
   /**
@@ -142,66 +171,67 @@ export const groupService = {
    * @param {string|number} id
    */
   async deleteGroup(id) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.del(`/api/groups/${id}`);
+    try {
+      await http.del(`/groups/${id}`);
+    } catch (err) {
+      console.warn("API error deleting group, using store:", err);
+    }
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        groupsStore = groupsStore.filter((g) => g.id !== id);
-        resolve({ success: true, id });
-      }, 300);
-    });
+    groupsStore = groupsStore.filter((g) => g.id !== id);
+    return { success: true, id };
   },
 
   /**
-   * Lấy thông tin link mời và danh sách pending invites của nhóm
+   * Lấy thông tin link mời và danh sách pending invites của nhóm từ db.json
    * @param {string|number} groupId
    * @returns {Promise<{ inviteCode: string, inviteLink: string, pendingInvites: Array }>}
    */
   async getGroupInviteInfo(groupId) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.get(`/api/groups/${groupId}/invitations`);
+    try {
+      const [group, invites] = await Promise.all([
+        this.getGroupById(groupId).catch(() => null),
+        http.get(groupId ? `/invites?groupId=${groupId}` : "/invites").catch(() => []),
+      ]);
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const group = groupsStore.find((g) => g.id === groupId);
-        const code = group?.code || "ROBO-2026";
-        const origin = window.location.origin;
-        const baseUrl = import.meta.env.BASE_URL || "/";
-        const cleanBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-        resolve({
-          inviteCode: code,
-          inviteLink: `${origin}${cleanBase}join/${code}`,
-          pendingInvites: pendingInvitesStore.filter((i) => !groupId || i.groupId === groupId),
-        });
-      }, 150);
-    });
+      const code = group?.code || "ROBO-2026";
+      const origin = window.location.origin;
+      const baseUrl = import.meta.env.BASE_URL || "/";
+      const cleanBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+
+      return {
+        inviteCode: code,
+        inviteLink: `${origin}${cleanBase}join/${code}`,
+        pendingInvites: Array.isArray(invites) ? invites : [],
+      };
+    } catch (err) {
+      console.warn("Failed to get invite info:", err);
+      return { inviteCode: "ROBO-2026", inviteLink: "", pendingInvites: [] };
+    }
   },
 
   /**
-   * Gửi lời mời thành viên qua Email
+   * Gửi lời mời thành viên qua Email, lưu vào db.json
    * @param {string|number} groupId
    * @param {Object} payload { email, role }
    * @returns {Promise<Object>}
    */
   async sendGroupInvite(groupId, { email, role = "Member" }) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.post(`/api/groups/${groupId}/invitations`, { email, role });
+    const newInvite = {
+      id: `inv-${Date.now()}`,
+      groupId,
+      email,
+      role,
+      invitedAt: "Just now",
+      status: "pending",
+    };
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newInvite = {
-          id: `inv-${Date.now()}`,
-          groupId,
-          email,
-          role,
-          invitedAt: "Just now",
-          status: "pending",
-        };
-        pendingInvitesStore = [newInvite, ...pendingInvitesStore];
-        resolve(newInvite);
-      }, 250);
-    });
+    try {
+      const res = await http.post("/invites", newInvite);
+      return res || newInvite;
+    } catch (err) {
+      console.warn("Failed to save invite to db.json:", err);
+      return newInvite;
+    }
   },
 
   /**
@@ -211,14 +241,12 @@ export const groupService = {
    * @returns {Promise<Object>}
    */
   async resendGroupInvite(groupId, inviteId) {
-    // === KHI CÓ API BACKEND THẬT: ===
-    // return await http.post(`/api/groups/${groupId}/invitations/${inviteId}/resend`);
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, inviteId });
-      }, 200);
-    });
+    try {
+      await http.patch(`/invites/${inviteId}`, { invitedAt: "Just now" });
+    } catch (err) {
+      console.warn("Failed to resend invite in db.json:", err);
+    }
+    return { success: true, inviteId };
   },
 };
 

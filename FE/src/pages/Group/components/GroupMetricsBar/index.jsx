@@ -6,7 +6,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-function GroupMetricsBar({ activeSessionsCount = 3, turnoutRate = 88 }) {
+function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0 }) {
   const { t } = useTranslation();
 
   const metrics = [

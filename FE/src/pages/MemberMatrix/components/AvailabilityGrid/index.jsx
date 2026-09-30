@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Clock } from "lucide-react";
 import GridToolbar from "../GridToolbar";
 import GridHeader from "./GridHeader";
@@ -33,7 +33,7 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_
  * - Khối lịch nổi 3D đa tầng đổ bóng chân thực
  * - Đồng bộ 100% bảng màu tím Indigo chuẩn thương hiệu Who's Free
  */
-function AvailabilityGrid() {
+function AvailabilityGrid({ sessionId }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -64,16 +64,20 @@ function AvailabilityGrid() {
     deleteSlot,
     clearAllSlots,
     resizeSlot,
-  } = useAvailabilitySlots();
+  } = useAvailabilitySlots({ sessionId });
 
   // 3. Hook quản lý popover neo có mũi tên
+  // 3. State quản lý các slot tạm thời (draft) khi người dùng vừa kéo chuột xong nhưng chưa bấm Áp dụng
+  const [draftSlots, setDraftSlots] = useState([]);
+
+  // 4. Hook quản lý popover tuỳ chỉnh slot (Chỉnh sửa giờ, note, xoá)
   const {
     popover,
     openPopover,
     closePopover,
   } = useSlotPopover();
 
-  // 4. Hook quản lý cơ chế kéo thả chuột thời gian thực (hỗ trợ kéo 2 chiều & kéo chéo nhiều ngày)
+  // 5. Hook quản lý cơ chế kéo thả chuột thời gian thực (hỗ trợ kéo 2 chiều & kéo chéo nhiều ngày)
   const {
     isDragging,
     dragPreview,
@@ -81,6 +85,7 @@ function AvailabilityGrid() {
   } = useGridDrag({
     containerRef,
     columnRefs,
+    existingSlots: [...slots, ...draftSlots],
     onDragComplete: ({
       dayIndices,
       dayIndex,
@@ -95,10 +100,10 @@ function AvailabilityGrid() {
         weekDays[0];
 
       if (dayIndices && dayIndices.length > 1) {
-        const createdSlots = dayIndices.map((dIdx) => {
+        const createdDrafts = dayIndices.map((dIdx) => {
           const dObj = weekDays.find((d) => d.dayIndex === dIdx);
           return {
-            id: `slot-${Date.now()}-${dIdx}`,
+            id: `draft-${Date.now()}-${dIdx}`,
             dayIndex: dIdx,
             dateStr: dObj?.dateStr,
             startMinutes,
@@ -108,26 +113,26 @@ function AvailabilityGrid() {
           };
         });
 
-        // 1. Lưu lại vùng đã chọn vào lưới trước
-        saveSlot(createdSlots);
+        // Chỉ lưu vào draftSlots để hiển thị tạm trên lưới, KHÔNG LƯU vào DB khi chưa bấm Áp dụng
+        setDraftSlots(createdDrafts);
 
-        // 2. Mở popover để người dùng xem và tuỳ chỉnh
         const activeCreatedSlot =
-          createdSlots.find((s) => s.dayIndex === dayIndex) ||
-          createdSlots[createdSlots.length - 1];
+          createdDrafts.find((s) => s.dayIndex === dayIndex) ||
+          createdDrafts[createdDrafts.length - 1];
 
         openPopover({
-          mode: "edit",
+          mode: "new",
           slotData: {
             ...activeCreatedSlot,
             dayIndices,
+            createdSlots: createdDrafts,
           },
           anchorRect,
           containerRect,
         });
       } else {
-        const newSlot = {
-          id: `slot-${Date.now()}`,
+        const newDraft = {
+          id: `draft-${Date.now()}`,
           dayIndex,
           dateStr: selectedDay?.dateStr,
           startMinutes,
@@ -136,13 +141,12 @@ function AvailabilityGrid() {
           note: "",
         };
 
-        // 1. Lưu lại vùng đã chọn vào lưới trước
-        saveSlot(newSlot);
+        // Chỉ lưu vào draftSlots để hiển thị tạm trên lưới
+        setDraftSlots([newDraft]);
 
-        // 2. Mở popover để người dùng xem và tuỳ chỉnh
         openPopover({
-          mode: "edit",
-          slotData: newSlot,
+          mode: "new",
+          slotData: newDraft,
           anchorRect,
           containerRect,
         });
@@ -153,6 +157,9 @@ function AvailabilityGrid() {
   // Khi click vào một slot đã có để mở popover chỉnh sửa
   const handleSlotClick = (slot, e) => {
     e.stopPropagation();
+    // Hủy bỏ draft chưa lưu nếu có
+    setDraftSlots([]);
+
     const slotCardEl = e.currentTarget;
     const containerEl = containerRef.current;
     if (!slotCardEl || !containerEl) return;
@@ -183,34 +190,51 @@ function AvailabilityGrid() {
         ref={containerRef}
         className="relative flex flex-col flex-1 rounded-2xl border border-slate-200/90 bg-white shadow-[0_20px_45px_-12px_rgba(15,23,42,0.14),0_4px_16px_-2px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/5 overflow-hidden min-h-0"
       >
-        {/* Popover nhỏ neo có mũi tên chỉ vào slot (Ảnh 1 & Ảnh 2) */}
+        {/* Popover nhỏ neo có mũi tên chỉ vào slot */}
         <SlotPopover
           isOpen={popover.isOpen}
           mode={popover.mode}
           slotData={popover.slotData}
           anchorPos={popover.anchorPos}
           onSave={(slotData) => {
-            if (slotData.dayIndices && slotData.dayIndices.length > 1) {
-              const multiSlots = slotData.dayIndices.map((dIdx) => {
-                const dayObj = weekDays.find((d) => d.dayIndex === dIdx);
-                return {
+            if (popover.mode === "new") {
+              // Người dùng bấm Áp dụng: Lúc này MỚI chính thức lưu vào slots & DB
+              if (draftSlots.length > 1) {
+                const finalSlots = draftSlots.map((ds) => ({
+                  ...ds,
+                  id: `slot-${Date.now()}-${ds.dayIndex}`,
+                  startMinutes: slotData.startMinutes,
+                  endMinutes: slotData.endMinutes,
+                  note: slotData.note || "",
+                  label: slotData.label || "Available",
+                }));
+                saveSlot(finalSlots);
+              } else {
+                saveSlot({
                   ...slotData,
-                  id: `slot-${Date.now()}-${dIdx}`,
-                  dayIndex: dIdx,
-                  dateStr: dayObj?.dateStr,
-                };
-              });
-              saveSlot(multiSlots);
+                  id: `slot-${Date.now()}`,
+                });
+              }
             } else {
+              // Chế độ Edit slot đã có
               saveSlot(slotData);
             }
+            setDraftSlots([]);
             closePopover();
           }}
           onDelete={(slotId) => {
-            deleteSlot(slotId);
+            if (popover.mode === "new") {
+              setDraftSlots([]);
+            } else {
+              deleteSlot(slotId);
+            }
             closePopover();
           }}
-          onClose={closePopover}
+          onClose={() => {
+            // Khi bấm nút X, Esc hoặc click ra ngoài: HỦY DRAFT, KHÔNG LƯU VÀO DB!
+            setDraftSlots([]);
+            closePopover();
+          }}
         />
 
         {/* Floating Range Indicator bám sát con trỏ chuột khi đang kéo */}
@@ -252,9 +276,13 @@ function AvailabilityGrid() {
 
                 {/* 7 cột ngày */}
                 {weekDays.map((day, idx) => {
-                  const daySlots = slots.filter(
+                  const actualDaySlots = slots.filter(
                     (s) => s.dayIndex === day.dayIndex || s.dateStr === day.dateStr
                   );
+                  const draftDaySlots = draftSlots.filter(
+                    (s) => s.dayIndex === day.dayIndex || s.dateStr === day.dateStr
+                  );
+                  const daySlots = [...actualDaySlots, ...draftDaySlots];
 
                   return (
                     <DayColumn

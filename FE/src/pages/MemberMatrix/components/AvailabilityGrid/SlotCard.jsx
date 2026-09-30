@@ -26,13 +26,14 @@ function SlotCard({ slot, isActive, onClick, onResizeStart }) {
   return (
     <div
       onClick={onClick}
+      onMouseDown={(e) => e.stopPropagation()}
       style={{
         top: `${top}px`,
         height: `${height}px`,
       }}
       className={cn(
         "group absolute left-1 right-1 rounded-xl p-2.5 transition-all cursor-pointer select-none flex flex-col justify-between overflow-hidden",
-        "bg-indigo-50/90 hover:bg-indigo-100/95 border border-indigo-200/90 text-indigo-950 shadow-2xs hover:shadow-md",
+        "bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/90 text-indigo-950 shadow-2xs hover:shadow-md",
         isActive && "ring-2 ring-indigo-600 shadow-md bg-indigo-100"
       )}
     >

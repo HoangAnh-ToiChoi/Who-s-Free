@@ -5,7 +5,8 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { useGroupDetail } from "~/hooks";
 import { Button } from "~/components/ui/button";
-import { InviteMembersModal } from "~/components/Modals";
+import { InviteMembersModal, CreateCalendarModal } from "~/components/Modals";
+import { calculateGroupMetrics } from "~/utils";
 
 import GroupHeader from "~/pages/Group/components/GroupHeader";
 import GroupMetricsBar from "~/pages/Group/components/GroupMetricsBar";
@@ -32,6 +33,9 @@ function Group() {
 
   // Quản lý trạng thái mở modal Mời thành viên (dùng chung cho cả Header và Tab Members)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  // Quản lý trạng thái mở modal Tạo Calendar (dùng chung cho cả Header và Empty State của GroupSessions)
+  const [isCreateCalendarOpen, setIsCreateCalendarOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-12">
@@ -87,27 +91,38 @@ function Group() {
       ) : (
         /* --- Case 3: Hiển thị đầy đủ theo Subpage / Tabs --- */
         <>
-          {/* Group Overview Header + Modal Trigger */}
-          <GroupHeader
-            group={group}
-            sessionsCount={sessions.length}
-            onCreateCalendar={createCalendar}
-            isCreatingCalendar={isCreatingCalendar}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onOpenInvite={() => setIsInviteModalOpen(true)}
-          />
+          {(() => {
+            const { activeSessionsCount, turnoutRate } = calculateGroupMetrics(sessions, group);
+            return (
+              <>
+                {/* Group Overview Header + Modal Trigger */}
+                <GroupHeader
+                  group={group}
+                  sessionsCount={activeSessionsCount}
+                  onCreateCalendar={createCalendar}
+                  isCreatingCalendar={isCreatingCalendar}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  onOpenInvite={() => setIsInviteModalOpen(true)}
+                  onOpenCreateCalendar={() => setIsCreateCalendarOpen(true)}
+                />
 
-          {/* Subpage 1: Calendars / Planning Sessions */}
-          {activeTab === "calendars" && (
-            <>
-              <GroupSessions sessions={sessions} />
-              <GroupMetricsBar
-                activeSessionsCount={sessions.length}
-                turnoutRate={group?.responseRate || 88}
-              />
-            </>
-          )}
+                {/* Subpage 1: Calendars / Planning Sessions */}
+                {activeTab === "calendars" && (
+                  <>
+                    <GroupSessions
+                      sessions={sessions}
+                      onOpenCreateModal={() => setIsCreateCalendarOpen(true)}
+                    />
+                    <GroupMetricsBar
+                      activeSessionsCount={activeSessionsCount}
+                      turnoutRate={turnoutRate}
+                    />
+                  </>
+                )}
+              </>
+            );
+          })()}
 
           {/* Subpage 2: Members */}
           {activeTab === "members" && (
@@ -127,6 +142,15 @@ function Group() {
             open={isInviteModalOpen}
             onOpenChange={setIsInviteModalOpen}
             group={group}
+          />
+
+          {/* Modal Tạo Lịch Trình - Dùng chung cấp Group & Empty State */}
+          <CreateCalendarModal
+            open={isCreateCalendarOpen}
+            onOpenChange={setIsCreateCalendarOpen}
+            groupId={group?.id}
+            onSubmit={createCalendar}
+            isSubmitting={isCreatingCalendar}
           />
         </>
       )}

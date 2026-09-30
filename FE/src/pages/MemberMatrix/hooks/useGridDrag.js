@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { yOffsetToMinutes, calculateSlotGeometry } from "../helper/timeUtils";
+import {
+  isMinuteInAnySlot,
+  clampDragBoundary,
+  hasSlotCollision,
+} from "~/utils/slotCollision";
 
 /**
  * Hook quản lý riêng biệt cơ chế Kéo Thả (Drag to Select) thời gian thực trên lưới
@@ -7,39 +12,52 @@ import { yOffsetToMinutes, calculateSlotGeometry } from "../helper/timeUtils";
  * - Kéo 2 chiều (kéo từ trên xuống dưới hoặc kéo ngược từ dưới lên)
  * - Kéo đa ngày (kéo ngang qua nhiều cột ngày để chọn cùng khung giờ)
  * - Tọa độ phản hồi tức thì theo con trỏ chuột (Real-time tracking 60fps)
- * - Hiển thị trực quan phạm vi kéo tới đâu (Range tracking & floating indicator)
  * - Tự động snap theo bước nhảy 30 phút
+ * - Thuật toán chống va chạm (Collision Prevention): không cho phép kéo bên trong hoặc chồng lấn slot đã có
  */
-export function useGridDrag({ onDragComplete, containerRef, columnRefs }) {
+export function useGridDrag({
+  onDragComplete,
+  containerRef,
+  columnRefs,
+  existingSlots = [],
+}) {
   const [dragState, setDragState] = useState(null);
   // { originDayIndex, currentDayIndex, originMinutes, currentMinutes, cursorX, cursorY, isDragging }
 
   const rafRef = useRef(null);
 
   // Bắt đầu kéo khi bấm chuột xuống
-  const startDrag = useCallback((dayIndex, e) => {
-    if (e.button !== 0) return; // Chỉ nhận chuột trái
-    const colEl = columnRefs.current[dayIndex];
-    if (!colEl) return;
+  const startDrag = useCallback(
+    (dayIndex, e) => {
+      if (e.button !== 0) return; // Chỉ nhận chuột trái
+      const colEl = columnRefs.current[dayIndex];
+      if (!colEl) return;
 
-    const rect = colEl.getBoundingClientRect();
-    const offsetY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
-    const originMinutes = yOffsetToMinutes(offsetY);
+      const rect = colEl.getBoundingClientRect();
+      const offsetY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+      const originMinutes = yOffsetToMinutes(offsetY);
 
-    // Khóa bôi đen văn bản khi đang kéo
-    document.body.style.userSelect = "none";
-    document.body.style.cursor = "crosshair";
+      // Thuật toán: Nếu điểm bấm chuột nằm bên trong slot đã có -> Chặn không cho kéo tạo mới!
+      if (isMinuteInAnySlot(dayIndex, originMinutes, existingSlots)) {
+        return;
+      }
 
-    setDragState({
-      originDayIndex: dayIndex,
-      currentDayIndex: dayIndex,
-      originMinutes,
-      currentMinutes: originMinutes + 30,
-      cursorX: e.clientX,
-      cursorY: e.clientY,
-      isDragging: true,
-    });
-  }, [columnRefs]);
+      // Khóa bôi đen văn bản khi đang kéo
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "crosshair";
+
+      setDragState({
+        originDayIndex: dayIndex,
+        currentDayIndex: dayIndex,
+        originMinutes,
+        currentMinutes: originMinutes + 30,
+        cursorX: e.clientX,
+        cursorY: e.clientY,
+        isDragging: true,
+      });
+    },
+    [columnRefs, existingSlots]
+  );
 
   // Rê chuột toàn cục (Global mousemove listener)
   useEffect(() => {
@@ -82,18 +100,32 @@ export function useGridDrag({ onDragComplete, containerRef, columnRefs }) {
         const offsetY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
         const hoveredMinutes = yOffsetToMinutes(offsetY);
 
-        // 3. Cho phép kéo lên hoặc kéo xuống linh hoạt
-        const nextMinutes =
+        // 3. Cho phép kéo lên hoặc kéo xuống linh hoạt kèm clamp va chạm
+        const rawNextMinutes =
           hoveredMinutes >= dragState.originMinutes
             ? hoveredMinutes + 30
             : hoveredMinutes;
+
+        // Tính các ngày đang được chọn
+        const minDay = Math.min(dragState.originDayIndex, newCurrentDay);
+        const maxDay = Math.max(dragState.originDayIndex, newCurrentDay);
+        const activeDays = [];
+        for (let d = minDay; d <= maxDay; d++) activeDays.push(d);
+
+        // Thuật toán: Clamp phạm vi kéo không cho vượt qua mép slot đã có
+        const clampedMinutes = clampDragBoundary(
+          dragState.originMinutes,
+          rawNextMinutes,
+          activeDays,
+          existingSlots
+        );
 
         setDragState((prev) => {
           if (!prev) return null;
           return {
             ...prev,
             currentDayIndex: newCurrentDay,
-            currentMinutes: nextMinutes,
+            currentMinutes: clampedMinutes,
             cursorX: e.clientX,
             cursorY: e.clientY,
           };
@@ -129,6 +161,17 @@ export function useGridDrag({ onDragComplete, containerRef, columnRefs }) {
       const end = Math.max(rawStart, rawEnd);
       const finalEnd = end === start ? start + 30 : end;
 
+      const dayIndices = [];
+      for (let i = startDay; i <= endDay; i++) {
+        dayIndices.push(i);
+      }
+
+      // Thuật toán: Kiểm tra lần cuối, nếu khoảng kéo giao thoa với slot đã có -> Hủy bỏ
+      if (hasSlotCollision(dayIndices, start, finalEnd, existingSlots)) {
+        setDragState(null);
+        return;
+      }
+
       const { top, height } = calculateSlotGeometry(start, finalEnd);
       const colRect = activeColEl.getBoundingClientRect();
 
@@ -141,11 +184,6 @@ export function useGridDrag({ onDragComplete, containerRef, columnRefs }) {
         width: colRect.width,
         height,
       };
-
-      const dayIndices = [];
-      for (let i = startDay; i <= endDay; i++) {
-        dayIndices.push(i);
-      }
 
       onDragComplete?.({
         startDayIndex: startDay,
