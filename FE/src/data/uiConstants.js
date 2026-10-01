@@ -1,4 +1,4 @@
-﻿/**
+/**
  * uiConstants.js - Hang so cau hinh giao dien (UI Display Constants)
  * Du lieu tinh phuc vu hien thi UI: mau sac, badge, status.
  * Khong phai entity data -> KHONG thuoc db.json
@@ -33,7 +33,8 @@ export const SESSION_TAG_THEMES = {
 export const SLOT_BADGE_STYLES = {
   best: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   quorum: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-  conflict: 'bg-red-100 text-red-800 border-red-300',
+  conflict: 'bg-rose-50 text-rose-700 border-rose-200/80',
+  limited: 'bg-amber-50 text-amber-700 border-amber-200/80',
   lunch: 'bg-amber-100 text-amber-800 border-amber-300',
   evening: 'bg-slate-100 text-slate-700 border-slate-300',
 };

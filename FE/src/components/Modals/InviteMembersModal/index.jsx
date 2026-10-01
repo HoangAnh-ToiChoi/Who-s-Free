@@ -32,7 +32,7 @@ const ROLE_OPTIONS = [
 function InviteMembersModal({ open, onOpenChange, group }) {
   const { t } = useTranslation();
   const groupId = group?.id || "ws-1";
-  const groupName = group?.name || "Club Robotics & AI";
+  const groupName = group?.name || "";
 
   // Sử dụng Domain Hook đóng gói toàn bộ logic gọi API và trạng thái
   const {

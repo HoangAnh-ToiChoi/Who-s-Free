@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   CalendarPlus,
@@ -7,6 +8,7 @@ import {
   Loader2,
   Zap,
   Clock,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useClickOutside } from "~/hooks";
@@ -14,6 +16,7 @@ import { useClickOutside } from "~/hooks";
 import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { createCompositeSlug } from "~/utils/slugify";
 
 const DATE_RANGE_OPTIONS = [
   { id: "week-1", label: "Oct 20 – Oct 26, 2026 (Current Week)", viLabel: "20 Th10 – 26 Th10, 2026 (Tuần hiện tại)" },
@@ -46,7 +49,7 @@ function validateCalendarForm(data, t) {
 function formatCalendarPayload(formState, sessionTypes) {
   const selectedType =
     sessionTypes.find((t) => t.id === formState.selectedTypeId) ||
-    sessionTypes[1];
+    sessionTypes[0];
 
   return {
     title: formState.title.trim(),
@@ -54,7 +57,7 @@ function formatCalendarPayload(formState, sessionTypes) {
     tagColor: selectedType.tagColor,
     dateRange: formState.dateRange,
     quorumPercent: formState.quorumPercent,
-    location: formState.location.trim() || "Virtual / Campus Lab",
+    location: formState.location.trim() || "Quán Cafe / Trực tuyến",
     description: formState.description?.trim() || "",
   };
 }
@@ -66,43 +69,46 @@ function CreateCalendarModal({
   isSubmitting: externalIsSubmitting = false,
 }) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isVietnamese = i18n.language?.startsWith("vi");
 
   const SESSION_TYPES = [
     {
-      id: "executive",
-      tag: "EXECUTIVE QUORUM",
+      id: "work",
+      tag: isVietnamese ? "CÔNG VIỆC & HỌC TẬP" : "WORK & STUDY",
       tagColor: "primary",
-      label: t("createCalendarModal.executiveQuorum"),
-      desc: t("createCalendarModal.executiveDesc"),
+      label: t("createCalendarModal.workStudy"),
+      desc: t("createCalendarModal.workStudyDesc"),
       badgeStyle: "bg-indigo-50 text-indigo-700 border-indigo-200/80",
     },
     {
-      id: "technical",
-      tag: "TECHNICAL SPRINT",
+      id: "hangout",
+      tag: isVietnamese ? "ĐI CHƠI & TỤ TẬP" : "HANGOUT & CHILL",
       tagColor: "secondary",
-      label: t("createCalendarModal.technicalSprint"),
-      desc: t("createCalendarModal.technicalDesc"),
-      badgeStyle: "bg-purple-50 text-purple-700 border-purple-200/80",
+      label: t("createCalendarModal.hangoutChill"),
+      desc: t("createCalendarModal.hangoutChillDesc"),
+      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
     },
     {
-      id: "outreach",
-      tag: "EXTERNAL OUTREACH",
+      id: "other",
+      tag: isVietnamese ? "HOẠT ĐỘNG KHÁC" : "OTHER",
       tagColor: "tertiary",
-      label: t("createCalendarModal.externalOutreach"),
-      desc: t("createCalendarModal.externalDesc"),
+      label: t("createCalendarModal.otherActivity"),
+      desc: t("createCalendarModal.otherActivityDesc"),
       badgeStyle: "bg-amber-50 text-amber-700 border-amber-200/80",
     },
   ];
 
   // Form states
   const [title, setTitle] = useState("");
-  const [selectedTypeId, setSelectedTypeId] = useState("technical");
+  const [selectedTypeId, setSelectedTypeId] = useState("work");
   const [dateRange, setDateRange] = useState(
     isVietnamese ? DATE_RANGE_OPTIONS[1].viLabel : DATE_RANGE_OPTIONS[1].label
   );
   const [quorumPercent, setQuorumPercent] = useState(70);
-  const [location, setLocation] = useState("MakerSpace Bay 3");
+  const [location, setLocation] = useState(
+    isVietnamese ? "Quán Cafe / Trực tuyến" : "Coffee Shop / Online"
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [internalSubmitting, setInternalSubmitting] = useState(false);
 
@@ -116,12 +122,14 @@ function CreateCalendarModal({
   useEffect(() => {
     if (open) {
       setTitle("");
-      setSelectedTypeId("technical");
+      setSelectedTypeId("work");
       setDateRange(
         isVietnamese ? DATE_RANGE_OPTIONS[1].viLabel : DATE_RANGE_OPTIONS[1].label
       );
       setQuorumPercent(70);
-      setLocation("MakerSpace Bay 3");
+      setLocation(
+        isVietnamese ? "Quán Cafe / Trực tuyến" : "Coffee Shop / Online"
+      );
       setErrorMessage("");
     }
   }, [open, isVietnamese]);
@@ -152,12 +160,31 @@ function CreateCalendarModal({
         setInternalSubmitting(true);
         const result = await onSubmit(payload);
         if (result && result.success === false) {
-          if (result.error) setErrorMessage(result.error);
+          if (result.error) {
+            setErrorMessage(
+              result.error === "Network Error"
+                ? t("createCalendarModal.errorNetwork")
+                : result.error
+            );
+          }
           return;
         }
         onOpenChange?.(false);
+
+        // Đính kèm slug lên URL để chuyển thẳng vào MemberMatrix
+        const createdObj = result?.data || result;
+        const targetSlug = createdObj?.id
+          ? createCompositeSlug(createdObj.title, createdObj.id)
+          : (createdObj?.slug || createdObj?.id);
+        if (targetSlug) {
+          navigate(`/matrix/${targetSlug}`, { state: { session: createdObj } });
+        }
       } catch (err) {
-        setErrorMessage(err?.message || "Failed to create calendar session.");
+        setErrorMessage(
+          err?.message === "Network Error"
+            ? t("createCalendarModal.errorNetwork")
+            : err?.message || "Failed to create calendar session."
+        );
       } finally {
         setInternalSubmitting(false);
       }
@@ -198,7 +225,7 @@ function CreateCalendarModal({
             <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
               {t("createCalendarModal.category")}
             </label>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
               {SESSION_TYPES.map((type) => {
                 const isSelected = selectedTypeId === type.id;
                 return (
@@ -207,9 +234,9 @@ function CreateCalendarModal({
                     type="button"
                     onClick={() => setSelectedTypeId(type.id)}
                     className={cn(
-                      "flex min-h-[76px] flex-col items-start justify-between rounded-xl border p-2.5 text-left transition-all cursor-pointer select-none",
+                      "flex min-h-[82px] flex-col items-start justify-between rounded-xl border p-2.5 text-left transition-all cursor-pointer select-none",
                       isSelected
-                        ? "border-indigo-600 bg-indigo-50/60 ring-1 ring-indigo-500/20"
+                        ? "border-indigo-600 bg-indigo-50/60 ring-1 ring-indigo-500/20 shadow-2xs"
                         : "border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white"
                     )}
                   >
@@ -221,9 +248,14 @@ function CreateCalendarModal({
                     >
                       {type.tag}
                     </span>
-                    <span className="mt-1 line-clamp-2 text-xs font-semibold text-slate-800">
-                      {type.label}
-                    </span>
+                    <div className="mt-1">
+                      <span className="block text-xs font-bold text-slate-800">
+                        {type.label}
+                      </span>
+                      <span className="block text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                        {type.desc}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -324,7 +356,7 @@ function CreateCalendarModal({
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. MakerSpace Bay 3"
+                placeholder={t("createCalendarModal.locationPlaceholder")}
                 className="h-9 rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs text-slate-800 hover:border-slate-300 hover:bg-white"
               />
             </div>
@@ -352,8 +384,9 @@ function CreateCalendarModal({
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="rounded-xl border border-red-200 bg-red-50/80 px-3.5 py-2 text-xs font-medium text-red-600 animate-in fade-in">
-              {errorMessage}
+            <div className="rounded-xl border border-rose-200 bg-rose-50/80 px-3.5 py-2.5 text-xs font-medium text-rose-600 animate-in fade-in flex items-center gap-2">
+              <AlertCircle size={15} className="text-rose-500 shrink-0" />
+              <span>{errorMessage}</span>
             </div>
           )}
 

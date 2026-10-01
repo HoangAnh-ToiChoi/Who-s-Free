@@ -144,5 +144,30 @@ body {
     --theme-badge-text: #1e40af;
     --theme-progress: #2563eb;
 }
+.group-theme-sky {
+    --theme-bg: #f0f9ff;
+    --theme-text: #0369a1;
+    --theme-border: #bae6fd;
+    --theme-badge: #e0f2fe;
+    --theme-badge-text: #075985;
+    --theme-progress: #0284c7;
+}
+.group-theme-rose {
+    --theme-bg: #fff1f2;
+    --theme-text: #be123c;
+    --theme-border: #fecdd3;
+    --theme-badge: #ffe4e6;
+    --theme-badge-text: #9f1239;
+    --theme-progress: #e11d48;
+}
+.group-theme-orange {
+    --theme-bg: #fff7ed;
+    --theme-text: #c2410c;
+    --theme-border: #fed7aa;
+    --theme-badge: #ffedd5;
+    --theme-badge-text: #9a3412;
+    --theme-progress: #ea580c;
+}
+
 
 

@@ -8,6 +8,7 @@ import { useClickOutside } from "~/hooks";
 function UserAvatar({ user }) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const ref = useRef(null);
 
   useClickOutside(ref, () => setOpen(false));
@@ -19,7 +20,7 @@ function UserAvatar({ user }) {
         .join("")
         .slice(0, 2)
         .toUpperCase()
-    : "?";
+    : "ML";
 
   const isVietnamese = i18n.language?.startsWith("vi");
 
@@ -33,18 +34,19 @@ function UserAvatar({ user }) {
       <button
         onClick={() => setOpen((p) => !p)}
         className={cn(
-          "h-9 w-9 overflow-hidden rounded-full ring-2 transition-all focus:outline-none cursor-pointer",
+          "h-9 w-9 overflow-hidden rounded-full ring-2 transition-all focus:outline-none cursor-pointer flex items-center justify-center bg-indigo-50",
           open ? "ring-indigo-600" : "ring-slate-200 hover:ring-slate-300"
         )}
       >
-        {user?.avatarUrl ? (
+        {user?.avatarUrl && !imgError ? (
           <img
             src={user.avatarUrl}
-            alt={user.name}
+            alt={user.name || "User"}
+            onError={() => setImgError(true)}
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-indigo-600 text-xs font-bold text-white">
+          <div className="flex h-full w-full items-center justify-center bg-indigo-600 text-xs font-bold text-white shadow-2xs">
             {initials}
           </div>
         )}
@@ -54,11 +56,12 @@ function UserAvatar({ user }) {
         <div className="absolute top-full right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1 duration-150">
           {/* User info */}
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
-            <div className="h-9 w-9 overflow-hidden rounded-full shrink-0">
-              {user?.avatarUrl ? (
+            <div className="h-9 w-9 overflow-hidden rounded-full shrink-0 flex items-center justify-center bg-indigo-50">
+              {user?.avatarUrl && !imgError ? (
                 <img
                   src={user.avatarUrl}
-                  alt={user.name}
+                  alt={user.name || "User"}
+                  onError={() => setImgError(true)}
                   className="h-full w-full object-cover"
                 />
               ) : (

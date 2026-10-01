@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Users, AlertCircle, RefreshCw } from "lucide-react";
 
 import { useGroups } from "~/hooks";
 import { Button } from "~/components/ui/button";
+import { CreateGroupModal } from "~/components/Modals";
 import HomeHeader from "~/pages/Home/components/HomeHeader";
 import GroupCard from "~/pages/Home/components/GroupCard";
 
 function Home() {
   const { t } = useTranslation();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   // Sử dụng Domain Hook chuyên biệt, đóng gói toàn bộ state async, filter & create group
   const {
@@ -83,7 +86,7 @@ function Home() {
             <GroupCard
               key={group.id}
               group={group}
-              to={`/groups/${group.slug || group.id}`}
+              to={`/groups/${group.id}`}
             />
           ))}
         </div>
@@ -99,17 +102,32 @@ function Home() {
           <p className="mt-1 max-w-xs text-xs text-slate-500">
             {t("groups.emptyDesc")}
           </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearchQuery("");
-              setActiveFilter("all");
-            }}
-            className="mt-4 cursor-pointer text-xs font-semibold text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 h-8 min-w-[110px] justify-center"
-          >
-            {t("groups.clearFilters")}
-          </Button>
+          {groups.length === 0 ? (
+            <Button
+              onClick={() => setCreateModalOpen(true)}
+              className="mt-4 gap-2 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 cursor-pointer h-9 min-w-[150px] justify-center"
+            >
+              <span>+ {t("groups.createNewGroup")}</span>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchQuery("");
+                setActiveFilter("all");
+              }}
+              className="mt-4 cursor-pointer text-xs font-semibold text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 h-8 min-w-[110px] justify-center"
+            >
+              {t("groups.clearFilters")}
+            </Button>
+          )}
+
+          <CreateGroupModal
+            open={createModalOpen}
+            onOpenChange={setCreateModalOpen}
+            onSubmit={createGroup}
+          />
         </div>
       )}
     </div>

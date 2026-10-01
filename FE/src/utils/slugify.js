@@ -23,4 +23,42 @@ export function slugify(text) {
     .replace(/-+/g, "-"); // Tránh lặp --
 }
 
+/**
+ * Sinh mã định danh ngẫu nhiên (6-8 ký tự không thể đoán trước)
+ * @param {number} length
+ * @returns {string}
+ */
+export function generateRandomId(length = 6) {
+  const chars = "23456789abcdefghjkmnpqrstuvwxyz"; // Bỏ 0, 1, l, o để tránh nhầm lẫn
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+/**
+ * Tạo Composite Slug dạng <slug>--<id> thân thiện người dùng nhưng bảo đảm khóa ID
+ * @param {string} title
+ * @param {string} id
+ * @returns {string} Ví dụ: "hop-dot-1--8z2k4p"
+ */
+export function createCompositeSlug(title, id) {
+  const baseSlug = slugify(title) || "session";
+  return id ? `${baseSlug}--${id}` : baseSlug;
+}
+
+/**
+ * Bóc tách ID từ Composite Slug hoặc trả về nguyên vẹn nếu là ID thuần
+ * @param {string} param
+ * @returns {string}
+ */
+export function extractIdFromSlug(param) {
+  if (!param) return "";
+  if (param.includes("--")) {
+    return param.split("--").pop();
+  }
+  return param;
+}
+
 export default slugify;

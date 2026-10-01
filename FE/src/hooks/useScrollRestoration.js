@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 /**
  * useScrollRestoration - Custom hook tối ưu lưu và phục hồi vị trí cuộn khi F5 (Reload trang)
@@ -16,22 +16,30 @@ export function useScrollRestoration(storageKey, options = {}) {
   const internalRef = useRef(null);
   const elementRef = externalRef || internalRef;
 
-  // 1. Phục hồi vị trí cuộn khi component mount
-  useEffect(() => {
+  // 1. Phục hồi vị trí cuộn ngay trước khi trình duyệt vẽ màn hình (Pre-paint) bằng useLayoutEffect
+  // Giúp triệt tiêu hoàn toàn cú giật màn hình từ 00:00 xuống 08:00
+  useLayoutEffect(() => {
     if (!enabled || !storageKey) return;
     const el = elementRef.current;
     if (!el) return;
 
+    const applyScroll = (targetTop) => {
+      const prevBehavior = el.style.scrollBehavior;
+      el.style.scrollBehavior = "auto";
+      el.scrollTop = targetTop;
+      el.style.scrollBehavior = prevBehavior;
+    };
+
     try {
       const saved = sessionStorage.getItem(`scroll_pos_${storageKey}`);
       if (saved !== null && !isNaN(Number(saved))) {
-        el.scrollTop = Number(saved);
+        applyScroll(Number(saved));
       } else if (defaultScrollTop > 0) {
-        el.scrollTop = defaultScrollTop;
+        applyScroll(defaultScrollTop);
       }
     } catch {
       if (defaultScrollTop > 0) {
-        el.scrollTop = defaultScrollTop;
+        applyScroll(defaultScrollTop);
       }
     }
   }, [storageKey, defaultScrollTop, enabled, elementRef]);

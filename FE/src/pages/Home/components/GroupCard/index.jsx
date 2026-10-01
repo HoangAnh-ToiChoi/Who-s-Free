@@ -9,10 +9,12 @@ import {
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { calcPercentage } from "~/utils";
+import { getGroupThemeColor } from "~/data/groupPalettes";
 
-function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick }) {
+function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
   const { t } = useTranslation();
   const isOwner = group.role === "Owner";
+  const themeColor = getGroupThemeColor(group);
 
   // Sử dụng hàm tiện ích dùng chung để tính phần trăm
   const memberPercent = calcPercentage(group.memberCount, group.capacity);
@@ -21,7 +23,7 @@ function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick })
     <Link
       to={to}
       onClick={onClick}
-      className={`group group-theme-${group.color || "indigo"} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/50`}
+      className={`group group-theme-${themeColor} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
     >
       <div>
         {/* Card Header: Avatar, Info & Role Badge */}
@@ -97,21 +99,29 @@ function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick })
       <div className="mt-6 pt-4 border-t border-slate-100">
         <div className="flex items-center justify-between text-xs text-slate-500">
           {/* Member avatar stack */}
-          <div className="flex -space-x-1.5 overflow-hidden">
-            {group.members?.slice(0, 3).map((member, idx) => (
-              <img
-                key={member.id || idx}
-                src={member.avatar}
-                alt={member.name}
-                className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
-              />
-            ))}
-            {group.memberCount > 3 && (
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
-                +{group.memberCount - 3}
+          {(() => {
+            const avatars =
+              group.avatarPreviews ||
+              group.members?.map((m) => m.avatar || m.avatarUrl).filter(Boolean) ||
+              [];
+            return (
+              <div className="flex -space-x-1.5 overflow-hidden">
+                {avatars.slice(0, 3).map((avatarSrc, idx) => (
+                  <img
+                    key={idx}
+                    src={avatarSrc}
+                    alt="Member avatar"
+                    className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
+                  />
+                ))}
+                {group.memberCount > avatars.length && avatars.length > 0 && (
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
+                    +{group.memberCount - avatars.length}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Active Sessions badge */}
           <div className="flex items-center gap-1.5 font-medium text-slate-600">
@@ -126,17 +136,13 @@ function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick })
         <div className="mt-4 border-t border-slate-100 pt-3">
           <Button
             variant="outline"
-            className="flex h-10 w-full items-center justify-between rounded-xl px-3.5 pointer-events-none border-slate-200 bg-white text-slate-700 shadow-2xs transition-all duration-200 group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white group-hover:font-semibold group-hover:shadow-md group-hover:shadow-indigo-500/20"
+            className="h-10 w-full cursor-pointer justify-center gap-2 rounded-xl border-slate-200 bg-white text-xs font-medium whitespace-nowrap text-slate-700 shadow-2xs transition-all duration-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:font-semibold group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!border-indigo-700 hover:!bg-indigo-700 hover:!text-white active:scale-[0.99]"
           >
-            <div className="flex w-full items-center justify-between">
-              <span className="text-xs font-semibold whitespace-nowrap">
-                {t("groupCard.openWorkspace")}
-              </span>
-              <ArrowRight
-                size={15}
-                className="shrink-0 text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-white"
-              />
-            </div>
+            <span>{t("groupCard.openWorkspace")}</span>
+            <ArrowRight
+              size={14}
+              className="shrink-0 text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-white"
+            />
           </Button>
         </div>
       </div>

@@ -23,10 +23,18 @@ export function useGroupDetail(groupId = "ws-1") {
       setIsLoading(true);
       setError(null);
 
-      const [groupRes, sessionsRes] = await Promise.all([
-        groupService.getGroupById(groupId).catch(() => null),
-        calendarService.getGroupCalendars(groupId),
-      ]);
+      const groupRes = await groupService.getGroupById(groupId).catch(() => null);
+      if (!groupRes) {
+        throw new Error("Group not found");
+      }
+
+      const actualGroupId = groupRes.id;
+      const actualGroupSlug = groupRes.slug || groupRes.id;
+
+      const sessionsRes = await calendarService.getGroupCalendars(
+        actualGroupId,
+        actualGroupSlug
+      );
 
       setGroup(groupRes);
       setSessions(sessionsRes);
@@ -52,11 +60,23 @@ export function useGroupDetail(groupId = "ws-1") {
   const createCalendar = async (calendarPayload) => {
     try {
       setIsCreatingCalendar(true);
+      const actualGroupId = group?.id || groupId;
+      const actualGroupSlug = group?.slug || groupId;
+
       const createdSession = await calendarService.createCalendar(
-        groupId,
-        calendarPayload
+        actualGroupId,
+        calendarPayload,
+        actualGroupSlug
       );
       setSessions((prev) => [createdSession, ...prev]);
+      setGroup((prev) =>
+        prev
+          ? {
+              ...prev,
+              activeSessionsCount: (prev.activeSessionsCount || 0) + 1,
+            }
+          : prev
+      );
       return { success: true, data: createdSession };
     } catch (err) {
       console.error("Failed to create calendar:", err);

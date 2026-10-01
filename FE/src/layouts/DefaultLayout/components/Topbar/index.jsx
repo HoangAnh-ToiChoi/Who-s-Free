@@ -7,13 +7,15 @@ import SearchBar from "~/layouts/DefaultLayout/components/Topbar/components/Sear
 import NotificationBell from "~/layouts/DefaultLayout/components/Topbar/components/NotificationBell";
 import UserAvatar from "~/layouts/DefaultLayout/components/Topbar/components/UserAvatar";
 
-import { useActiveWorkspace } from "~/hooks";
-import { mockWorkspaces, mockCurrentUser } from "~/data/mockData";
+import { useActiveWorkspace, useGroups, useCurrentUser } from "~/hooks";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
+  const { groups, createGroup } = useGroups();
+  const { currentUser } = useCurrentUser();
+
   // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
-  const { activeWorkspace } = useActiveWorkspace(mockWorkspaces);
+  const { activeWorkspace } = useActiveWorkspace(groups);
 
   const isVietnamese = i18n.language?.startsWith("vi");
 
@@ -36,8 +38,9 @@ function Topbar() {
       {/* Right section — Workspace Selector, Quick Language Toggle, Bell, Avatar */}
       <div className="flex shrink-0 items-center gap-2.5 sm:gap-3.5">
         <GroupSelector
-          workspaces={mockWorkspaces}
+          workspaces={groups}
           activeWorkspace={activeWorkspace}
+          onCreateGroup={createGroup}
         />
 
         {/* Quick Language Toggle Button — Cố định kích thước min-w và h chống giật */}
@@ -55,7 +58,7 @@ function Topbar() {
         </button>
 
         <NotificationBell count={3} />
-        <UserAvatar user={mockCurrentUser} />
+        <UserAvatar user={currentUser} />
       </div>
     </header>
   );
