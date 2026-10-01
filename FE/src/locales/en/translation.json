@@ -201,9 +201,25 @@
     "filterCore": "Core Team",
     "legendLabel": "Availability:",
     "optimalSlotsTitle": "Top Optimal Slots",
-    "conflictSlotsTitle": "Conflict Zones",
+    "conflictSlotsTitle": "Limited Availability Slots",
+    "lowParticipation": "Low Availability",
+    "onlyCountAvailable": "Only {{count}}/{{total}} free",
     "availableCount": "{{count}} of {{total}} available",
     "statusFree": "Free",
-    "noOneAvailable": "No one is available in this time slot"
+    "noOneAvailable": "No one is available in this time slot",
+    "exportFile": "Export file",
+    "exportSuccess": "Schedule summary exported. Advanced Excel (.xlsx) export is in development!",
+    "membersFiltered": "members",
+    "membersCountFiltered": "• {{selected}} / {{total}} members filtered",
+    "noOptimalSlots": "No overlapping free time this week. Remind members to input their schedules!",
+    "noConflictSlots": "No limited availability slots",
+    "allPresent": "All available",
+    "availableMembersDesc": "{{count}}/{{total}} members available: {{names}}",
+    "missingMembersDesc": "Only {{count}}/{{total}} available. Missing: {{names}}"
+  },
+  "placeholder": {
+    "comingSoonTitle": "Feature Coming Soon",
+    "comingSoonDesc": "The {{name}} page is currently under development and will be available in an upcoming update.",
+    "backHome": "Back to Home"
   }
 }

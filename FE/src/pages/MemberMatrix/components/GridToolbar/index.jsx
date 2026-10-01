@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, Globe, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe, Trash2, FileSpreadsheet } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
 /**
  * GridToolbar - Thanh công cụ điều hướng tuần (Google Calendar Navigation)
- * và hiển thị thống kê tổng số giờ đã chọn.
+ * Hỗ trợ 2 chế độ:
+ * - "member": Hiển thị số slot đã chọn + Nút Xóa lựa chọn
+ * - "lead": Hiển thị số thành viên đang lọc + Nút Xuất file
  */
 function GridToolbar({
   weekLabel,
@@ -13,6 +15,8 @@ function GridToolbar({
   onNextWeek,
   onToday,
   onClearAll,
+  mode = "member",
+  onExport,
 }) {
   const { t } = useTranslation();
 
@@ -66,8 +70,30 @@ function GridToolbar({
           <span className="text-[11px] font-medium">{t("gridToolbar.timezone")}</span>
         </div>
 
-        {/* Badge tổng thời gian đã chọn & Nút Xóa */}
-        {stats.count > 0 ? (
+        {/* Badge & Nút thao tác theo chế độ */}
+        {mode === "lead" ? (
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+              {stats?.label ||
+                t("leadMatrix.membersCountFiltered", {
+                  selected: stats?.selectedCount ?? stats?.count ?? 0,
+                  total: stats?.totalMembers ?? stats?.count ?? 0,
+                })}
+            </span>
+
+            {/* Nút Xuất file cho chế độ Lead */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onExport}
+              className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-indigo-700 border-indigo-200/90 bg-indigo-50/80 hover:bg-indigo-100 hover:text-indigo-800 hover:border-indigo-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+            >
+              <FileSpreadsheet size={13} className="shrink-0 text-indigo-600" />
+              <span>{t("leadMatrix.exportFile")}</span>
+            </Button>
+          </div>
+        ) : stats.count > 0 ? (
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
               {t("gridToolbar.slotsSelected", {
@@ -76,7 +102,7 @@ function GridToolbar({
               })}
             </span>
 
-            {/* Nút Clear lựa chọn trực quan, nhận diện tức thì */}
+            {/* Nút Clear lựa chọn cho MemberMatrix */}
             <Button
               type="button"
               variant="outline"

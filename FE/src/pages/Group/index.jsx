@@ -16,7 +16,7 @@ import GroupSettings from "~/pages/Group/subpages/GroupSettings";
 
 function Group() {
   const { t } = useTranslation();
-  const { groupId = "ws-1" } = useParams();
+  const { groupId } = useParams();
 
   // Sử dụng Domain Hook đóng gói toàn bộ state async và thao tác tạo calendar
   const {

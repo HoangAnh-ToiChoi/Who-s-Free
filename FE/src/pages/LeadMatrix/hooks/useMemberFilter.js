@@ -11,7 +11,7 @@ import { calendarService } from "~/service/calendarService/calendarService";
  * 3. Core — Chỉ hiển thị thành viên core
  * 4. Custom — Bấm chọn/bỏ chọn từng member riêng lẻ
  */
-export function useMemberFilter(sessionId = "sess-1") {
+export function useMemberFilter(sessionId) {
   const [activePreset, setActivePreset] = useState("all");
   const [allMembers, setAllMembers] = useState([]);
   const [customSelectedIds, setCustomSelectedIds] = useState([]);
@@ -19,9 +19,14 @@ export function useMemberFilter(sessionId = "sess-1") {
   useEffect(() => {
     let isMounted = true;
     async function loadMembers() {
+      if (!sessionId) {
+        setAllMembers([]);
+        setCustomSelectedIds([]);
+        return;
+      }
       try {
         const avails = await calendarService.getSessionAvailabilities(sessionId);
-        if (isMounted && Array.isArray(avails) && avails.length > 0) {
+        if (isMounted && Array.isArray(avails)) {
           setAllMembers(avails);
           setCustomSelectedIds(avails.map((m) => m.memberId));
         }

@@ -1,4 +1,4 @@
-import { useMatrixSession } from "./hooks/useMatrixSession";
+import { useSessionResolver } from "~/hooks";
 import MatrixHeader from "./components/MatrixHeader";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 
@@ -7,7 +7,7 @@ import AvailabilityGrid from "./components/AvailabilityGrid";
  * Chứa Lưới Kéo Thả thời gian cốt lõi (Core Feature) của dự án và chế độ Lead Matrix.
  */
 function Matrix() {
-  const { currentSession } = useMatrixSession();
+  const { currentSession } = useSessionResolver();
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8 h-[calc(100vh-72px)] flex flex-col overflow-hidden">

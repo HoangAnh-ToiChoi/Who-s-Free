@@ -10,15 +10,23 @@ import { calendarService } from "~/service/calendarService/calendarService";
  * @param {string} sessionId - ID của session hiện tại
  * @returns {{ matrix, totalMembers, getCell }}
  */
-export function useHeatmapMatrix(selectedMemberIds = [], sessionId = "sess-1") {
+export function useHeatmapMatrix(
+  selectedMemberIds = [],
+  sessionId,
+  weekDays = []
+) {
   const [sessionMembers, setSessionMembers] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
     async function loadHeatmapData() {
+      if (!sessionId) {
+        setSessionMembers([]);
+        return;
+      }
       try {
         const avails = await calendarService.getSessionAvailabilities(sessionId);
-        if (isMounted && Array.isArray(avails) && avails.length > 0) {
+        if (isMounted && Array.isArray(avails)) {
           setSessionMembers(avails);
         }
       } catch (err) {
@@ -60,18 +68,27 @@ export function useHeatmapMatrix(selectedMemberIds = [], sessionId = "sess-1") {
       }
     }
 
-    // Đổ dữ liệu availability vào ma trận
+    // Đổ dữ liệu availability vào ma trận (chỉ hiển thị slot thuộc tuần đang xem)
     filteredMembers.forEach((member) => {
       (member.slots || []).forEach((slot) => {
-        const { dayIndex, startMinutes, endMinutes } = slot;
-        if (dayIndex < 0 || dayIndex > 6) return;
+        let targetDayIndex = -1;
+        if (slot.dateStr && weekDays && weekDays.length > 0) {
+          const matchDay = weekDays.find((d) => d.dateStr === slot.dateStr);
+          if (matchDay) {
+            targetDayIndex = matchDay.dayIndex;
+          }
+        } else if (slot.dayIndex >= 0 && slot.dayIndex <= 6) {
+          targetDayIndex = slot.dayIndex;
+        }
+
+        if (targetDayIndex < 0 || targetDayIndex > 6) return;
 
         // Duyệt qua từng block 30 phút trong khoảng slot
-        for (let t = startMinutes; t < endMinutes; t += 30) {
+        for (let t = slot.startMinutes; t < slot.endMinutes; t += 30) {
           const blockStart = Math.floor(t / 30) * 30;
-          if (result[dayIndex] && result[dayIndex][blockStart]) {
-            result[dayIndex][blockStart].count += 1;
-            result[dayIndex][blockStart].members.push({
+          if (result[targetDayIndex] && result[targetDayIndex][blockStart]) {
+            result[targetDayIndex][blockStart].count += 1;
+            result[targetDayIndex][blockStart].members.push({
               id: member.memberId,
               name: member.memberName,
               avatarUrl: member.avatarUrl,
@@ -93,7 +110,7 @@ export function useHeatmapMatrix(selectedMemberIds = [], sessionId = "sess-1") {
     }
 
     return result;
-  }, [filteredMembers, totalMembers]);
+  }, [filteredMembers, totalMembers, weekDays]);
 
   // Helper: lấy dữ liệu 1 ô
   const getCell = (dayIndex, blockStartMinutes) => {

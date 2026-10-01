@@ -32,10 +32,27 @@ export function useGroups() {
   }, []);
 
   /**
-   * Kích hoạt tự động khi mount
+   * Kích hoạt tự động khi mount và đồng bộ realtime khi có nhóm mới được tạo
    */
   useEffect(() => {
     loadGroups();
+
+    const handleGroupsUpdated = (event) => {
+      const newGroup = event.detail;
+      if (newGroup && newGroup.id) {
+        setGroups((prev) => {
+          if (prev.some((g) => g.id === newGroup.id)) return prev;
+          return [newGroup, ...prev];
+        });
+      } else {
+        loadGroups();
+      }
+    };
+
+    window.addEventListener("who_groups_updated", handleGroupsUpdated);
+    return () => {
+      window.removeEventListener("who_groups_updated", handleGroupsUpdated);
+    };
   }, [loadGroups]);
 
   /**
@@ -46,7 +63,16 @@ export function useGroups() {
     try {
       setIsCreating(true);
       const createdGroup = await groupService.createGroup(payload);
-      setGroups((prev) => [createdGroup, ...prev]);
+      setGroups((prev) => {
+        if (prev.some((g) => g.id === createdGroup.id)) return prev;
+        return [createdGroup, ...prev];
+      });
+
+      // Bắn sự kiện toàn cục để Topbar và các component khác cùng cập nhật tức thì
+      window.dispatchEvent(
+        new CustomEvent("who_groups_updated", { detail: createdGroup })
+      );
+
       return { success: true, data: createdGroup };
     } catch (err) {
       console.error("Create group error:", err);

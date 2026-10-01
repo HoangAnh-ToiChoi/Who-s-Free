@@ -1,5 +1,6 @@
 import http from "~/utils/http";
-import { slugify } from "~/utils/slugify";
+import { slugify, generateRandomId, extractIdFromSlug } from "~/utils/slugify";
+import { getRandomAvatars } from "~/data/avatars";
 
 // Local in-memory cache for fallback
 let groupsStore = [];
@@ -58,22 +59,32 @@ export const groupService = {
   },
 
   /**
-   * Lấy chi tiết một group theo ID hoặc Slug
+   * Lấy chi tiết một group theo ID (ưu tiên ID tuyệt đối, fallback Slug)
    * @param {string|number} id
    * @returns {Promise<Object>}
    */
   async getGroupById(id) {
+    if (!id) throw new Error("Group ID is required");
+    const actualId = extractIdFromSlug(id);
     try {
-      const res = await http.get(`/groups/${id}`).catch(async () => {
-        const list = await http.get(`/groups?slug=${id}`);
-        return Array.isArray(list) ? list[0] : null;
-      });
+      // Tìm chính xác theo id thực tế trước
+      let res = await http.get(`/groups/${actualId}`).catch(() => null);
+      if (!res && actualId !== id) {
+        res = await http.get(`/groups/${id}`).catch(() => null);
+      }
+      if (!res) {
+        // Fallback kiểm tra slug nếu người dùng nhập url cũ
+        const list = await http.get(`/groups?slug=${id}`).catch(() => []);
+        res = Array.isArray(list) ? list[0] : null;
+      }
       if (res) return res;
     } catch (err) {
       console.warn("API error fetching group, using store:", err);
     }
 
-    const found = groupsStore.find((g) => g.id === id || g.slug === id);
+    const found =
+      groupsStore.find((g) => String(g.id) === String(actualId) || String(g.id) === String(id)) ||
+      groupsStore.find((g) => String(g.slug) === String(id));
     if (found) return found;
     throw new Error("Group not found");
   },
@@ -84,7 +95,12 @@ export const groupService = {
    * @returns {Promise<Array>}
    */
   async getMembers(groupId) {
+    const actualId = groupId ? extractIdFromSlug(groupId) : null;
     try {
+      if (actualId) {
+        const list = await http.get(`/members?groupId=${actualId}`).catch(() => []);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
       const res = await http.get("/members");
       return Array.isArray(res) ? res : [];
     } catch (err) {
@@ -94,12 +110,15 @@ export const groupService = {
   },
 
   /**
-   * Tạo mới một group
+   * Tạo mới một group - Định danh bằng ID duy nhất
    * @param {Object} payload - { name: string, capacity: number, description?: string }
    * @returns {Promise<Object>} Group vừa tạo
    */
   async createGroup(payload) {
-    const slug = slugify(payload.name) || `group-${Date.now()}`;
+    const randomId = generateRandomId(6);
+    const newId = `ws-${randomId}`;
+    const baseSlug = slugify(payload.name) || `group-${randomId}`;
+    const slug = `${baseSlug}--${newId}`;
     const category = payload.category || "work";
     const color = payload.color || (category === "hangout" ? "emerald" : category === "other" ? "amber" : "indigo");
     const icon = category === "hangout" ? "Coffee" : category === "other" ? "Sparkles" : "BookOpen";
@@ -111,7 +130,7 @@ export const groupService = {
           : "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.";
 
     const newGroup = {
-      id: `ws-${Date.now()}`,
+      id: newId,
       slug,
       name: payload.name,
       category,
@@ -125,9 +144,7 @@ export const groupService = {
       cohort: "2026",
       activeSessionsCount: 0,
       responseRate: 100,
-      avatarPreviews: [
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-      ],
+      avatarPreviews: getRandomAvatars(3),
     };
 
     try {

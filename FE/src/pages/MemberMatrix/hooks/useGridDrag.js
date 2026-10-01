@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { yOffsetToMinutes, calculateSlotGeometry } from "../helper/timeUtils";
+import { yOffsetToMinutes, calculateSlotGeometry } from "~/utils/timeUtils";
 import {
   isMinuteInAnySlot,
   clampDragBoundary,

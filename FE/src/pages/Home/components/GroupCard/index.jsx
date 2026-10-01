@@ -9,10 +9,12 @@ import {
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { calcPercentage } from "~/utils";
+import { getGroupThemeColor } from "~/data/groupPalettes";
 
-function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick }) {
+function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
   const { t } = useTranslation();
   const isOwner = group.role === "Owner";
+  const themeColor = getGroupThemeColor(group);
 
   // Sử dụng hàm tiện ích dùng chung để tính phần trăm
   const memberPercent = calcPercentage(group.memberCount, group.capacity);
@@ -21,7 +23,7 @@ function GroupCard({ group, to = `/groups/${group.slug || group.id}`, onClick })
     <Link
       to={to}
       onClick={onClick}
-      className={`group group-theme-${group.color || "indigo"} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
+      className={`group group-theme-${themeColor} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
     >
       <div>
         {/* Card Header: Avatar, Info & Role Badge */}

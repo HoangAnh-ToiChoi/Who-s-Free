@@ -11,7 +11,7 @@ import { useActiveWorkspace, useGroups, useCurrentUser } from "~/hooks";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
-  const { groups } = useGroups();
+  const { groups, createGroup } = useGroups();
   const { currentUser } = useCurrentUser();
 
   // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
@@ -40,6 +40,7 @@ function Topbar() {
         <GroupSelector
           workspaces={groups}
           activeWorkspace={activeWorkspace}
+          onCreateGroup={createGroup}
         />
 
         {/* Quick Language Toggle Button — Cố định kích thước min-w và h chống giật */}

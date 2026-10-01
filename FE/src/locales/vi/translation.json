@@ -201,9 +201,25 @@
     "filterCore": "Nhóm nòng cốt",
     "legendLabel": "Mức độ rảnh:",
     "optimalSlotsTitle": "Khung giờ tối ưu",
-    "conflictSlotsTitle": "Vùng xung đột",
+    "conflictSlotsTitle": "Khung giờ hạn chế",
+    "lowParticipation": "Ít người chọn",
+    "onlyCountAvailable": "Chỉ {{count}}/{{total}} rảnh",
     "availableCount": "{{count}} trên {{total}} người rảnh",
     "statusFree": "Rảnh",
-    "noOneAvailable": "Không ai rảnh trong khung giờ này"
+    "noOneAvailable": "Không ai rảnh trong khung giờ này",
+    "exportFile": "Xuất file",
+    "exportSuccess": "Đã xuất bảng tóm tắt lịch trình. Tính năng xuất Excel (.xlsx) đang được phát triển!",
+    "membersFiltered": "thành viên",
+    "membersCountFiltered": "• {{selected}} / {{total}} thành viên đang lọc",
+    "noOptimalSlots": "Chưa có khung giờ rảnh trong tuần này. Hãy nhắc nhở thành viên nhập lịch!",
+    "noConflictSlots": "Không có khung giờ hạn chế nào",
+    "allPresent": "Tất cả cùng rảnh",
+    "availableMembersDesc": "{{count}}/{{total}} thành viên có mặt: {{names}}",
+    "missingMembersDesc": "Chỉ {{count}}/{{total}} người rảnh. Vắng: {{names}}"
+  },
+  "placeholder": {
+    "comingSoonTitle": "Tính năng đang được phát triển",
+    "comingSoonDesc": "Trang {{name}} đang trong giai đoạn hoàn thiện và sẽ sớm khả dụng trong bản cập nhật tới.",
+    "backHome": "Quay lại Trang chủ"
   }
 }

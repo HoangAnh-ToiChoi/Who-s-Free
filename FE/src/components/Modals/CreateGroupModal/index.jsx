@@ -8,6 +8,8 @@ import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
+import { getRandomColorByCategory } from "~/data/groupPalettes";
+
 const CAPACITY_OPTIONS = [
   { value: "5", label: "5 members", viLabel: "5 thành viên" },
   { value: "10", label: "10 members", viLabel: "10 thành viên" },
@@ -82,7 +84,7 @@ function CreateGroupModal({
       name: trimmedName,
       capacity: parseInt(capacity, 10) || 10,
       category,
-      color: category === "hangout" ? "emerald" : category === "other" ? "amber" : "indigo",
+      color: getRandomColorByCategory(category),
     };
 
     const submitFn = onSubmit || onSuccess;

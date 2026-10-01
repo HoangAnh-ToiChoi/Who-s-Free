@@ -1,219 +1,215 @@
 {
   "groups": [
     {
-      "id": "ws-1",
-      "slug": "robotics-ai-club",
-      "name": "Robotics & AI Club",
-      "description": "Autonomous systems research, hardware prototyping, and intercollegiate competition squad.",
-      "icon": "Bot",
-      "color": "emerald",
+      "id": "jpT18Fo2Snk",
+      "slug": "ngu--jpT18Fo2Snk",
+      "name": "ngu",
+      "category": "work",
+      "description": "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.",
+      "icon": "BookOpen",
+      "color": "indigo",
       "role": "Owner",
-      "memberCount": 14,
-      "capacity": 20,
+      "memberCount": 3,
+      "capacity": 10,
       "leadAdmin": "Maya Lin (You)",
-      "cohort": "Fall 2026 Cohort",
-      "activeSessionsCount": 4,
-      "responseRate": 88,
+      "cohort": "2026",
+      "activeSessionsCount": 1,
+      "responseRate": 100,
       "avatarPreviews": [
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80"
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80"
       ]
     },
     {
-      "id": "ws-2",
-      "slug": "campus-badminton-club",
-      "name": "Campus Badminton Club",
-      "description": "Court schedules, ladder tournaments, weekly practice sessions and friendly collegiate scrimmages.",
-      "icon": "Activity",
-      "color": "amber",
-      "role": "Joined",
-      "memberCount": 8,
+      "id": "0jQYUjjjV2s",
+      "slug": "ngu--0jQYUjjjV2s",
+      "name": "ngu",
+      "category": "hangout",
+      "description": "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.",
+      "icon": "Coffee",
+      "color": "teal",
+      "role": "Owner",
+      "memberCount": 3,
       "capacity": 10,
-      "leadAdmin": "Kevin Vance",
-      "cohort": "Spring 2026",
-      "activeSessionsCount": 3,
-      "responseRate": 92,
+      "leadAdmin": "Maya Lin (You)",
+      "cohort": "2026",
+      "activeSessionsCount": 1,
+      "responseRate": 100,
       "avatarPreviews": [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80"
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=256&h=256&q=80"
       ]
     },
     {
-      "id": "ws-3",
-      "slug": "design-sprint-team",
-      "name": "Design Sprint Team",
-      "description": "Cross-functional UX alignment, weekly prototype reviews, design system governance and user research.",
-      "icon": "Palette",
+      "id": "GDBviCaScq0",
+      "slug": "test--GDBviCaScq0",
+      "name": "test",
+      "category": "other",
+      "description": "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.",
+      "icon": "Sparkles",
       "color": "purple",
       "role": "Owner",
-      "memberCount": 19,
-      "capacity": 200,
-      "leadAdmin": "Maya Lin (You)",
-      "cohort": "Q4 Sprint",
-      "activeSessionsCount": 2,
-      "responseRate": 75,
-      "avatarPreviews": [
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80"
-      ]
-    },
-    {
-      "id": "ws-4",
-      "slug": "fintech-quant-lab",
-      "name": "Fintech & Quant Lab",
-      "description": "Algorithmic trading model backtests, market microstructure reading group, and paper trading syncs.",
-      "icon": "TrendingUp",
-      "color": "blue",
-      "role": "Joined",
-      "memberCount": 15,
-      "capacity": 200,
-      "leadAdmin": "David Zhao",
-      "cohort": "Fall 2026",
-      "activeSessionsCount": 2,
-      "responseRate": 84,
-      "avatarPreviews": [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80"
-      ]
-    },
-    {
-      "id": "ws-5",
-      "slug": "autonomous-drone-project",
-      "name": "Autonomous Drone Project",
-      "description": "ArduPilot drone telemetry calibration, obstacle avoidance algorithms, and outdoor flight test slots.",
-      "icon": "Navigation",
-      "color": "emerald",
-      "role": "Owner",
-      "memberCount": 7,
+      "memberCount": 3,
       "capacity": 10,
       "leadAdmin": "Maya Lin (You)",
-      "cohort": "Winter Cohort",
-      "activeSessionsCount": 2,
-      "responseRate": 95,
+      "cohort": "2026",
+      "activeSessionsCount": 1,
+      "responseRate": 100,
       "avatarPreviews": [
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=256&h=256&q=80",
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80"
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80"
+      ]
+    },
+    {
+      "id": "JojjzXDFLN8",
+      "slug": "ngu--ws-a6jbfq",
+      "name": "ngu",
+      "category": "work",
+      "description": "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.",
+      "icon": "BookOpen",
+      "color": "sky",
+      "role": "Owner",
+      "memberCount": 1,
+      "capacity": 10,
+      "leadAdmin": "Maya Lin (You)",
+      "cohort": "2026",
+      "activeSessionsCount": 0,
+      "responseRate": 100,
+      "avatarPreviews": [
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=256&h=256&q=80"
+      ]
+    },
+    {
+      "id": "J6uM-FJcaOs",
+      "slug": "hay--ws-jjb89x",
+      "name": "hay",
+      "category": "hangout",
+      "description": "Nhóm bạn thân, tụ tập cafe, ăn uống, xem phim và du lịch.",
+      "icon": "Coffee",
+      "color": "teal",
+      "role": "Owner",
+      "memberCount": 1,
+      "capacity": 10,
+      "leadAdmin": "Maya Lin (You)",
+      "cohort": "2026",
+      "activeSessionsCount": 0,
+      "responseRate": 100,
+      "avatarPreviews": [
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80"
+      ]
+    },
+    {
+      "id": "fR7lsu05Itk",
+      "slug": "haha--ws-wn53d2",
+      "name": "haha",
+      "category": "other",
+      "description": "Nhóm sinh hoạt chung, chia sẻ lịch rảnh và sự kiện.",
+      "icon": "Sparkles",
+      "color": "purple",
+      "role": "Owner",
+      "memberCount": 1,
+      "capacity": 10,
+      "leadAdmin": "Maya Lin (You)",
+      "cohort": "2026",
+      "activeSessionsCount": 1,
+      "responseRate": 100,
+      "avatarPreviews": [
+        "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&h=256&q=80",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80"
       ]
     }
   ],
   "sessions": [
     {
-      "id": "sess-1",
-      "slug": "executive-board-sprint",
-      "groupId": "ws-1",
-      "groupSlug": "robotics-ai-club",
-      "refCode": "Ref #EX-804",
-      "title": "Executive Board Sprint",
-      "description": "Q4 Competition milestones, funding allocation, and chassis delivery sign-off.",
-      "tag": "CONFIRMED & SCHEDULED",
-      "tagColor": "primary",
-      "dateRange": "Monday, Oct 20, 2026",
-      "scheduledTime": "10:00 AM - 11:00 AM PST (1 hr)",
-      "location": "Innovation Lab 402, Engineering Bldg",
-      "respondedCount": 10,
-      "totalMembers": 12,
-      "highestOverlapText": "Highest overlap: Mon 10:00 - 11:00 (8 available)",
-      "status": "confirmed",
-      "quorumPercent": 83,
-      "sparkline": [
-        20,
-        40,
-        60,
-        100,
-        50
-      ]
-    },
-    {
-      "id": "sess-2",
-      "slug": "weekly-training-workshop",
-      "groupId": "ws-1",
-      "groupSlug": "robotics-ai-club",
-      "refCode": "Ref #WS-102",
-      "title": "Weekly Training & Workshop",
-      "description": "Hands-on ROS2 sensor telemetry integration and gazebo simulation drills.",
-      "tag": "TECHNICAL SPRINT",
-      "tagColor": "secondary",
-      "dateRange": "Oct 22 - Oct 28, 2026",
-      "scheduledTime": "Wed 14:00 - 16:00",
-      "location": "MakerSpace Bay 3",
-      "respondedCount": 7,
-      "totalMembers": 10,
-      "highestOverlapText": "Highest overlap: Wed 14:00 - 16:00 (7 available)",
-      "status": "active_poll",
-      "quorumPercent": 70,
-      "sparkline": [
-        30,
-        40,
-        100,
-        60,
-        20
-      ]
-    },
-    {
-      "id": "sess-3",
-      "slug": "sponsor-pitch-dry-run",
-      "groupId": "ws-1",
-      "groupSlug": "robotics-ai-club",
-      "refCode": "Ref #PO-509",
-      "title": "Sponsor Pitch Dry-Run",
-      "description": "Rehearsal of industry partner slide deck with faculty advisors and alumni mentors.",
-      "tag": "EXTERNAL OUTREACH",
-      "tagColor": "tertiary",
-      "dateRange": "Oct 25 - Oct 31, 2026",
-      "scheduledTime": "5:00 PM - 6:15 PM (Proposed)",
-      "location": "Virtual Meet",
-      "respondedCount": 4,
-      "totalMembers": 12,
-      "highestOverlapText": "Waiting for responses - 8 pending",
-      "status": "outreach",
-      "quorumPercent": 33,
-      "sparkline": [
-        20,
-        30,
-        50,
-        100,
-        20
-      ]
-    },
-    {
-      "id": "X8mcK7iGECA",
-      "slug": "ngu",
-      "groupId": "ws-2",
-      "groupSlug": "campus-badminton-club",
-      "refCode": "Ref #0IRV",
-      "title": "ngu",
-      "description": "",
+      "id": "sess-g1-kickoff",
+      "slug": "kickoff--sess-g1-kickoff",
+      "groupId": "jpT18Fo2Snk",
+      "refCode": "Ref #KCK1",
+      "title": "Kickoff Meeting",
+      "description": "Họp khởi động dự án nhóm 1",
       "tag": "CÔNG VIỆC & HỌC TẬP",
       "tagColor": "primary",
       "dateRange": "27 Th10 – 02 Th11, 2026 (Tuần tới)",
       "scheduledTime": "Flexible Window",
       "location": "Quán Cafe / Trực tuyến",
-      "totalMembers": 12,
-      "respondedCount": 0,
-      "quorumPercent": 0,
-      "highestOverlapText": "Waiting for responses - 12 pending",
+      "totalMembers": 3,
+      "respondedCount": 3,
+      "quorumPercent": 100,
+      "highestOverlapText": "Optimal slot found - 3/3 members",
+      "sparkline": [
+        30,
+        60,
+        100,
+        80,
+        40
+      ],
+      "status": "active_poll"
+    },
+    {
+      "id": "i_kM9Pm-RM4",
+      "slug": "test--i_kM9Pm-RM4",
+      "groupId": "0jQYUjjjV2s",
+      "refCode": "Ref #WRHG",
+      "title": "test",
+      "description": "Phiên làm việc sprint nhóm 2",
+      "tag": "CÔNG VIỆC & HỌC TẬP",
+      "tagColor": "primary",
+      "dateRange": "27 Th10 – 02 Th11, 2026 (Tuần tới)",
+      "scheduledTime": "Flexible Window",
+      "location": "Quán Cafe / Trực tuyến",
+      "totalMembers": 3,
+      "respondedCount": 3,
+      "quorumPercent": 100,
+      "highestOverlapText": "Optimal slot found - 3/3 members",
       "sparkline": [
         20,
-        20,
-        20,
-        20,
+        50,
+        100,
+        70,
+        30
+      ],
+      "status": "active_poll"
+    },
+    {
+      "id": "MwXq4x0eopI",
+      "slug": "123--MwXq4x0eopI",
+      "groupId": "GDBviCaScq0",
+      "refCode": "Ref #Y8K7",
+      "title": "123",
+      "description": "Phiên khảo sát lịch nhóm 3",
+      "tag": "CÔNG VIỆC & HỌC TẬP",
+      "tagColor": "primary",
+      "dateRange": "27 Th10 – 02 Th11, 2026 (Tuần tới)",
+      "scheduledTime": "Flexible Window",
+      "location": "Quán Cafe / Trực tuyến",
+      "totalMembers": 3,
+      "respondedCount": 3,
+      "quorumPercent": 100,
+      "highestOverlapText": "Optimal slot found - 3/3 members",
+      "sparkline": [
+        40,
+        80,
+        100,
+        60,
         20
       ],
       "status": "active_poll"
     },
     {
-      "id": "PCkgnDl75WU",
-      "slug": "ngu",
-      "groupId": "ws-5",
-      "groupSlug": "autonomous-drone-project",
-      "refCode": "Ref #3TG6",
-      "title": "ngu",
+      "id": "9SgGnqQJkzg",
+      "slug": "huhu",
+      "groupId": "fR7lsu05Itk",
+      "groupSlug": "haha--ws-wn53d2",
+      "refCode": "Ref #HYQ9",
+      "title": "huhu",
       "description": "",
       "tag": "CÔNG VIỆC & HỌC TẬP",
       "tagColor": "primary",
@@ -246,72 +242,103 @@
       "groupRole": "leadership"
     },
     {
-      "id": "mem-2",
+      "id": "mem-g1-1",
+      "name": "Maya Lin",
+      "email": "maya.lin@university.edu",
+      "role": "Lead Admin",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+      "isAvailable": true,
+      "statusText": "Active",
+      "groupRole": "leadership",
+      "groupId": "jpT18Fo2Snk"
+    },
+    {
+      "id": "mem-g1-2",
       "name": "Alex Rivera",
-      "email": "alex.rivera@university.edu",
+      "email": "alex.rivera@design.co",
       "role": "Vice Lead",
       "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
       "isAvailable": true,
       "statusText": "Active",
-      "groupRole": "leadership"
+      "groupRole": "leadership",
+      "groupId": "jpT18Fo2Snk"
     },
     {
-      "id": "mem-3",
-      "name": "Dev Patel",
-      "email": "dev.patel@university.edu",
-      "role": "Software Lead",
+      "id": "mem-g1-3",
+      "name": "David Kim",
+      "email": "david.kim@techcorp.io",
+      "role": "Frontend Dev",
       "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
+      "isAvailable": false,
+      "statusText": "Away",
+      "groupRole": "core",
+      "groupId": "jpT18Fo2Snk"
+    },
+    {
+      "id": "mem-g2-1",
+      "name": "Maya Lin",
+      "email": "maya.lin@university.edu",
+      "role": "Lead Admin",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
       "isAvailable": true,
       "statusText": "Active",
-      "groupRole": "core"
+      "groupRole": "leadership",
+      "groupId": "0jQYUjjjV2s"
     },
     {
-      "id": "mem-4",
+      "id": "mem-g2-2",
       "name": "Sarah Chen",
-      "email": "sarah.chen@university.edu",
-      "role": "Hardware",
+      "email": "sarah.c@cornell.edu",
+      "role": "Backend Dev",
       "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80",
       "isAvailable": true,
       "statusText": "Active",
-      "groupRole": "core"
+      "groupRole": "core",
+      "groupId": "0jQYUjjjV2s"
     },
     {
-      "id": "mem-5",
-      "name": "Marcus Vance",
-      "email": "marcus.vance@university.edu",
-      "role": "Firmware",
+      "id": "mem-g2-3",
+      "name": "Liam Evans",
+      "email": "liam.e@robotics.mit.edu",
+      "role": "Hardware Lead",
       "avatarUrl": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=256&h=256&q=80",
       "isAvailable": true,
       "statusText": "Active",
-      "groupRole": "core"
+      "groupRole": "core",
+      "groupId": "0jQYUjjjV2s"
     },
     {
-      "id": "mem-9",
-      "name": "Kevin Zhang",
-      "email": "kevin.zhang@university.edu",
-      "role": "Safety Lead",
+      "id": "mem-g3-1",
+      "name": "Maya Lin",
+      "email": "maya.lin@university.edu",
+      "role": "Lead Admin",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+      "isAvailable": true,
+      "statusText": "Active",
+      "groupRole": "leadership",
+      "groupId": "GDBviCaScq0"
+    },
+    {
+      "id": "mem-g3-2",
+      "name": "Marcus Zhao",
+      "email": "marcus.zhao@stanford.edu",
+      "role": "Algorithm Spec",
       "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80",
-      "isAvailable": false,
-      "statusText": "Pending response (Invited 2d ago)",
-      "groupRole": "pending"
-    }
-  ],
-  "invites": [
-    {
-      "id": "inv-1",
-      "groupId": "ws-1",
-      "email": "k.zhang@robotics.edu",
-      "role": "Member",
-      "invitedAt": "2h ago",
-      "status": "pending"
+      "isAvailable": true,
+      "statusText": "Active",
+      "groupRole": "core",
+      "groupId": "GDBviCaScq0"
     },
     {
-      "id": "inv-2",
-      "groupId": "ws-1",
-      "email": "m.alvarez@robotics.edu",
-      "role": "Member",
-      "invitedAt": "1d ago",
-      "status": "pending"
+      "id": "mem-g3-3",
+      "name": "Emma Watson",
+      "email": "emma.w@oxford.ac.uk",
+      "role": "Research Lead",
+      "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
+      "isAvailable": false,
+      "statusText": "Busy",
+      "groupRole": "leadership",
+      "groupId": "GDBviCaScq0"
     }
   ],
   "currentUser": [
@@ -325,8 +352,58 @@
   ],
   "availabilities": [
     {
-      "id": "avail-sess-1-mem-1",
-      "sessionId": "sess-1",
+      "id": "avail-kck-1",
+      "sessionId": "sess-g1-kickoff",
+      "memberId": "mem-1",
+      "memberName": "Maya Lin",
+      "role": "Lead Admin",
+      "groupRole": "leadership",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+      "slots": []
+    },
+    {
+      "id": "avail-kck-2",
+      "sessionId": "sess-g1-kickoff",
+      "memberId": "mem-g1-2",
+      "memberName": "Alex Rivera",
+      "role": "Vice Lead",
+      "groupRole": "leadership",
+      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
+      "slots": [
+        {
+          "id": "slot-kck-2",
+          "dayIndex": 3,
+          "dateStr": "2026-10-01",
+          "startMinutes": 540,
+          "endMinutes": 660,
+          "label": "Available",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "avail-kck-3",
+      "sessionId": "sess-g1-kickoff",
+      "memberId": "mem-g1-3",
+      "memberName": "David Kim",
+      "role": "Frontend Dev",
+      "groupRole": "core",
+      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
+      "slots": [
+        {
+          "id": "slot-kck-3",
+          "dayIndex": 3,
+          "dateStr": "2026-10-01",
+          "startMinutes": 540,
+          "endMinutes": 660,
+          "label": "Available",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "8oTLbKstXPg",
+      "sessionId": "i_kM9Pm-RM4",
       "memberId": "mem-1",
       "memberName": "Maya Lin",
       "role": "Lead Admin",
@@ -334,429 +411,119 @@
       "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
       "slots": [
         {
-          "id": "slot-1",
-          "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 540,
-          "endMinutes": 690,
-          "label": "Available",
-          "note": "Prefer morning sync"
-        },
-        {
-          "id": "slot-2",
-          "dayIndex": 1,
-          "dateStr": "2026-10-20",
-          "startMinutes": 840,
-          "endMinutes": 990,
-          "label": "Available",
-          "note": "Available after class"
-        },
-        {
-          "id": "slot-3",
+          "id": "slot-1790842632137",
           "dayIndex": 3,
-          "dateStr": "2026-10-22",
-          "startMinutes": 600,
+          "dateStr": "2026-10-01",
+          "startMinutes": 510,
           "endMinutes": 720,
-          "label": "Available",
-          "note": "Free before lab"
-        },
-        {
-          "id": "slot-1790758655067",
-          "dayIndex": 2,
-          "dateStr": "2026-09-30",
-          "startMinutes": 540,
-          "endMinutes": 810,
-          "label": "Available",
-          "note": "ok"
-        },
-        {
-          "id": "slot-1790758661655",
-          "dayIndex": 5,
-          "dateStr": "2026-10-03",
-          "startMinutes": 90,
-          "endMinutes": 570,
           "label": "Available",
           "note": ""
         }
       ]
     },
     {
-      "id": "avail-sess-1-mem-2",
-      "sessionId": "sess-1",
-      "memberId": "mem-2",
-      "memberName": "Alex Rivera",
-      "role": "Vice Lead",
-      "groupRole": "leadership",
-      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": [
-        {
-          "id": "slot-s1-m2-1",
-          "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 600,
-          "endMinutes": 720,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m2-2",
-          "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 900,
-          "endMinutes": 1020,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m2-3",
-          "dayIndex": 1,
-          "dateStr": "2026-10-20",
-          "startMinutes": 540,
-          "endMinutes": 660,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m2-4",
-          "dayIndex": 2,
-          "dateStr": "2026-10-21",
-          "startMinutes": 600,
-          "endMinutes": 720,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m2-5",
-          "dayIndex": 4,
-          "dateStr": "2026-10-23",
-          "startMinutes": 600,
-          "endMinutes": 720,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "avail-sess-1-mem-3",
-      "sessionId": "sess-1",
-      "memberId": "mem-3",
-      "memberName": "Dev Patel",
-      "role": "Software Lead",
-      "groupRole": "core",
-      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": [
-        {
-          "id": "slot-s1-m3-1",
-          "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 570,
-          "endMinutes": 660,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m3-2",
-          "dayIndex": 2,
-          "dateStr": "2026-10-21",
-          "startMinutes": 540,
-          "endMinutes": 660,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m3-3",
-          "dayIndex": 3,
-          "dateStr": "2026-10-22",
-          "startMinutes": 600,
-          "endMinutes": 690,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m3-4",
-          "dayIndex": 4,
-          "dateStr": "2026-10-23",
-          "startMinutes": 540,
-          "endMinutes": 630,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "avail-sess-1-mem-4",
-      "sessionId": "sess-1",
-      "memberId": "mem-4",
+      "id": "avail-g2-2",
+      "sessionId": "i_kM9Pm-RM4",
+      "memberId": "mem-g2-2",
       "memberName": "Sarah Chen",
-      "role": "Hardware",
+      "role": "Backend Dev",
       "groupRole": "core",
       "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&h=256&q=80",
       "slots": [
         {
-          "id": "slot-s1-m4-1",
-          "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 600,
-          "endMinutes": 660,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m4-2",
-          "dayIndex": 1,
-          "dateStr": "2026-10-20",
-          "startMinutes": 630,
-          "endMinutes": 720,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m4-3",
+          "id": "slot-g2-2",
           "dayIndex": 3,
-          "dateStr": "2026-10-22",
-          "startMinutes": 600,
-          "endMinutes": 660,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m4-4",
-          "dayIndex": 4,
-          "dateStr": "2026-10-23",
-          "startMinutes": 600,
-          "endMinutes": 720,
-          "label": "Available"
+          "dateStr": "2026-10-01",
+          "startMinutes": 540,
+          "endMinutes": 690,
+          "label": "Available",
+          "note": ""
         }
       ]
     },
     {
-      "id": "avail-sess-1-mem-5",
-      "sessionId": "sess-1",
-      "memberId": "mem-5",
-      "memberName": "Marcus Vance",
-      "role": "Firmware",
+      "id": "avail-g2-3",
+      "sessionId": "i_kM9Pm-RM4",
+      "memberId": "mem-g2-3",
+      "memberName": "Liam Evans",
+      "role": "Hardware Lead",
       "groupRole": "core",
       "avatarUrl": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=256&h=256&q=80",
       "slots": [
         {
-          "id": "slot-s1-m5-1",
-          "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 600,
-          "endMinutes": 690,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m5-2",
-          "dayIndex": 1,
-          "dateStr": "2026-10-20",
-          "startMinutes": 540,
-          "endMinutes": 630,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m5-3",
-          "dayIndex": 2,
-          "dateStr": "2026-10-21",
-          "startMinutes": 600,
-          "endMinutes": 660,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m5-4",
+          "id": "slot-g2-3",
           "dayIndex": 3,
-          "dateStr": "2026-10-22",
-          "startMinutes": 600,
+          "dateStr": "2026-10-01",
+          "startMinutes": 540,
           "endMinutes": 720,
-          "label": "Available"
+          "label": "Available",
+          "note": ""
         }
       ]
     },
     {
-      "id": "avail-sess-1-mem-9",
-      "sessionId": "sess-1",
-      "memberId": "mem-9",
-      "memberName": "Kevin Zhang",
-      "role": "Safety Lead",
-      "groupRole": "pending",
+      "id": "dSAWpcgUGsA",
+      "sessionId": "MwXq4x0eopI",
+      "memberId": "mem-1",
+      "memberName": "Maya Lin",
+      "role": "Lead Admin",
+      "groupRole": "leadership",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+      "slots": [
+        {
+          "id": "slot-1790842648797",
+          "dayIndex": 0,
+          "dateStr": "2026-09-28",
+          "startMinutes": 750,
+          "endMinutes": 780,
+          "label": "Available",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "avail-g3-2",
+      "sessionId": "MwXq4x0eopI",
+      "memberId": "mem-g3-2",
+      "memberName": "Marcus Zhao",
+      "role": "Algorithm Spec",
+      "groupRole": "core",
       "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&h=256&q=80",
       "slots": [
         {
-          "id": "slot-s1-m9-1",
+          "id": "slot-g3-2",
           "dayIndex": 0,
-          "dateStr": "2026-10-19",
-          "startMinutes": 540,
-          "endMinutes": 630,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s1-m9-2",
-          "dayIndex": 1,
-          "dateStr": "2026-10-20",
-          "startMinutes": 600,
-          "endMinutes": 690,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "avail-sess-2-mem-1",
-      "sessionId": "sess-2",
-      "memberId": "mem-1",
-      "memberName": "Maya Lin",
-      "role": "Lead Admin",
-      "groupRole": "leadership",
-      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": [
-        {
-          "id": "slot-s2-m1-1",
-          "dayIndex": 2,
-          "dateStr": "2026-10-21",
-          "startMinutes": 840,
-          "endMinutes": 960,
-          "label": "Available"
-        },
-        {
-          "id": "slot-s2-m1-2",
-          "dayIndex": 3,
-          "dateStr": "2026-10-22",
-          "startMinutes": 600,
-          "endMinutes": 720,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "avail-sess-2-mem-2",
-      "sessionId": "sess-2",
-      "memberId": "mem-2",
-      "memberName": "Alex Rivera",
-      "role": "Vice Lead",
-      "groupRole": "leadership",
-      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": [
-        {
-          "id": "slot-s2-m2-1",
-          "dayIndex": 2,
-          "dateStr": "2026-10-21",
-          "startMinutes": 840,
-          "endMinutes": 960,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "avail-sess-2-mem-3",
-      "sessionId": "sess-2",
-      "memberId": "mem-3",
-      "memberName": "Dev Patel",
-      "role": "Software Lead",
-      "groupRole": "core",
-      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": [
-        {
-          "id": "slot-s2-m3-1",
-          "dayIndex": 2,
-          "dateStr": "2026-10-21",
-          "startMinutes": 870,
-          "endMinutes": 960,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "avail-sess-3-mem-1",
-      "sessionId": "sess-3",
-      "memberId": "mem-1",
-      "memberName": "Maya Lin",
-      "role": "Lead Admin",
-      "groupRole": "leadership",
-      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": [
-        {
-          "id": "slot-s3-m1-1",
-          "dayIndex": 4,
-          "dateStr": "2026-10-23",
-          "startMinutes": 1020,
-          "endMinutes": 1095,
-          "label": "Available"
-        }
-      ]
-    },
-    {
-      "id": "28Tp31tP1g0",
-      "sessionId": "X8mcK7iGECA",
-      "memberId": "mem-1",
-      "slots": [
-        {
-          "id": "slot-1790758724610",
-          "dayIndex": 2,
-          "dateStr": "2026-09-30",
-          "startMinutes": 0,
-          "endMinutes": 150,
+          "dateStr": "2026-09-28",
+          "startMinutes": 720,
+          "endMinutes": 840,
           "label": "Available",
           "note": ""
-        },
+        }
+      ]
+    },
+    {
+      "id": "avail-g3-3",
+      "sessionId": "MwXq4x0eopI",
+      "memberId": "mem-g3-3",
+      "memberName": "Emma Watson",
+      "role": "Research Lead",
+      "groupRole": "leadership",
+      "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
+      "slots": [
         {
-          "id": "slot-1790758745712-3",
-          "dayIndex": 3,
-          "dateStr": "2026-10-01",
-          "startMinutes": 60,
-          "endMinutes": 300,
-          "label": "Available",
-          "note": ""
-        },
-        {
-          "id": "slot-1790758745712-4",
-          "dayIndex": 4,
-          "dateStr": "2026-10-02",
-          "startMinutes": 60,
-          "endMinutes": 300,
+          "id": "slot-g3-3",
+          "dayIndex": 0,
+          "dateStr": "2026-09-28",
+          "startMinutes": 750,
+          "endMinutes": 810,
           "label": "Available",
           "note": ""
         }
       ]
     }
   ],
-  "optimalSlots": [
-    {
-      "id": "opt-1",
-      "rank": 1,
-      "timeLabel": "Mon, 10:00 - 11:00",
-      "badge": "Best Slot",
-      "badgeType": "best",
-      "description": "8 of 10 available - Full leadership quorum met"
-    },
-    {
-      "id": "opt-2",
-      "rank": 2,
-      "timeLabel": "Mon, 14:00 - 15:00",
-      "badge": "70% Quorum",
-      "badgeType": "quorum",
-      "description": "7 of 10 available - Leadership active, 1 firmware conflict"
-    },
-    {
-      "id": "opt-3",
-      "rank": 3,
-      "timeLabel": "Mon, 15:00 - 16:00",
-      "badge": "70% Quorum",
-      "badgeType": "quorum",
-      "description": "7 of 10 available - Steady afternoon availability window"
-    }
-  ],
-  "conflictSlots": [
-    {
-      "id": "conf-1",
-      "timeLabel": "Mon, 08:00 - 09:00",
-      "badge": "Conflict Heavy",
-      "badgeType": "conflict",
-      "icon": "close",
-      "description": "Only 2 of 10 available (20%) - Early class & commute clash"
-    },
-    {
-      "id": "conf-2",
-      "timeLabel": "Mon, 12:00 - 13:00",
-      "badge": "Lunch / Class",
-      "badgeType": "lunch",
-      "icon": "restaurant",
-      "description": "Only 3 of 10 available (30%) - Core hardware lab conflicts"
-    },
-    {
-      "id": "conf-3",
-      "timeLabel": "Mon, 19:00 - 20:00",
-      "badge": "Evening Conflict",
-      "badgeType": "evening",
-      "icon": "nightlight",
-      "description": "Only 3 of 10 available (30%) - Post-lecture campus transit"
-    }
-  ],
+  "invites": [],
+  "optimalSlots": [],
+  "conflictSlots": [],
   "$schema": "./node_modules/json-server/schema.json"
 }

@@ -1,22 +1,30 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router";
+import { useParams, useLocation, useSearchParams, useNavigate } from "react-router";
 import { calendarService } from "~/service/calendarService/calendarService";
+import { createCompositeSlug, extractIdFromSlug } from "~/utils/slugify";
 
 /**
- * useSessionResolver - Hook dùng chung cho cả MemberMatrix & LeadMatrix
- * Đọc trực tiếp từ API/db.json qua calendarService:
- *  - Đọc query param ?session=...
- *  - Tự động chuẩn hóa: nếu truyền ID thì chuyển sang slug
- *  - Nếu chưa có param thì gắn slug mặc định
- *  - Trả về currentSession object
+ * useSessionResolver - Hook giải mã và đồng bộ phiên khảo sát (Session)
+ * Hỗ trợ nhận diện slug trực tiếp từ Route Path (/matrix/:sessionSlug)
+ * kết hợp State Router để hiển thị tức thì frame 0 (Zero-Wait) mà không bị giật lag.
+ *
+ * @returns {{ currentSession: Object|null, sessions: Array }}
  */
 export function useSessionResolver() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const sessionParam = searchParams.get("session");
-  const [sessions, setSessions] = useState([]);
-  const [currentSession, setCurrentSession] = useState(null);
+  const { sessionSlug } = useParams();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Tải danh sách sessions từ db.json
+  // Ưu tiên sessionSlug từ Route Path, fallback sang query param ?session= nếu có
+  const activeSlug = sessionSlug || searchParams.get("session");
+
+  // Nếu trang trước truyền sẵn session qua router state -> nạp ngay lập tức
+  const passedSession = location.state?.session || null;
+  const [sessions, setSessions] = useState(passedSession ? [passedSession] : []);
+  const [currentSession, setCurrentSession] = useState(passedSession);
+
+  // 1. Tải danh sách sessions từ API / db.json
   useEffect(() => {
     let isMounted = true;
     async function loadSessions() {
@@ -35,30 +43,22 @@ export function useSessionResolver() {
     };
   }, []);
 
-  // Chuẩn hóa param và đồng bộ currentSession
+  // 2. Đồng bộ currentSession theo slug trên URL
   useEffect(() => {
     if (!sessions.length) return;
 
-    if (sessionParam) {
+    if (activeSlug) {
+      const actualId = extractIdFromSlug(activeSlug);
       const foundSession = sessions.find(
-        (s) => s.id === sessionParam || s.slug === sessionParam
+        (s) => s.id === actualId || s.id === activeSlug || s.slug === activeSlug
       );
+
       if (foundSession) {
-        if (foundSession.slug && foundSession.slug !== sessionParam) {
-          setSearchParams(
-            (prev) => {
-              const next = new URLSearchParams(prev);
-              next.set("session", foundSession.slug);
-              return next;
-            },
-            { replace: true }
-          );
-        }
         setCurrentSession(foundSession);
       } else {
-        // Fallback: Thử tìm trực tiếp session qua API nếu vừa được tạo
+        // Fallback: Tìm trực tiếp session qua API bằng actualId
         calendarService
-          .getCalendarById(sessionParam)
+          .getCalendarById(actualId || activeSlug)
           .then((direct) => {
             if (direct) {
               setCurrentSession(direct);
@@ -72,20 +72,21 @@ export function useSessionResolver() {
           });
       }
     } else {
-      const defaultSlug = sessions[0]?.slug;
-      if (defaultSlug) {
-        setSearchParams(
-          (prev) => {
-            const next = new URLSearchParams(prev);
-            next.set("session", defaultSlug);
-            return next;
-          },
-          { replace: true }
-        );
+      // Nếu vào trang bare (/matrix hoặc /lead-matrix) chưa có slug -> tự chuyển hướng tới session đầu tiên
+      const first = sessions[0];
+      if (first) {
+        const canonicalSlug = createCompositeSlug(first.title, first.id);
+        const basePath = location.pathname.startsWith("/lead-matrix")
+          ? "/lead-matrix"
+          : "/matrix";
+        navigate(`${basePath}/${canonicalSlug}`, {
+          replace: true,
+          state: { session: first },
+        });
+        setCurrentSession(first);
       }
-      setCurrentSession(sessions[0]);
     }
-  }, [sessionParam, sessions, setSearchParams]);
+  }, [activeSlug, sessions, location.pathname, navigate]);
 
   return {
     currentSession,

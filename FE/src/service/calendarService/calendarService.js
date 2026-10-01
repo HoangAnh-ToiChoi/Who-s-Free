@@ -1,5 +1,5 @@
 import http from "~/utils/http";
-import { slugify } from "~/utils/slugify";
+import { slugify, generateRandomId, extractIdFromSlug } from "~/utils/slugify";
 import { calculateSessionMetrics, calculateGroupMetrics } from "~/utils/matrixCalculations";
 
 /**
@@ -16,17 +16,12 @@ export const calendarService = {
    * @param {string} groupId - ID nhóm
    * @param {string} groupSlug - Slug nhóm (fallback matching)
    */
-  async getGroupCalendars(groupId, groupSlug) {
+  async getGroupCalendars(groupId) {
     try {
-      // Dùng query param để json-server lọc sẵn, giảm payload trả về
-      const sessionPromise = groupId
-        ? http.get(`/sessions?groupId=${groupId}`).then((list) => {
-            // Nếu kết quả rỗng và có slug, thử tìm bằng groupSlug
-            if ((!list || list.length === 0) && groupSlug) {
-              return http.get(`/sessions?groupSlug=${groupSlug}`).catch(() => []);
-            }
-            return list;
-          })
+      const actualGroupId = groupId ? extractIdFromSlug(groupId) : null;
+      // Dùng query param để json-server lọc đúng groupId thực tế
+      const sessionPromise = actualGroupId
+        ? http.get(`/sessions?groupId=${actualGroupId}`)
         : http.get("/sessions");
 
       const [sessions, allAvails] = await Promise.all([
@@ -54,7 +49,12 @@ export const calendarService = {
    * @param {string} identifier - ID hoặc slug
    */
   async getCalendarById(identifier) {
-    let session = await http.get(`/sessions/${identifier}`).catch(() => null);
+    if (!identifier) throw new Error("Calendar identifier is required");
+    const actualId = extractIdFromSlug(identifier);
+    let session = await http.get(`/sessions/${actualId}`).catch(() => null);
+    if (!session && actualId !== identifier) {
+      session = await http.get(`/sessions/${identifier}`).catch(() => null);
+    }
     if (!session) {
       const list = await http.get(`/sessions?slug=${identifier}`).catch(() => []);
       session = list?.[0];
@@ -68,11 +68,30 @@ export const calendarService = {
 
   /**
    * Lấy danh sách availability của tất cả thành viên trong session
+   * Tự động join cùng bảng members để bảo đảm đầy đủ tên, role và avatar
    * @param {string} sessionId
    */
   async getSessionAvailabilities(sessionId) {
-    const list = await http.get(`/availabilities?sessionId=${sessionId}`).catch(() => []);
-    return Array.isArray(list) ? list : [];
+    const [list, members] = await Promise.all([
+      http.get(`/availabilities?sessionId=${sessionId}`).catch(() => []),
+      http.get("/members").catch(() => []),
+    ]);
+    const safeList = Array.isArray(list) ? list : [];
+    const safeMembers = Array.isArray(members) ? members : [];
+
+    return safeList.map((item) => {
+      const found = safeMembers.find((m) => m.id === item.memberId);
+      return {
+        ...item,
+        memberName: item.memberName || found?.name || "Maya Lin",
+        role: item.role || found?.role || "Thành viên",
+        groupRole: item.groupRole || found?.groupRole || "core",
+        avatarUrl:
+          item.avatarUrl ||
+          found?.avatarUrl ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
+      };
+    });
   },
 
   /**
@@ -103,12 +122,20 @@ export const calendarService = {
       // Đã tồn tại → PATCH trực tiếp, không cần GET kiểm tra
       saved = await http.patch(`/availabilities/${recordId}`, { slots });
     } else {
-      // Chưa có → POST tạo mới
+      // Chưa có → POST tạo mới kèm thông tin hồ sơ
+      const members = await http.get("/members").catch(() => []);
+      const found = Array.isArray(members) ? members.find((m) => m.id === memberId) : null;
       const newId = `avail-${sessionId}-${memberId}`;
       saved = await http.post("/availabilities", {
         id: newId,
         sessionId,
         memberId,
+        memberName: found?.name || "Maya Lin",
+        role: found?.role || "Lead Admin",
+        groupRole: found?.groupRole || "leadership",
+        avatarUrl:
+          found?.avatarUrl ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
         slots,
       });
     }
@@ -123,26 +150,29 @@ export const calendarService = {
    * @param {Object} payload
    * @param {string} groupSlug
    */
-  async createCalendar(groupId, payload, groupSlug) {
-    const slug = slugify(payload.title) || `session-${Date.now()}`;
+  async createCalendar(groupId, payload) {
+    const actualGroupId = groupId ? extractIdFromSlug(groupId) : null;
+    const randomId = generateRandomId(6);
+    const newId = `sess-${randomId}`;
+    const baseSlug = slugify(payload.title) || `session-${randomId}`;
+    const slug = `${baseSlug}--${newId}`;
     const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
     const newSession = {
-      id: `sess-${Date.now()}`,
+      id: newId,
       slug,
-      groupId: groupId || "ws-1",
-      groupSlug: groupSlug || undefined,
+      groupId: actualGroupId || groupId,
       refCode: `Ref #${randomHex}`,
       title: payload.title,
       description: payload.description || "",
-      tag: payload.tag || "TECHNICAL SPRINT",
-      tagColor: payload.tagColor || "secondary",
+      tag: payload.tag || "CÔNG VIỆC & HỌC TẬP",
+      tagColor: payload.tagColor || "primary",
       dateRange: payload.dateRange,
       scheduledTime: payload.scheduledTime || "Flexible Window",
-      location: payload.location || "Virtual / Campus Lab",
-      totalMembers: 12,
+      location: payload.location || "Quán Cafe / Trực tuyến",
+      totalMembers: 3,
       respondedCount: 0,
       quorumPercent: 0,
-      highestOverlapText: "Waiting for responses - 12 pending",
+      highestOverlapText: "Waiting for responses - 3 pending",
       sparkline: [20, 20, 20, 20, 20],
       status: "active_poll",
     };
@@ -151,16 +181,17 @@ export const calendarService = {
     const created = await http.post("/sessions", newSession);
 
     // API CALL #2 (fire-and-forget): Cập nhật count nhóm bằng cách lấy group rồi +1
-    // Không await để không block UI
-    http
-      .get(`/groups/${groupId}`)
-      .then((group) => {
-        const currentCount = group?.activeSessionsCount || 0;
-        return http.patch(`/groups/${groupId}`, {
-          activeSessionsCount: currentCount + 1,
-        });
-      })
-      .catch(() => {});
+    if (actualGroupId) {
+      http
+        .get(`/groups/${actualGroupId}`)
+        .then((group) => {
+          const currentCount = group?.activeSessionsCount || 0;
+          return http.patch(`/groups/${actualGroupId}`, {
+            activeSessionsCount: currentCount + 1,
+          });
+        })
+        .catch(() => {});
+    }
 
     return created;
   },

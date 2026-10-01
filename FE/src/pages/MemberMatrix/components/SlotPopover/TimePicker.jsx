@@ -5,7 +5,7 @@ import { useClickOutside } from "~/hooks";
 import {
   timeStringToMinutes,
   generateTimeOptions,
-} from "../../helper/timeUtils";
+} from "~/utils/timeUtils";
 
 const TIME_OPTIONS = generateTimeOptions();
 

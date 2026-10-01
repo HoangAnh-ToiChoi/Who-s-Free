@@ -5,7 +5,7 @@ import {
   calculateSlotGeometry,
   formatDuration,
   minutesToTimeString,
-} from "../../helper/timeUtils";
+} from "~/utils/timeUtils";
 
 /**
  * DayColumn - Cột lưới hiển thị lịch của một ngày cụ thể

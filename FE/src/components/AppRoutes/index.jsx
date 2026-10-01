@@ -8,6 +8,7 @@ import Home from "~/pages/Home";
 import Group from "~/pages/Group";
 import MemberMatrix from "~/pages/MemberMatrix";
 import LeadMatrix from "~/pages/LeadMatrix";
+import Placeholder from "~/pages/Placeholder";
 
 function AppRoutes() {
   return (
@@ -22,12 +23,15 @@ function AppRoutes() {
           {/* Specific Group Workspace */}
           <Route path="/groups/:groupId" element={<Group />} />
           {/* More pages */}
-          <Route path="/overview" element={<div className="p-8 text-zinc-400">Overview — coming soon</div>} />
-          {/* Matrix pages — MemberMatrix (kéo thả lịch) & LeadMatrix (heatmap leader) */}
+          <Route path="/overview" element={<Placeholder pageName="Overview" />} />
+          {/* Matrix pages — Gắn trực tiếp slug lên route */}
+          <Route path="/matrix/:sessionSlug" element={<MemberMatrix />} />
           <Route path="/matrix" element={<MemberMatrix />} />
+          <Route path="/lead-matrix/:sessionSlug" element={<LeadMatrix />} />
           <Route path="/lead-matrix" element={<LeadMatrix />} />
-          <Route path="/time-grid" element={<div className="p-8 text-zinc-400">Time Grid — coming soon</div>} />
-          <Route path="/settings" element={<div className="p-8 text-zinc-400">Settings — coming soon</div>} />
+          <Route path="/settings" element={<Placeholder pageName="Settings" />} />
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

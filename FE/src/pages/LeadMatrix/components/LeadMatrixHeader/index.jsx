@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calendar, Users } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { createCompositeSlug } from "~/utils/slugify";
 
 /**
  * LeadMatrixHeader - Header trang LeadMatrix cho Trưởng nhóm
@@ -13,15 +14,20 @@ function LeadMatrixHeader({ session }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const groupTarget = session?.groupSlug || session?.groupId || "ws-1";
-  const sessionSlug = session?.slug || session?.id || "";
+  const groupTarget = session?.groupId
+    ? (session?.groupName ? createCompositeSlug(session.groupName, session.groupId) : session.groupId)
+    : (session?.groupSlug || "");
+  const backUrl = groupTarget ? `/groups/${groupTarget}` : "/";
+  const sessionSlug = session?.id
+    ? createCompositeSlug(session.title, session.id)
+    : (session?.slug || session?.id || "");
 
   return (
     <div className="mb-2.5 shrink-0 min-h-[36px] flex items-center justify-between gap-3 select-none">
       {/* Breadcrumb: Back to group → Session title */}
       <div className="flex items-center gap-2.5 text-xs min-w-0">
         <Link
-          to={`/groups/${groupTarget}`}
+          to={backUrl}
           className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 font-semibold transition-colors shrink-0 group"
         >
           <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
@@ -49,7 +55,7 @@ function LeadMatrixHeader({ session }) {
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => navigate(`/matrix?session=${sessionSlug}`)}
+        onClick={() => navigate(`/matrix/${sessionSlug}`, { state: { session } })}
         className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.98] bg-white text-indigo-700 border-indigo-200/90 hover:bg-indigo-50 hover:border-indigo-300"
       >
         <Calendar size={14} className="text-indigo-600" />

@@ -16,6 +16,7 @@ import { useClickOutside } from "~/hooks";
 import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { createCompositeSlug } from "~/utils/slugify";
 
 const DATE_RANGE_OPTIONS = [
   { id: "week-1", label: "Oct 20 – Oct 26, 2026 (Current Week)", viLabel: "20 Th10 – 26 Th10, 2026 (Tuần hiện tại)" },
@@ -171,10 +172,12 @@ function CreateCalendarModal({
         onOpenChange?.(false);
 
         // Đính kèm slug lên URL để chuyển thẳng vào MemberMatrix
-        const targetSlug =
-          result?.data?.slug || result?.slug || result?.data?.id || result?.id;
+        const createdObj = result?.data || result;
+        const targetSlug = createdObj?.id
+          ? createCompositeSlug(createdObj.title, createdObj.id)
+          : (createdObj?.slug || createdObj?.id);
         if (targetSlug) {
-          navigate(`/matrix?session=${targetSlug}`);
+          navigate(`/matrix/${targetSlug}`, { state: { session: createdObj } });
         }
       } catch (err) {
         setErrorMessage(

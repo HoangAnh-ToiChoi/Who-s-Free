@@ -24,8 +24,12 @@ export function useGroupDetail(groupId = "ws-1") {
       setError(null);
 
       const groupRes = await groupService.getGroupById(groupId).catch(() => null);
-      const actualGroupId = groupRes?.id || groupId;
-      const actualGroupSlug = groupRes?.slug || groupId;
+      if (!groupRes) {
+        throw new Error("Group not found");
+      }
+
+      const actualGroupId = groupRes.id;
+      const actualGroupSlug = groupRes.slug || groupRes.id;
 
       const sessionsRes = await calendarService.getGroupCalendars(
         actualGroupId,

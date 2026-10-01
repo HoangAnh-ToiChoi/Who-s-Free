@@ -7,7 +7,7 @@ import {
   minutesToTimeString,
   timeStringToMinutes,
   formatDuration,
-} from "../../helper/timeUtils";
+} from "~/utils/timeUtils";
 import TimePicker from "./TimePicker";
 
 /**

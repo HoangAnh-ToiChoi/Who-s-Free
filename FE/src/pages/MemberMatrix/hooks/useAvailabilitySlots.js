@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { getMondayOfWeek, toISODateString } from "../helper/dateUtils";
+import { getMondayOfWeek, toISODateString } from "~/utils/dateUtils";
 import { calendarService } from "~/service/calendarService/calendarService";
 
 /**

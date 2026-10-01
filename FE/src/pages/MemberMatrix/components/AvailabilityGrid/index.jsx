@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { Clock } from "lucide-react";
 import GridToolbar from "../GridToolbar";
 import GridHeader from "./GridHeader";
@@ -12,12 +12,15 @@ import {
   HOUR_HEIGHT,
   minutesToTimeString,
   formatDuration,
-} from "../../helper/timeUtils";
-import { useWeekNavigation } from "../../hooks/useWeekNavigation";
+} from "~/utils/timeUtils";
 import { useAvailabilitySlots } from "../../hooks/useAvailabilitySlots";
 import { useGridDrag } from "../../hooks/useGridDrag";
 import { useSlotPopover } from "../../hooks/useSlotPopover";
-import { useScrollRestoration, useScrollbarGutter } from "~/hooks";
+import {
+  useWeekNavigation,
+  useScrollRestoration,
+  useScrollbarGutter,
+} from "~/hooks";
 
 const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
 
@@ -66,9 +69,36 @@ function AvailabilityGrid({ sessionId }) {
     resizeSlot,
   } = useAvailabilitySlots({ sessionId });
 
-  // 3. Hook quản lý popover neo có mũi tên
+  // Lọc các slot thuộc tuần hiện tại để hiển thị và tính toán va chạm chính xác
+  const currentWeekSlots = useMemo(() => {
+    return slots.filter((s) => {
+      if (s.dateStr) {
+        return weekDays.some((w) => w.dateStr === s.dateStr);
+      }
+      return true;
+    });
+  }, [slots, weekDays]);
+
+  // Thống kê riêng cho tuần đang xem
+  const weekStats = useMemo(() => {
+    const totalMinutes = currentWeekSlots.reduce(
+      (acc, s) => acc + Math.max(0, s.endMinutes - s.startMinutes),
+      0
+    );
+    const totalHours = (totalMinutes / 60).toFixed(1);
+    return {
+      count: currentWeekSlots.length,
+      totalHours: totalHours.endsWith(".0") ? parseInt(totalHours, 10) : totalHours,
+    };
+  }, [currentWeekSlots]);
+
   // 3. State quản lý các slot tạm thời (draft) khi người dùng vừa kéo chuột xong nhưng chưa bấm Áp dụng
   const [draftSlots, setDraftSlots] = useState([]);
+
+  // Danh sách slot dùng để tính toán va chạm kéo thả của tuần hiện tại
+  const visibleExistingSlots = useMemo(() => {
+    return [...currentWeekSlots, ...draftSlots];
+  }, [currentWeekSlots, draftSlots]);
 
   // 4. Hook quản lý popover tuỳ chỉnh slot (Chỉnh sửa giờ, note, xoá)
   const {
@@ -85,7 +115,7 @@ function AvailabilityGrid({ sessionId }) {
   } = useGridDrag({
     containerRef,
     columnRefs,
-    existingSlots: [...slots, ...draftSlots],
+    existingSlots: visibleExistingSlots,
     onDragComplete: ({
       dayIndices,
       dayIndex,
@@ -178,7 +208,7 @@ function AvailabilityGrid({ sessionId }) {
       {/* 1. Thanh công cụ tuần (Google Calendar Navigation Toolbar) */}
       <GridToolbar
         weekLabel={weekLabel}
-        stats={stats}
+        stats={weekStats}
         onPrevWeek={goToPrevWeek}
         onNextWeek={goToNextWeek}
         onToday={goToToday}
@@ -276,12 +306,15 @@ function AvailabilityGrid({ sessionId }) {
 
                 {/* 7 cột ngày */}
                 {weekDays.map((day, idx) => {
-                  const actualDaySlots = slots.filter(
-                    (s) => s.dayIndex === day.dayIndex || s.dateStr === day.dateStr
-                  );
-                  const draftDaySlots = draftSlots.filter(
-                    (s) => s.dayIndex === day.dayIndex || s.dateStr === day.dateStr
-                  );
+                  const isSlotInThisDay = (s) => {
+                    if (s.dateStr) {
+                      return s.dateStr === day.dateStr;
+                    }
+                    return s.dayIndex === day.dayIndex;
+                  };
+
+                  const actualDaySlots = slots.filter(isSlotInThisDay);
+                  const draftDaySlots = draftSlots.filter(isSlotInThisDay);
                   const daySlots = [...actualDaySlots, ...draftDaySlots];
 
                   return (

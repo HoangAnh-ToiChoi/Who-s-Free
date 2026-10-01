@@ -11,6 +11,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { calcPercentage } from "~/utils";
+import { createCompositeSlug } from "~/utils/slugify";
 
 // Tách hàm xác định style cho từng loại thẻ session
 function getSessionTheme(tagColor) {
@@ -55,11 +56,14 @@ function SessionCard({ session }) {
       ? session.quorumPercent
       : calcPercentage(session.respondedCount, session.totalMembers);
 
-  const matrixUrl = `/matrix?session=${session.slug || session.id}`;
+  const sessionSlug = session.id
+    ? createCompositeSlug(session.title, session.id)
+    : (session.slug || session.id);
+  const matrixUrl = `/matrix/${sessionSlug}`;
 
   return (
     <div
-      onClick={() => navigate(matrixUrl)}
+      onClick={() => navigate(matrixUrl, { state: { session } })}
       className="group relative flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
     >
       {/* Top Header: Tag & Options Menu */}
@@ -159,7 +163,7 @@ function SessionCard({ session }) {
           variant="outline"
           onClick={(e) => {
             e.stopPropagation();
-            navigate(matrixUrl);
+            navigate(matrixUrl, { state: { session } });
           }}
           className="h-10 w-full cursor-pointer justify-center gap-2 rounded-xl border-slate-200 bg-white text-xs font-medium whitespace-nowrap text-slate-700 shadow-2xs transition-all duration-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:font-semibold group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!border-indigo-700 hover:!bg-indigo-700 hover:!text-white active:scale-[0.99]"
         >

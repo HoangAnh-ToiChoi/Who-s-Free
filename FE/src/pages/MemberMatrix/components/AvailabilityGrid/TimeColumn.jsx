@@ -1,4 +1,4 @@
-import { minutesToTimeString } from "../../helper/timeUtils";
+import { minutesToTimeString } from "~/utils/timeUtils";
 import { cn } from "~/lib/utils";
 
 /**

@@ -4,7 +4,7 @@ import {
   calculateSlotGeometry,
   minutesToTimeString,
   formatDuration,
-} from "../../helper/timeUtils";
+} from "~/utils/timeUtils";
 
 /**
  * Thẻ hiển thị một khối thời gian rảnh đã chọn trên lưới ngày (Slot Card)
