@@ -12,7 +12,8 @@
     "vietnamese": "Tiếng Việt",
     "english": "English",
     "switchLanguage": "Switch Language",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "moreOptions": "More options"
   },
   "topbar": {
     "home": "Home",
@@ -185,6 +186,10 @@
     "timezone": "GMT+7 (Bangkok/Jakarta)",
     "slotsSelected": "• {{count}} slots selected ({{hours}}h total)",
     "clearSelections": "Clear selections",
+    "clearConfirmTitle": "Clear all selected slots?",
+    "clearConfirmDesc": "Are you sure you want to clear all your selected availability slots for this week? This action will reset your schedule.",
+    "clearConfirmDelete": "Clear selections",
+    "clearConfirmKeep": "Keep schedule",
     "noSlotsSelected": "No time slots selected"
   },
   "matrix": {

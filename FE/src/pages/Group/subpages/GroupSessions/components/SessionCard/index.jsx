@@ -79,7 +79,13 @@ function SessionCard({ session }) {
           </span>
           <button
             type="button"
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            title={t("common.moreOptions")}
+            aria-label={t("common.moreOptions")}
           >
             <MoreHorizontal size={16} />
           </button>

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Globe, Trash2, FileSpreadsheet } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { ConfirmModal } from "~/components/Modals";
 
 /**
  * GridToolbar - Thanh công cụ điều hướng tuần (Google Calendar Navigation)
@@ -19,6 +21,7 @@ function GridToolbar({
   onExport,
 }) {
   const { t } = useTranslation();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-2 px-1 text-xs select-none">
@@ -107,7 +110,7 @@ function GridToolbar({
               type="button"
               variant="outline"
               size="sm"
-              onClick={onClearAll}
+              onClick={() => setIsConfirmOpen(true)}
               className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-rose-600 border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
             >
               <Trash2 size={13} className="shrink-0" />
@@ -120,6 +123,20 @@ function GridToolbar({
           </span>
         )}
       </div>
+
+      {/* Modal xác nhận xóa phong cách Facebook: đảo nút an toàn sang phải để tránh tay nhanh hơn não */}
+      <ConfirmModal
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={t("gridToolbar.clearConfirmTitle")}
+        description={t("gridToolbar.clearConfirmDesc")}
+        confirmText={t("gridToolbar.clearConfirmDelete")}
+        cancelText={t("gridToolbar.clearConfirmKeep")}
+        onConfirm={() => {
+          onClearAll?.();
+          setIsConfirmOpen(false);
+        }}
+      />
     </div>
   );
 }

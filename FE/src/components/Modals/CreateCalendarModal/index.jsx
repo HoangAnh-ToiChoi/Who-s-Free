@@ -397,7 +397,7 @@ function CreateCalendarModal({
               variant="ghost"
               disabled={isSubmitting}
               onClick={() => onOpenChange?.(false)}
-              className="h-9 min-w-[70px] cursor-pointer px-3.5 text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50 justify-center"
+              className="h-9 min-w-[70px] cursor-pointer px-3.5 text-xs font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50 justify-center"
             >
               {t("common.cancel")}
             </Button>

@@ -40,9 +40,9 @@ function GroupHeader({
       <div className="flex items-center gap-1.5 text-xs">
         <Link
           to="/"
-          className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 font-semibold transition-colors shrink-0 group"
+          className="flex items-center gap-1.5 text-slate-500 hover:text-red-600 font-semibold transition-colors shrink-0 group"
         >
-          <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
+          <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600" />
           <span className="hidden sm:inline">{t("common.backToHome")}</span>
         </Link>
       </div>

@@ -359,7 +359,17 @@
       "role": "Lead Admin",
       "groupRole": "leadership",
       "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-      "slots": []
+      "slots": [
+        {
+          "id": "slot-1791112342473",
+          "dayIndex": 1,
+          "dateStr": "2026-09-29",
+          "startMinutes": 780,
+          "endMinutes": 810,
+          "label": "Available",
+          "note": ""
+        }
+      ]
     },
     {
       "id": "avail-kck-2",
@@ -411,11 +421,11 @@
       "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
       "slots": [
         {
-          "id": "slot-1790842632137",
+          "id": "slot-1791111849061",
           "dayIndex": 3,
           "dateStr": "2026-10-01",
-          "startMinutes": 510,
-          "endMinutes": 720,
+          "startMinutes": 540,
+          "endMinutes": 780,
           "label": "Available",
           "note": ""
         }
