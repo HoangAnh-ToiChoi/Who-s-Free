@@ -156,7 +156,7 @@ function SlotPopover({
             <button
               type="button"
               onClick={() => onDelete(slotData.id)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer transition-colors"
+              className="flex h-8 items-center gap-1.5 px-2.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors active:scale-[0.98]"
             >
               <Trash2 size={14} />
               <span>{t("slotPopover.delete")}</span>
@@ -165,7 +165,7 @@ function SlotPopover({
             <button
               type="button"
               onClick={onClose}
-              className="text-xs font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+              className="h-8 px-3 rounded-lg text-xs font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-colors"
             >
               {t("slotPopover.cancel")}
             </button>

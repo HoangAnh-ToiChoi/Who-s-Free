@@ -269,7 +269,7 @@ function CreateGroupModal({
             variant="ghost"
             disabled={isSubmitting}
             onClick={() => onOpenChange?.(false)}
-            className="h-10 min-w-[80px] cursor-pointer justify-center px-4 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+            className="h-10 min-w-[80px] cursor-pointer justify-center px-4 text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
           >
             {t("common.cancel")}
           </Button>

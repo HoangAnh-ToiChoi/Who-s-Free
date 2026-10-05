@@ -12,7 +12,8 @@
     "vietnamese": "Tiếng Việt",
     "english": "English",
     "switchLanguage": "Đổi ngôn ngữ",
-    "backToHome": "Về trang chủ"
+    "backToHome": "Về trang chủ",
+    "moreOptions": "Tùy chọn khác"
   },
   "topbar": {
     "home": "Trang chủ",
@@ -185,6 +186,10 @@
     "timezone": "GMT+7 (Bangkok/Jakarta)",
     "slotsSelected": "• Đã chọn {{count}} slot (tổng {{hours}}h)",
     "clearSelections": "Xóa lựa chọn",
+    "clearConfirmTitle": "Xóa toàn bộ lịch đã chọn?",
+    "clearConfirmDesc": "Bạn có chắc chắn muốn xóa tất cả các khung giờ rảnh đã chọn trong tuần này không? Thao tác này sẽ làm trống lịch của bạn.",
+    "clearConfirmDelete": "Xóa lựa chọn",
+    "clearConfirmKeep": "Giữ lại lịch",
     "noSlotsSelected": "Chưa có khung giờ nào được chọn"
   },
   "matrix": {

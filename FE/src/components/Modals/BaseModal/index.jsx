@@ -36,7 +36,7 @@ function BaseModal({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "w-full min-w-0 rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl",
+          "w-full min-w-0 rounded-2xl border border-slate-100 bg-white p-7 sm:p-8 shadow-2xl",
           maxWidth,
           className
         )}

@@ -28,9 +28,9 @@ function Placeholder({ pageName = "Feature" }) {
             <Button
               type="button"
               variant="outline"
-              className="h-10 px-4 rounded-xl gap-2 font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+              className="group h-10 px-4 rounded-xl gap-2 font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600" />
               <span>{t("placeholder.backHome")}</span>
             </Button>
           </Link>
