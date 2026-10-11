@@ -25,6 +25,7 @@ router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.get("/google", authController.googleOAuth);
 router.get("/google/callback", authController.googleCallback);
+router.post("/google/session", authController.googleSession);
 router.post("/refresh", authController.refresh);
 router.post("/logout", authController.logout);
 

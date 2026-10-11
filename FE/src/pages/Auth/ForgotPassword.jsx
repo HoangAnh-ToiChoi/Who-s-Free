@@ -81,12 +81,8 @@ function ForgotPassword() {
       return;
     }
     setEmailError(null);
-    sendOtpCode(email.trim()).catch((error) => {
-      const messageKey =
-        error.message === "ACCOUNT_NOT_FOUND"
-          ? "auth.errors.accountNotFound"
-          : "auth.errors.storageUnavailable";
-      setEmailError(t(messageKey));
+    sendOtpCode(email.trim()).catch(() => {
+      setEmailError(t("auth.errors.emailSendFailed"));
     });
   };
 
@@ -175,12 +171,8 @@ function ForgotPassword() {
 
   const handleResend = () => {
     if (countdown > 0) return;
-    sendOtpCode(email.trim()).catch((error) => {
-      const messageKey =
-        error.message === "ACCOUNT_NOT_FOUND"
-          ? "auth.errors.accountNotFound"
-          : "auth.errors.storageUnavailable";
-      setOtpError(t(messageKey));
+    sendOtpCode(email.trim()).catch(() => {
+      setOtpError(t("auth.errors.emailSendFailed"));
     });
   };
 
