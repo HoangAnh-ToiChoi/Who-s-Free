@@ -1,20 +1,43 @@
 import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { LogOut, Settings, User, Globe } from "lucide-react";
+import { LogOut, Settings, User, Globe, LogIn } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
-import { useClickOutside } from "~/hooks";
+import { useClickOutside, useAuth } from "~/hooks";
 
 function UserAvatar({ user }) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { user: authUser, logout, isAuthenticated } = useAuth();
+  const activeUser = authUser || user;
+
   const [open, setOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const ref = useRef(null);
 
   useClickOutside(ref, () => setOpen(false));
 
-  const initials = user?.name
-    ? user.name
+  const handleSignOut = async () => {
+    setOpen(false);
+    await logout();
+    navigate("/auth/login");
+  };
+
+  if (!isAuthenticated && !authUser) {
+    return (
+      <Link
+        to="/auth/login"
+        className="flex h-9 items-center gap-1.5 rounded-xl bg-indigo-600 px-3 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition-all cursor-pointer"
+      >
+        <LogIn size={14} />
+        <span>{t("topbar.signIn")}</span>
+      </Link>
+    );
+  }
+
+  const initials = activeUser?.name || activeUser?.fullName
+    ? (activeUser.name || activeUser.fullName)
         .split(" ")
         .map((n) => n[0])
         .join("")
@@ -38,10 +61,10 @@ function UserAvatar({ user }) {
           open ? "ring-indigo-600" : "ring-slate-200 hover:ring-slate-300"
         )}
       >
-        {user?.avatarUrl && !imgError ? (
+        {activeUser?.avatarUrl && !imgError ? (
           <img
-            src={user.avatarUrl}
-            alt={user.name || "User"}
+            src={activeUser.avatarUrl}
+            alt={activeUser.name || activeUser.fullName || "User"}
             onError={() => setImgError(true)}
             className="h-full w-full object-cover"
           />
@@ -57,10 +80,10 @@ function UserAvatar({ user }) {
           {/* User info */}
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
             <div className="h-9 w-9 overflow-hidden rounded-full shrink-0 flex items-center justify-center bg-indigo-50">
-              {user?.avatarUrl && !imgError ? (
+              {activeUser?.avatarUrl && !imgError ? (
                 <img
-                  src={user.avatarUrl}
-                  alt={user.name || "User"}
+                  src={activeUser.avatarUrl}
+                  alt={activeUser.name || activeUser.fullName || "User"}
                   onError={() => setImgError(true)}
                   className="h-full w-full object-cover"
                 />
@@ -72,10 +95,10 @@ function UserAvatar({ user }) {
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-slate-900">
-                {user?.name}
+                {activeUser?.name || activeUser?.fullName}
               </div>
               <div className="truncate text-xs text-slate-500">
-                {user?.email}
+                {activeUser?.email}
               </div>
             </div>
           </div>
@@ -137,6 +160,7 @@ function UserAvatar({ user }) {
           <div className="border-t border-slate-100 p-1">
             <Button
               variant="destructive"
+              onClick={handleSignOut}
               className="w-full justify-start gap-3 h-9 font-normal cursor-pointer"
             >
               <LogOut size={15} />

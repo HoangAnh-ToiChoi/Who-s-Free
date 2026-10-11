@@ -535,5 +535,6 @@
   "invites": [],
   "optimalSlots": [],
   "conflictSlots": [],
+  "authUsers": [],
   "$schema": "./node_modules/json-server/schema.json"
 }

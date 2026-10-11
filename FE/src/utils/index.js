@@ -4,3 +4,4 @@ export * from "~/utils/dateUtils";
 export * from "~/utils/timeUtils";
 export * from "~/utils/matrixCalculations";
 export * from "~/utils/slotCollision";
+export * from "~/utils/authValidation";

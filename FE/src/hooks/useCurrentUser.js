@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import http from "~/utils/http";
+import { useAuth } from "~/hooks/useAuth";
 
 const DEFAULT_USER = {
   id: "mem-1",
@@ -11,37 +10,15 @@ const DEFAULT_USER = {
 
 /**
  * useCurrentUser - Custom hook quản lý thông tin người dùng hiện tại
- * Đọc trực tiếp từ endpoint /currentUser trong db.json (fallback DEFAULT_USER)
+ * Đồng bộ trực tiếp với AuthContext (useAuth)
  */
 export function useCurrentUser() {
-  const [currentUser, setCurrentUser] = useState(DEFAULT_USER);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchUser() {
-      try {
-        const res = await http.get("/currentUser");
-        if (isMounted) {
-          const user = Array.isArray(res) ? res[0] : res;
-          setCurrentUser(user || DEFAULT_USER);
-        }
-      } catch (err) {
-        console.warn("Using default currentUser:", err?.message);
-        if (isMounted) {
-          setCurrentUser(DEFAULT_USER);
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
-    fetchUser();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  return { currentUser, isLoading };
+  return {
+    currentUser: user || DEFAULT_USER,
+    isLoading,
+  };
 }
 
 export default useCurrentUser;
