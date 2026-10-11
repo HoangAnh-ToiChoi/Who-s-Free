@@ -234,7 +234,7 @@
     "registerTitle": "Create your account",
     "registerSubtitle": "Join your club workspaces and sync schedules seamlessly.",
     "forgotTitle": "Forgot password?",
-    "forgotSubtitle": "Enter your registered email to generate a local test code.",
+    "forgotSubtitle": "Enter your registered email. If an account exists, a verification code will be sent there.",
     "resetTitle": "Set new password",
     "resetSubtitle": "Choose a strong password with at least 8 characters.",
     "badgeLogin": "AUTHENTICATION",
@@ -263,7 +263,7 @@
     "privacyPolicy": "Privacy Policy",
     "submitLogin": "Sign In",
     "submitRegister": "Create Account",
-    "submitForgot": "Generate Test Code",
+    "submitForgot": "Send verification code",
     "submitReset": "Update Password",
     "noAccount": "Don't have an account?",
     "signUpNow": "Sign up now",
@@ -278,8 +278,8 @@
     "ruleMinLength": "At least 8 characters",
     "ruleCharTypes": "Contains number and symbol",
     "ruleMatch": "Passwords match",
-    "resetLinkDispatched": "Local verification code generated",
-    "resetLinkDesc": "Use the local 6-digit OTP shown below to continue.",
+    "resetLinkDispatched": "Recovery request received",
+    "resetLinkDesc": "If this email belongs to an account, the code should arrive shortly. Check your spam folder too.",
     "resendIn": "Resend in {{seconds}}s",
     "resendNow": "Resend code now",
     "otpTitle": "Enter 6-Digit OTP Code",
@@ -297,6 +297,8 @@
     "devOtpLabel": "Local test OTP:",
     "devAutoFill": "Auto-fill",
     "footerNotice": "Precision meeting & availability scheduler for high-performing teams.",
+    "oauthAuthenticating": "Completing Google authentication...",
+    "oauthFailed": "Google authentication failed. Please try again.",
     "errors": {
       "requiredField": "This field is required",
       "invalidEmail": "Please enter a valid email address",
@@ -306,7 +308,8 @@
       "emailAlreadyRegistered": "An account with this email already exists",
       "invalidCredentials": "Email or password is incorrect",
       "accountNotFound": "No local account was found for this email",
-      "storageUnavailable": "Could not reach local data. Make sure json-server is running on port 3001."
+      "storageUnavailable": "Could not reach local data. Make sure json-server is running on port 3001.",
+      "emailSendFailed": "We could not send the recovery email. Please try again later or contact support."
     }
   }
 }

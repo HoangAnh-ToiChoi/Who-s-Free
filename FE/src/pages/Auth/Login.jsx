@@ -21,7 +21,9 @@ function Login() {
   }));
 
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState(() => ({
+    form: location.state?.formError || null,
+  }));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {

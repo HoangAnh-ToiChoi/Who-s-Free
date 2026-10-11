@@ -1,20 +1,22 @@
 import jwt from "jsonwebtoken";
 import ApiResponse from "../utils/ApiResponse.js";
+import UserModel from "../models/user.model.js";
 
 /**
  * AuthMiddleware - Xác thực JWT Token trên mọi request được bảo vệ.
  *
  * Luồng xác thực:
  *   1. Đọc token từ Authorization header (Bearer <token>) HOẶC cookie "access_token"
- *   2. Verify signature + expiry bằng JWT_SECRET
- *   3. Gắn payload đã giải mã vào req.user để các controller downstream sử dụng
- *   4. Nếu không có/hết hạn/sai token → trả 401 Unauthorized ngay lập tức
+ *   2. Thử verify signature + expiry bằng JWT_SECRET nội bộ
+ *   3. Nếu không khớp (ví dụ token từ Supabase OAuth), fallback xác thực qua Supabase Auth SDK
+ *   4. Gắn payload đã giải mã vào req.user để các controller downstream sử dụng
+ *   5. Nếu không có/hết hạn/sai token → trả 401 Unauthorized ngay lập tức
  */
 class AuthMiddleware {
   /**
    * Middleware bảo vệ route — phải đăng nhập mới dùng được.
    */
-  static authenticate(req, res, next) {
+  static async authenticate(req, res, next) {
     try {
       // Ưu tiên đọc từ Authorization header, fallback sang cookie
       const authHeader = req.headers["authorization"];
@@ -44,19 +46,43 @@ class AuthMiddleware {
           .json(ApiResponse.error("Lỗi cấu hình máy chủ", "Internal Server Error"));
       }
 
-      // Verify và giải mã token
-      const decoded = jwt.verify(token, secret);
+      // 1. Thử verify với JWT_SECRET nội bộ của hệ thống
+      try {
+        const decoded = jwt.verify(token, secret);
+        req.user = {
+          id: decoded.sub,
+          email: decoded.email,
+          role: decoded.role || "user",
+          iat: decoded.iat,
+          exp: decoded.exp,
+        };
+        return next();
+      } catch (jwtErr) {
+        // 2. Fallback: Nếu không khớp chữ ký nội bộ, kiểm tra xem có phải Token từ Supabase OAuth không
+        try {
+          const authUser = await UserModel.getUserFromToken(token);
+          if (authUser) {
+            req.user = {
+              id: authUser.id,
+              email: authUser.email,
+              role: authUser.role || "user",
+            };
+            return next();
+          }
+        } catch {
+          // Token không hợp lệ ở cả 2 nơi
+        }
 
-      // Gắn thông tin user vào request để controller sử dụng
-      req.user = {
-        id: decoded.sub,         // user UUID từ Supabase
-        email: decoded.email,
-        role: decoded.role || "user",
-        iat: decoded.iat,
-        exp: decoded.exp,
-      };
+        if (jwtErr.name === "TokenExpiredError") {
+          return res
+            .status(401)
+            .json(ApiResponse.error("Token đã hết hạn — vui lòng đăng nhập lại", "Token Expired"));
+        }
 
-      return next();
+        return res
+          .status(401)
+          .json(ApiResponse.error("Token không hợp lệ", "Invalid Token"));
+      }
     } catch (err) {
       if (err.name === "TokenExpiredError") {
         return res

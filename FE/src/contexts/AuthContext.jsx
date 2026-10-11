@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback, useRef } from "react";
 import authService, {
   getStoredUser,
   setStoredUser,
@@ -11,19 +11,27 @@ export function AuthProvider({ children }) {
   // Đọc user ngay ở Frame 0 từ localStorage (Zero-Wait State Transfer)
   const [user, setUser] = useState(() => getStoredUser());
   const [isLoading, setIsLoading] = useState(true);
+  const authRevision = useRef(0);
 
   // Kiểm tra phiên đăng nhập khi khởi động ứng dụng
   useEffect(() => {
     let isMounted = true;
 
     async function initAuth() {
+      const initRevision = authRevision.current;
       try {
         const currentUser = await authService.getMe();
-        if (isMounted && currentUser) {
+        if (isMounted && initRevision === authRevision.current) {
+          // /me trả null khi không có token hoặc token đã hết hạn;
+          // không giữ lại user cũ trong localStorage như thể vẫn đăng nhập.
           setUser(currentUser);
         }
       } catch (err) {
         console.warn("Auth initialization notice:", err?.message);
+        if (isMounted && initRevision === authRevision.current) {
+          // Không mở workspace khi không thể xác minh phiên với backend.
+          setUser(null);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -36,18 +44,56 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const verifyAuthenticatedUser = useCallback(async () => {
+    authRevision.current += 1;
+    try {
+      const currentUser = await authService.getMe();
+      if (!currentUser) {
+        setUser(null);
+        const error = new Error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+        error.status = 401;
+        throw error;
+      }
+
+      setUser(currentUser);
+      return currentUser;
+    } catch (error) {
+      if (error.status === 401) {
+        setUser(null);
+        throw error;
+      }
+
+      // Không coi user từ response login/cache là phiên hợp lệ nếu /me chưa xác minh.
+      console.warn("Không thể xác minh phiên đăng nhập qua /me:", error?.message);
+      setUser(null);
+      throw error;
+    }
+  }, []);
+
   const login = useCallback(async ({ email, password }) => {
     const result = await authService.login({ email, password });
-    setUser(result.user);
-    return result;
-  }, []);
+    const user = await verifyAuthenticatedUser();
+    return { ...result, user };
+  }, [verifyAuthenticatedUser]);
 
   const register = useCallback(async ({ fullName, email, password }) => {
-    const newUser = await authService.register({ fullName, email, password });
-    return newUser;
-  }, []);
+    const result = await authService.register({ fullName, email, password });
+    const userObj = result.user || result;
+    if (result.accessToken) {
+      return await verifyAuthenticatedUser();
+    }
+    authRevision.current += 1;
+    setUser(userObj);
+    return userObj;
+  }, [verifyAuthenticatedUser]);
+
+  const handleGoogleSession = useCallback(async ({ accessToken, refreshToken }) => {
+    const result = await authService.syncGoogleSession({ accessToken, refreshToken });
+    return await verifyAuthenticatedUser();
+  }, [verifyAuthenticatedUser]);
 
   const logout = useCallback(async () => {
+    authRevision.current += 1;
     try {
       await authService.logout();
     } finally {
@@ -68,12 +114,21 @@ export function AuthProvider({ children }) {
     return await authService.resetPassword(payload);
   }, []);
 
+  const fetchMe = useCallback(async () => {
+    authRevision.current += 1;
+    const me = await authService.getMe();
+    setUser(me);
+    return me;
+  }, []);
+
   const value = {
     user,
     isAuthenticated: !!user,
     isLoading,
     login,
     register,
+    handleGoogleSession,
+    fetchMe,
     logout,
     forgotPassword,
     verifyOtp,

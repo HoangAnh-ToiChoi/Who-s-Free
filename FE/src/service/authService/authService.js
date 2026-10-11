@@ -12,8 +12,10 @@ const STORAGE_KEYS = {
   REFRESH_TOKEN: "refreshToken",
   CURRENT_USER: "currentUser",
   MOCK_USERS: "whosfree_auth_users",
-  PENDING_OTP: "whosfree_pending_otp",
 };
+
+let inFlightGetMe = null;
+let authStateVersion = 0;
 
 function normalizeEmail(email) {
   return (email || "").trim().toLowerCase();
@@ -69,6 +71,8 @@ export function getStoredTokens() {
 }
 
 export function setStoredTokens({ accessToken, refreshToken }) {
+  authStateVersion += 1;
+  inFlightGetMe = null;
   if (accessToken) {
     localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
   }
@@ -78,6 +82,8 @@ export function setStoredTokens({ accessToken, refreshToken }) {
 }
 
 export function clearStoredAuth() {
+  authStateVersion += 1;
+  inFlightGetMe = null;
   localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
@@ -154,9 +160,18 @@ export async function register({ fullName, email, password }) {
       }),
     });
 
-    const user = formatUser(res.data || { fullName, email: normalizedEmail });
+    const userData = res.data?.user || res.data || { fullName, email: normalizedEmail };
+    const user = formatUser(userData);
+    const accessToken = res.data?.accessToken;
+    const refreshToken = res.data?.refreshToken;
+
+    if (accessToken) {
+      setStoredTokens({ accessToken, refreshToken });
+    }
+    setStoredUser(user);
     saveMockUser({ ...user, password });
-    return user;
+
+    return { user, accessToken };
   } catch (err) {
     if (err.status && err.status < 500) {
       throw err;
@@ -169,8 +184,9 @@ export async function register({ fullName, email, password }) {
     }
 
     const fallbackUser = formatUser({ fullName, email: normalizedEmail });
+    setStoredUser(fallbackUser);
     saveMockUser({ ...fallbackUser, password });
-    return fallbackUser;
+    return { user: fallbackUser, accessToken: null };
   }
 }
 
@@ -218,6 +234,31 @@ export async function login({ email, password }) {
 }
 
 /**
+ * Đồng bộ phiên đăng nhập Google từ OAuth Hash Fragment
+ * @param {{ accessToken: string, refreshToken?: string }} payload
+ */
+export async function syncGoogleSession({ accessToken, refreshToken }) {
+  try {
+    const res = await sendAuthRequest("/api/auth/google/session", {
+      method: "POST",
+      body: JSON.stringify({ accessToken, refreshToken }),
+    });
+
+    const user = formatUser(res.data?.user);
+    const systemToken = res.data?.accessToken || accessToken;
+    const systemRefreshToken = res.data?.refreshToken || refreshToken;
+
+    setStoredTokens({ accessToken: systemToken, refreshToken: systemRefreshToken });
+    setStoredUser(user);
+
+    return { user, accessToken: systemToken };
+  } catch (err) {
+    console.error("Lỗi đồng bộ session Google:", err);
+    throw err;
+  }
+}
+
+/**
  * Đăng xuất tài khoản
  */
 export async function logout() {
@@ -231,23 +272,55 @@ export async function logout() {
 }
 
 /**
- * Lấy thông tin user hiện tại từ token xác thực
+ * Lấy thông tin user hiện tại từ token xác thực (Chuẩn Threads / Meta)
+ * - Luôn xác thực lại token hiện có với backend, không dùng user cache thay cho /me
+ * - Tự động chặn request trùng lặp (Single-Flight Promise Deduplication)
  */
 export async function getMe() {
-  try {
-    const res = await sendAuthRequest("/api/auth/me", {
-      method: "GET",
-    });
-
-    if (res.data) {
-      const user = formatUser(res.data);
-      setStoredUser(user);
-      return user;
-    }
-  } catch {
-    return getStoredUser();
+  // Luôn hỏi backend, kể cả khi localStorage không có token: session có thể
+  // còn trong HttpOnly cookie và backend sẽ tự trả 401 nếu không có phiên.
+  if (inFlightGetMe) {
+    return inFlightGetMe;
   }
-  return getStoredUser();
+
+  const requestAuthVersion = authStateVersion;
+  const request = (async () => {
+    try {
+      const res = await sendAuthRequest("/api/auth/me", {
+        method: "GET",
+      });
+
+      const userData = res.data?.user || res.data;
+      if (userData) {
+        const user = formatUser(userData);
+        setStoredUser(user);
+        return user;
+      }
+
+      clearStoredAuth();
+      return null;
+    } catch (err) {
+      // Token hết hạn/không hợp lệ: xóa toàn bộ auth state.
+      if (err.status === 401) {
+        // Bỏ qua 401 từ request cũ nếu user vừa đăng nhập trong lúc request bay.
+        if (requestAuthVersion === authStateVersion) {
+          clearStoredAuth();
+        }
+        return null;
+      }
+
+      // Lỗi mạng/server không đồng nghĩa token hợp lệ; để AuthContext quyết định
+      // giữ user cache để giao diện không bị logout giả khi backend tạm gián đoạn.
+      throw err;
+    } finally {
+      if (inFlightGetMe === request) {
+        inFlightGetMe = null;
+      }
+    }
+  })();
+
+  inFlightGetMe = request;
+  return request;
 }
 
 /**
@@ -256,24 +329,12 @@ export async function getMe() {
  */
 export async function createPasswordResetOtp(email) {
   const normalizedEmail = normalizeEmail(email);
+  const res = await sendAuthRequest("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email: normalizedEmail }),
+  });
 
-  try {
-    const res = await sendAuthRequest("/api/auth/forgot-password", {
-      method: "POST",
-      body: JSON.stringify({ email: normalizedEmail }),
-    });
-
-    return res.data?.otp || null;
-  } catch (err) {
-    // Offline mode: Tự sinh mã 6 chữ số ngẫu nhiên
-    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    localStorage.setItem(
-      STORAGE_KEYS.PENDING_OTP,
-      JSON.stringify({ email: normalizedEmail, otp: randomOtp, expiresAt: Date.now() + 600000 })
-    );
-    console.log(`🔑 [Mã OTP kiểm thử local cho ${normalizedEmail}]: ${randomOtp}`);
-    return randomOtp;
-  }
+  return res.data?.otp || null;
 }
 
 /**
@@ -282,32 +343,12 @@ export async function createPasswordResetOtp(email) {
  */
 export async function verifyOtp({ email, otp }) {
   const normalizedEmail = normalizeEmail(email);
+  const res = await sendAuthRequest("/api/auth/verify-otp", {
+    method: "POST",
+    body: JSON.stringify({ email: normalizedEmail, otp: String(otp).trim() }),
+  });
 
-  try {
-    const res = await sendAuthRequest("/api/auth/verify-otp", {
-      method: "POST",
-      body: JSON.stringify({ email: normalizedEmail, otp: String(otp).trim() }),
-    });
-
-    return res.data?.resetToken || "valid-reset-token";
-  } catch (err) {
-    // Offline verification fallback
-    const raw = localStorage.getItem(STORAGE_KEYS.PENDING_OTP);
-    if (raw) {
-      const pending = JSON.parse(raw);
-      if (
-        pending.email === normalizedEmail &&
-        (pending.otp === String(otp).trim() || String(otp).trim() === "123456")
-      ) {
-        return `mock-reset-token-${Date.now()}`;
-      }
-    }
-    // Cho phép pass nếu nhập đúng mã mẫu 123456 trong môi trường dev
-    if (String(otp).trim() === "123456") {
-      return `mock-reset-token-${Date.now()}`;
-    }
-    throw new Error("OTP_INVALID");
-  }
+  return res.data?.resetToken;
 }
 
 /**
@@ -316,35 +357,23 @@ export async function verifyOtp({ email, otp }) {
  */
 export async function resetPassword({ email, resetToken, password, confirmPassword }) {
   const normalizedEmail = normalizeEmail(email);
+  const res = await sendAuthRequest("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({
+      email: normalizedEmail,
+      resetToken,
+      password,
+      confirmPassword,
+    }),
+  });
 
-  try {
-    const res = await sendAuthRequest("/api/auth/reset-password", {
-      method: "POST",
-      body: JSON.stringify({
-        email: normalizedEmail,
-        resetToken,
-        password,
-        confirmPassword,
-      }),
-    });
-
-    return res.message || "SUCCESS";
-  } catch (err) {
-    // Offline fallback
-    const users = getMockUsers();
-    const user = users.find((u) => u.email === normalizedEmail);
-    if (user) {
-      user.password = password;
-      saveMockUser(user);
-    }
-    localStorage.removeItem(STORAGE_KEYS.PENDING_OTP);
-    return "SUCCESS";
-  }
+  return res.message || "SUCCESS";
 }
 
 export const authService = {
   register,
   login,
+  syncGoogleSession,
   logout,
   getMe,
   createPasswordResetOtp,

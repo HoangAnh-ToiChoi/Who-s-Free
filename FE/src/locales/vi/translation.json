@@ -234,7 +234,7 @@
     "registerTitle": "Tạo tài khoản mới",
     "registerSubtitle": "Tham gia không gian làm việc của bạn và đồng bộ lịch trình dễ dàng.",
     "forgotTitle": "Quên mật khẩu?",
-    "forgotSubtitle": "Nhập email đã đăng ký để tạo mã kiểm thử local.",
+    "forgotSubtitle": "Nhập email đã đăng ký. Nếu tài khoản tồn tại, mã OTP sẽ được gửi đến email đó.",
     "resetTitle": "Đặt mật khẩu mới",
     "resetSubtitle": "Chọn mật khẩu mạnh có ít nhất 8 ký tự để bảo vệ tài khoản.",
     "badgeLogin": "XÁC THỰC TÀI KHOẢN",
@@ -263,7 +263,7 @@
     "privacyPolicy": "Chính sách bảo mật",
     "submitLogin": "Đăng nhập",
     "submitRegister": "Tạo tài khoản",
-    "submitForgot": "Tạo mã kiểm thử",
+    "submitForgot": "Gửi mã xác thực",
     "submitReset": "Cập nhật mật khẩu",
     "noAccount": "Chưa có tài khoản?",
     "signUpNow": "Đăng ký ngay",
@@ -278,8 +278,8 @@
     "ruleMinLength": "Tối thiểu 8 ký tự",
     "ruleCharTypes": "Chứa số hoặc ký hiệu đặc biệt",
     "ruleMatch": "Hai mật khẩu trùng khớp nhau",
-    "resetLinkDispatched": "Đã tạo mã xác thực local",
-    "resetLinkDesc": "Dùng mã OTP local 6 chữ số hiển thị bên dưới để tiếp tục.",
+    "resetLinkDispatched": "Yêu cầu khôi phục đã được tiếp nhận",
+    "resetLinkDesc": "Nếu email thuộc tài khoản hợp lệ, mã OTP sẽ đến trong ít phút. Hãy kiểm tra cả thư mục spam.",
     "resendIn": "Gửi lại sau {{seconds}}s",
     "resendNow": "Gửi lại mã ngay",
     "otpTitle": "Nhập mã OTP 6 chữ số",
@@ -297,6 +297,8 @@
     "devOtpLabel": "Mã OTP kiểm thử local:",
     "devAutoFill": "Tự động điền",
     "footerNotice": "Nền tảng khảo sát và điều phối lịch trình họp nhóm chuẩn xác.",
+    "oauthAuthenticating": "Đang hoàn tất xác thực Google...",
+    "oauthFailed": "Xác thực tài khoản Google không thành công. Vui lòng thử lại.",
     "errors": {
       "requiredField": "Vui lòng không để trống trường này",
       "invalidEmail": "Địa chỉ email không đúng định dạng",
@@ -306,7 +308,8 @@
       "emailAlreadyRegistered": "Email này đã được đăng ký tài khoản",
       "invalidCredentials": "Email hoặc mật khẩu không chính xác",
       "accountNotFound": "Không tìm thấy tài khoản local với email này",
-      "storageUnavailable": "Không kết nối được dữ liệu local. Hãy đảm bảo json-server đang chạy ở cổng 3001."
+      "storageUnavailable": "Không kết nối được dữ liệu local. Hãy đảm bảo json-server đang chạy ở cổng 3001.",
+      "emailSendFailed": "Chưa gửi được email khôi phục. Vui lòng thử lại sau hoặc liên hệ quản trị viên."
     }
   }
 }

@@ -1,7 +1,9 @@
 import OtpModel from "../models/otp.model.js";
 import UserModel from "../models/user.model.js";
+import EmailService from "./email.service.js";
 import TokenService from "./token.service.js";
 import AppError from "../utils/AppError.js";
+import { randomInt } from "node:crypto";
 
 /**
  * RecoveryService - Nghiệp vụ Khôi phục Mật khẩu & Xác thực OTP 6 số
@@ -25,19 +27,27 @@ class RecoveryService {
       throw AppError.badRequest("Email là bắt buộc", "EMAIL_REQUIRED");
     }
 
-    // 1. Sinh ngẫu nhiên mã 6 chữ số
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // 2. Lưu vào OtpModel
-    OtpModel.save(normalizedEmail, otp, RecoveryService.OTP_TTL_SECONDS);
-
-    console.log(`🔑 [OTP RECOVERY] Mã xác thực 6 số cho ${normalizedEmail}: ${otp}`);
-
-    return {
+    const result = {
       email: normalizedEmail,
       expiresInSeconds: RecoveryService.OTP_TTL_SECONDS,
-      message: "Mã OTP 6 chữ số đã được tạo và gửi thành công",
+      message: "Nếu email thuộc tài khoản hợp lệ, mã khôi phục đã được gửi.",
     };
+
+    const user = await UserModel.findByEmail(normalizedEmail);
+    if (!user) return result;
+
+    const otp = String(randomInt(100000, 1000000));
+    const expiresInMinutes = RecoveryService.OTP_TTL_SECONDS / 60;
+
+    await EmailService.sendPasswordResetOtp({
+      email: normalizedEmail,
+      otp,
+      expiresInMinutes,
+    });
+
+    OtpModel.save(normalizedEmail, otp, RecoveryService.OTP_TTL_SECONDS);
+
+    return result;
   }
 
   /**

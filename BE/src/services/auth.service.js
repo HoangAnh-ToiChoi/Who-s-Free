@@ -24,9 +24,15 @@ class AuthService {
       const createdUser = await UserModel.createInAuth({ email, password, fullName });
       const publicUser = UserModel.toPublicUser(createdUser);
 
+      // Cấp JWT Token ngay sau khi đăng ký thành công để đăng nhập tức thì
+      const accessToken = TokenService.generateAccessToken(publicUser);
+      const refreshToken = TokenService.generateRefreshToken(publicUser);
+
       return {
         user: publicUser,
-        message: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+        accessToken,
+        refreshToken,
+        message: "Đăng ký tài khoản thành công!",
       };
     } catch (err) {
       throw AppError.badRequest(err.message || "Đăng ký tài khoản thất bại", "REGISTER_FAILED");
@@ -85,6 +91,31 @@ class AuthService {
       return { accessToken, refreshToken, user: publicUser };
     } catch (err) {
       throw AppError.unauthorized("Xác thực Google OAuth thất bại", "OAUTH_FAILED");
+    }
+  }
+
+  /**
+   * Xử lý khởi tạo session từ Supabase OAuth token (khi dùng Implicit Hash Flow)
+   */
+  async handleGoogleSession(token, refreshToken) {
+    if (!token) {
+      throw AppError.badRequest("Thiếu Access Token từ Google", "MISSING_TOKEN");
+    }
+
+    try {
+      const authUser = await UserModel.getUserFromToken(token);
+      if (!authUser) {
+        throw AppError.unauthorized("Không tìm thấy thông tin xác thực từ token", "INVALID_TOKEN");
+      }
+
+      const publicUser = UserModel.toPublicUser(authUser);
+      const accessToken = TokenService.generateAccessToken(publicUser);
+      const newRefreshToken = TokenService.generateRefreshToken(publicUser);
+
+      return { accessToken, refreshToken: newRefreshToken, user: publicUser };
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      throw AppError.unauthorized(err.message || "Xác thực Google thất bại", "OAUTH_FAILED");
     }
   }
 

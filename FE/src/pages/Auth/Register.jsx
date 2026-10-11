@@ -83,9 +83,9 @@ function Register() {
     setIsSubmitting(true);
     try {
       const user = await register(formData);
-      navigate("/auth/login", {
+      navigate("/", {
         replace: true,
-        state: { email: user.email, registrationSuccess: true },
+        state: { user },
       });
     } catch (error) {
       const messageKey =
