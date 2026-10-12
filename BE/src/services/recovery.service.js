@@ -75,7 +75,7 @@ class RecoveryService {
       const attempts = OtpModel.recordFailedAttempt(normalizedEmail);
       if (attempts >= RecoveryService.MAX_ATTEMPTS) {
         OtpModel.delete(normalizedEmail);
-        throw AppError.forbidden(
+        throw AppError.badRequest(
           "Nhập sai mã quá 5 lần. Yêu cầu đã bị hủy vì lý do an toàn.",
           "MAX_ATTEMPTS_EXCEEDED"
         );

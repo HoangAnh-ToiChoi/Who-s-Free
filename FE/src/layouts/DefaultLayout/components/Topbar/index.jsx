@@ -11,7 +11,7 @@ import { useActiveWorkspace, useGroups, useCurrentUser } from "~/hooks";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
-  const { groups, createGroup } = useGroups();
+  const { groups, createGroup, searchQuery, setSearchQuery } = useGroups();
   const { currentUser } = useCurrentUser();
 
   // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
@@ -32,7 +32,10 @@ function Topbar() {
 
       {/* Center — SearchBar (Dịch nhẹ sang phải translate-x để cân bằng thị giác với cụm điều khiển bên phải) */}
       <div className="flex flex-1 items-center justify-center translate-x-6 sm:translate-x-12">
-        <SearchBar />
+        <SearchBar
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       {/* Right section — Workspace Selector, Quick Language Toggle, Bell, Avatar */}

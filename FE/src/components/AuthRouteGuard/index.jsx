@@ -1,5 +1,6 @@
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "~/hooks/useAuth";
+import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 
 function AuthRouteLoading() {
   return (
@@ -20,9 +21,12 @@ export function RequireAuth() {
 
 export function GuestOnly() {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) return <AuthRouteLoading />;
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  if (isAuthenticated) {
+    return <Navigate to={getSafeReturnUrl(location.search)} replace />;
+  }
 
   return <Outlet />;
 }

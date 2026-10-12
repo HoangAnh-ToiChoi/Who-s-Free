@@ -43,7 +43,7 @@ function UserAvatar({ user }) {
         .join("")
         .slice(0, 2)
         .toUpperCase()
-    : "ML";
+    : "U";
 
   const isVietnamese = i18n.language?.startsWith("vi");
 

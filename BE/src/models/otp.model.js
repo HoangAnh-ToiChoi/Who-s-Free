@@ -71,6 +71,13 @@ class OtpModel {
     const normalized = (email || "").trim().toLowerCase();
     this.store.delete(normalized);
   }
+
+  /**
+   * Xóa toàn bộ bản ghi OTP (dùng cho cleanup và testing)
+   */
+  static clear() {
+    this.store.clear();
+  }
 }
 
 export default OtpModel;

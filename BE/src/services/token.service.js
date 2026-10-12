@@ -89,7 +89,7 @@ class TokenService {
       }
       return decoded;
     } catch {
-      throw AppError.unauthorized(
+      throw AppError.badRequest(
         "Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
         "INVALID_RESET_TOKEN"
       );

@@ -15,6 +15,7 @@ const Register = lazy(() => import("~/pages/Auth/Register"));
 const ForgotPassword = lazy(() => import("~/pages/Auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("~/pages/Auth/ResetPassword"));
 const AuthCallback = lazy(() => import("~/pages/Auth/AuthCallback"));
+const Invite = lazy(() => import("~/pages/Invite"));
 
 function RouteLoading() {
   return (
@@ -33,6 +34,9 @@ function AppRoutes() {
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Suspense fallback={<RouteLoading />}>
         <Routes>
+          {/* Public Invitation Acceptance Flow */}
+          <Route path="/invite/:token" element={<Invite />} />
+
           {/* Auth Flow Routes — Giao diện Layout riêng biệt */}
           <Route element={<GuestOnly />}>
             <Route element={<AuthLayout />}>

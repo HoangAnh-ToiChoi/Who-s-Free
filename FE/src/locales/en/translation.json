@@ -42,6 +42,7 @@
     "failedLoadDesc": "Please check your connection or try again."
   },
   "groupCard": {
+    "memberFallback": "Member",
     "members": "members",
     "sessionsCount": "{{count}} active sessions",
     "capacity": "Capacity",
@@ -84,6 +85,11 @@
     "copyInviteLink": "Copy invite link",
     "copied": "Link copied to clipboard!",
     "failedLoad": "Failed to load group calendars",
+    "roleLead": "Lead",
+    "roleMember": "Member",
+    "noMembersTitle": "No members yet",
+    "errorLoadMembersTitle": "Failed to load group members",
+    "errorLoadMembers": "An error occurred while connecting to the server. Please try again.",
     "metrics": {
       "activePolls": "Synchronized polls",
       "activeCount": "{{count}} Active",
@@ -137,7 +143,7 @@
     "creatingSession": "Creating Session...",
     "errorTitleRequired": "Please enter a session or calendar title.",
     "errorDateRequired": "Please select a target date range.",
-    "errorNetwork": "Cannot connect to backend data server (port 3001). Please ensure `npm run server` is running."
+    "errorNetwork": "Cannot connect to data server. Please check your network connection or try again later."
   },
   "inviteModal": {
     "title": "Invite Members",
@@ -151,15 +157,28 @@
     "emailPlaceholder": "name@university.edu",
     "rolePrefix": "Role:",
     "roleMember": "Member",
-    "roleAdmin": "Admin",
-    "roleViewer": "Viewer",
+    "roleLead": "Co-lead (Lead)",
     "send": "Send",
     "sending": "Sending...",
-    "expiryNote": "Pending invites expire in 7 days • University SSO verified",
+    "expiryNote": "Pending invites expire in 24 hours • Email verified",
     "pendingHeader": "Recent Pending Invites",
     "awaitingCount": "{{count}} awaiting verification",
     "resend": "Resend",
     "resending": "Sending...",
+    "revoke": "Revoke",
+    "noPendingInvites": "No pending invitations",
+    "errorLoadInvites": "Could not load pending invitations. Please try again.",
+    "errorFeatureUnavailable": "Invitations are not fully configured yet. Please try again later or contact the administrator.",
+    "errorUnauthorized": "Session expired. Please log in again to view invitations.",
+    "errorGroupNotFound": "Group not found.",
+    "expiresIn24h": "Expires in 24h",
+    "sendSuccess": "Invitation email sent successfully. Valid for 24 hours.",
+    "errorAlreadyMember": "This user is already a member of the group",
+    "errorGroupFull": "Group has reached maximum capacity",
+    "errorForbidden": "You do not have permission to perform this action",
+    "errorSendFailed": "Could not send invitation email. Please try again.",
+    "errorResendFailed": "Could not resend invitation",
+    "errorRevokeFailed": "Could not revoke invitation",
     "managePermissions": "Manage permissions in Settings",
     "done": "Done",
     "validation": {
@@ -167,6 +186,37 @@
       "emailInvalid": "Invalid email address format",
       "sendFailed": "Could not send invitation, please try again"
     }
+  },
+  "invitePage": {
+    "invalidToken": "Invalid invitation link",
+    "notFoundMessage": "Invitation not found or link was deleted",
+    "loading": "Verifying invitation...",
+    "successTitle": "Welcome to the group!",
+    "successDesc": "You are now an official member of \"{{groupName}}\".",
+    "goToGroup": "Go to group workspace",
+    "errorTitle": "Invitation unavailable",
+    "backHome": "Back to Home",
+    "invitedToJoin": "Invitation to join",
+    "roleLabel": "Role:",
+    "inviter": "Invited by: ",
+    "expiresNote": "Valid for 24 hours",
+    "alreadyMemberDesc": "You are already a member of this group.",
+    "expiredDesc": "This invitation has expired (24 hours after creation). Please contact the administrator for a new invite.",
+    "revokedDesc": "This invitation was revoked by the group administrator.",
+    "groupFullDesc": "Sorry, this group has reached maximum capacity.",
+    "dedicatedFor": "Invitation exclusively for:",
+    "loginRequiredNote": "Please sign in or create an account with the above email to accept this invitation.",
+    "emailMismatchTitle": "Account mismatch",
+    "emailMismatchDesc": "This invitation was sent to {{invitedEmail}}, but you are currently signed in as {{currentEmail}}.",
+    "switchAccount": "Switch to the invited account",
+    "emailMatched": "Verified account: {{email}}",
+    "accepting": "Joining group...",
+    "acceptButton": "Accept invitation",
+    "errorMismatchDetail": "Email address does not match the invitation.",
+    "errorExpired": "Invitation expired after 24 hours. Please request a new invite.",
+    "errorRevoked": "Invitation has been revoked by group admin.",
+    "errorGroupFull": "Group has reached maximum capacity.",
+    "errorAcceptFailed": "Could not accept invitation. Please try again."
   },
   "slotPopover": {
     "editSlot": "Edit Slot",
@@ -308,7 +358,7 @@
       "emailAlreadyRegistered": "An account with this email already exists",
       "invalidCredentials": "Email or password is incorrect",
       "accountNotFound": "No local account was found for this email",
-      "storageUnavailable": "Could not reach local data. Make sure json-server is running on port 3001.",
+      "storageUnavailable": "Could not reach server data. Please try again later.",
       "emailSendFailed": "We could not send the recovery email. Please try again later or contact support."
     }
   }

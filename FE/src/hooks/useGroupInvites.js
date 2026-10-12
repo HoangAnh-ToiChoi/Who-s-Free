@@ -1,74 +1,92 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import copy from "copy-to-clipboard";
+import { useState, useEffect, useCallback } from "react";
 import { groupService } from "~/service/groupService/groupService";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Custom Hook quản lý toàn bộ vòng đời, trạng thái và tác vụ mời thành viên nhóm.
+ * Custom Hook quản lý toàn bộ vòng đời, trạng thái và tác vụ mời thành viên nhóm qua email.
  * Đóng gói sạch sẽ logic gọi API, kiểm tra email và clipboard.
- * 
+ *
  * @param {string} groupId - ID của nhóm
  * @param {boolean} isOpen - Trạng thái hiển thị modal
  */
 export function useGroupInvites(groupId, isOpen = false) {
-  const [inviteCode, setInviteCode] = useState("");
-  const [inviteLink, setInviteLink] = useState("");
   const [pendingInvites, setPendingInvites] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [resendingId, setResendingId] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [revokingId, setRevokingId] = useState(null);
   const [emailError, setEmailError] = useState("");
-
-  const copyTimerRef = useRef(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loadError, setLoadError] = useState(null);
 
   // Chỉ fetch dữ liệu khi modal được kích hoạt mở
   const fetchInviteData = useCallback(async () => {
     if (!groupId) return;
     setIsLoading(true);
+    setLoadError(null);
     try {
-      const data = await groupService.getGroupInviteInfo(groupId);
-      setInviteCode(data.inviteCode);
-      setInviteLink(data.inviteLink);
-      setPendingInvites(data.pendingInvites || []);
+      const invitations = await groupService.getPendingInvitations(groupId);
+      setPendingInvites(Array.isArray(invitations) ? invitations : []);
     } catch (err) {
       console.error("Failed to load group invite info:", err);
+      const status = err?.status;
+      const code = err?.code;
+      if (code === "INVITATION_FEATURE_NOT_CONFIGURED") {
+        setLoadError({
+          type: "CONFIGURATION_ERROR",
+          messageKey: "inviteModal.errorFeatureUnavailable",
+          canRetry: true,
+        });
+      } else if (status === 401) {
+        setLoadError({
+          type: "UNAUTHORIZED",
+          messageKey: "inviteModal.errorUnauthorized",
+          canRetry: false,
+        });
+      } else if (status === 403 || code === "FORBIDDEN") {
+        setLoadError({
+          type: "FORBIDDEN",
+          messageKey: "inviteModal.errorForbidden",
+          canRetry: false,
+        });
+      } else if (status === 404 || code === "GROUP_NOT_FOUND") {
+        setLoadError({
+          type: "NOT_FOUND",
+          messageKey: "inviteModal.errorGroupNotFound",
+          canRetry: false,
+        });
+      } else {
+        setLoadError({
+          type: "SERVER_ERROR",
+          messageKey: "inviteModal.errorLoadInvites",
+          canRetry: true,
+        });
+      }
+      setPendingInvites([]);
     } finally {
       setIsLoading(false);
     }
   }, [groupId]);
 
   useEffect(() => {
+    let isActive = true;
     if (isOpen) {
-      fetchInviteData();
-      setEmailError("");
-      setCopied(false);
+      queueMicrotask(() => {
+        if (!isActive) return;
+        fetchInviteData();
+        setEmailError("");
+        setSuccessMessage("");
+      });
     }
     return () => {
-      if (copyTimerRef.current) {
-        clearTimeout(copyTimerRef.current);
-      }
+      isActive = false;
     };
   }, [isOpen, fetchInviteData]);
 
-  // Sao chép link vào Clipboard kèm timeout tự tắt thông báo
-  const copyLink = useCallback(() => {
-    if (!inviteLink) return;
-    copy(inviteLink);
-    setCopied(true);
-
-    if (copyTimerRef.current) {
-      clearTimeout(copyTimerRef.current);
-    }
-    copyTimerRef.current = setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  }, [inviteLink]);
-
   // Gửi lời mời qua Email
   const sendInvite = useCallback(
-    async (email, role = "Member") => {
+    async (email, role = "member") => {
       const trimmedEmail = email?.trim();
       if (!trimmedEmail) {
         setEmailError("validation.emailRequired");
@@ -80,56 +98,91 @@ export function useGroupInvites(groupId, isOpen = false) {
       }
 
       setEmailError("");
+      setSuccessMessage("");
       setIsSending(true);
       try {
-        const newInvite = await groupService.sendGroupInvite(groupId, {
+        await groupService.sendGroupInvite(groupId, {
           email: trimmedEmail,
           role,
         });
-        setPendingInvites((prev) => [newInvite, ...prev]);
+        setSuccessMessage("inviteModal.sendSuccess");
+        await fetchInviteData();
         return true;
       } catch (err) {
         console.error("Failed to send invite:", err);
-        setEmailError("validation.sendFailed");
+        const errCode = err?.code;
+        if (errCode === "ALREADY_MEMBER") {
+          setEmailError("inviteModal.errorAlreadyMember");
+        } else if (errCode === "GROUP_CAPACITY_FULL") {
+          setEmailError("inviteModal.errorGroupFull");
+        } else if (errCode === "FORBIDDEN") {
+          setEmailError("inviteModal.errorForbidden");
+        } else if (errCode === "INVITATION_FEATURE_NOT_CONFIGURED") {
+          setEmailError("inviteModal.errorFeatureUnavailable");
+        } else if (err?.status >= 500 || !err?.status) {
+          setEmailError("inviteModal.errorSendFailed");
+        } else {
+          setEmailError(err?.message || "inviteModal.errorSendFailed");
+        }
         return false;
       } finally {
         setIsSending(false);
       }
     },
-    [groupId]
+    [groupId, fetchInviteData]
   );
 
-  // Gửi lại email lời mời
+  // Gửi lại email lời mời (hạn 24h mới)
   const resendInvite = useCallback(
     async (inviteId) => {
       if (!inviteId) return;
       setResendingId(inviteId);
+      setEmailError("");
       try {
         await groupService.resendGroupInvite(groupId, inviteId);
+        await fetchInviteData();
       } catch (err) {
         console.error("Failed to resend invite:", err);
+        setEmailError(err?.message || "inviteModal.errorResendFailed");
       } finally {
-        setTimeout(() => {
-          setResendingId(null);
-        }, 600);
+        setResendingId(null);
       }
     },
-    [groupId]
+    [groupId, fetchInviteData]
+  );
+
+  // Thu hồi lời mời
+  const revokeInvite = useCallback(
+    async (inviteId) => {
+      if (!inviteId) return;
+      setRevokingId(inviteId);
+      setEmailError("");
+      try {
+        await groupService.revokeGroupInvite(groupId, inviteId);
+        await fetchInviteData();
+      } catch (err) {
+        console.error("Failed to revoke invite:", err);
+        setEmailError(err?.message || "inviteModal.errorRevokeFailed");
+      } finally {
+        setRevokingId(null);
+      }
+    },
+    [groupId, fetchInviteData]
   );
 
   return {
-    inviteCode,
-    inviteLink,
     pendingInvites,
     isLoading,
     isSending,
     resendingId,
-    copied,
+    revokingId,
     emailError,
+    successMessage,
+    loadError,
     setEmailError,
-    copyLink,
     sendInvite,
     resendInvite,
+    revokeInvite,
     reload: fetchInviteData,
   };
 }

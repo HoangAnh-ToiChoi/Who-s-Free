@@ -1,26 +1,14 @@
-import supabase, { supabaseAdmin } from "../configs/supabase.config.js";
 import { query } from "../configs/db.config.js";
+import SupabaseAuthModel from "./supabase-auth.model.js";
 
-/**
- * UserModel - Data Access Layer cho Thực thể Người dùng (User Entity)
- *
- * Trách nhiệm duy nhất (SRP):
- *   - Truy vấn và đồng bộ dữ liệu người dùng với Supabase Auth / PostgreSQL DB
- *   - Chuẩn hóa cấu trúc thực thể người dùng (toPublicUser) để tái sử dụng xuyên suốt toàn hệ thống
- */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Data access and public entity mapping for application users. */
 class UserModel {
-  /**
-   * Chuẩn hóa thực thể User trả về cho Client hoặc lưu trữ Session.
-   * Xử lý tập trung 1 nơi duy nhất, loại bỏ hoàn toàn việc mapping lặp lại.
-   *
-   * @param {object} rawUser
-   * @returns {{ id: string, email: string, fullName: string, avatarUrl: string, role: string, createdAt: string }}
-   */
   static toPublicUser(rawUser) {
     if (!rawUser) return null;
 
     const metadata = rawUser.user_metadata || {};
-
     return {
       id: rawUser.id,
       email: (rawUser.email || "").toLowerCase(),
@@ -31,226 +19,128 @@ class UserModel {
         rawUser.name ||
         (rawUser.email ? rawUser.email.split("@")[0] : "Thành viên"),
       avatarUrl:
-        rawUser.avatar_url ||
-        metadata.avatar_url ||
-        rawUser.avatarUrl ||
-        "",
+        rawUser.avatar_url || metadata.avatar_url || rawUser.avatarUrl || "",
       role: rawUser.role || metadata.role || "member",
-      createdAt:
-        rawUser.created_at ||
-        rawUser.createdAt ||
-        new Date().toISOString(),
+      createdAt: rawUser.created_at || rawUser.createdAt || new Date().toISOString(),
     };
   }
 
-  /**
-   * Lưu hoặc cập nhật người dùng vào bảng public.users trong PostgreSQL DB
-   * @param {{ id?: string, email: string, fullName?: string, avatarUrl?: string }} payload
-   */
+  /** Persist Supabase Auth profile data in public.users. */
   static async upsertToDatabase({ id, email, fullName, avatarUrl }) {
     if (!email) return null;
+
+    const validId = UUID_PATTERN.test(id || "") ? id : null;
+    const sql = `
+      INSERT INTO public.users (id, email, full_name, avatar_url, updated_at)
+      VALUES (COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, NOW())
+      ON CONFLICT (email)
+      DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), public.users.avatar_url),
+        updated_at = NOW()
+      RETURNING *;
+    `;
+
     try {
-      const text = `
-        INSERT INTO public.users (id, email, full_name, avatar_url, updated_at)
-        VALUES (
-          COALESCE($1::uuid, gen_random_uuid()),
-          $2,
-          $3,
-          $4,
-          NOW()
-        )
-        ON CONFLICT (email) DO UPDATE SET
-          full_name = EXCLUDED.full_name,
-          avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), public.users.avatar_url),
-          updated_at = NOW()
-        RETURNING *;
-      `;
-      const params = [
-        id || null,
-        email.toLowerCase(),
+      const { rows } = await query(sql, [
+        validId,
+        email.toLowerCase().trim(),
         fullName || email.split("@")[0],
         avatarUrl || "",
-      ];
-      const { rows } = await query(text, params);
+      ]);
       return rows[0] || null;
-    } catch (err) {
-      console.error("Lỗi khi ghi user vào public.users database:", err.message);
+    } catch (error) {
+      console.warn("Lỗi khi ghi user vào public.users database:", error.message);
       return null;
     }
   }
 
-  /**
-   * Tạo tài khoản mới trên Supabase Auth và lưu ngay vào DB
-   */
+  static async syncAuthUser(authUser, { fullName, avatarUrl } = {}) {
+    if (!authUser) return null;
+
+    const metadata = authUser.user_metadata || {};
+    await this.upsertToDatabase({
+      id: authUser.id,
+      email: authUser.email,
+      fullName:
+        fullName || metadata.full_name || metadata.name || authUser.full_name || authUser.name,
+      avatarUrl: avatarUrl || metadata.avatar_url || metadata.picture || authUser.avatar_url,
+    });
+    return authUser;
+  }
+
   static async createInAuth({ email, password, fullName }) {
-    const { data, error } = await supabase.auth.signUp({
+    const authUser = await SupabaseAuthModel.createUser({
       email: email.toLowerCase(),
       password,
-      options: {
-        data: { full_name: fullName || "" },
-      },
+      fullName,
     });
-
-    if (error) throw error;
-    const authUser = data?.user || null;
-
-    if (authUser) {
-      await this.upsertToDatabase({
-        id: authUser.id,
-        email: authUser.email,
-        fullName: fullName || authUser.user_metadata?.full_name,
-        avatarUrl: authUser.user_metadata?.avatar_url,
-      });
-    }
-
-    return authUser;
+    return this.syncAuthUser(authUser, { fullName });
   }
 
-  /**
-   * Xác thực tài khoản bằng Email và Password
-   */
   static async signInWithPassword({ email, password }) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const authUser = await SupabaseAuthModel.signInWithPassword({
       email: email.toLowerCase(),
       password,
     });
-
-    if (error) throw error;
-    const authUser = data?.user || null;
-
-    if (authUser) {
-      await this.upsertToDatabase({
-        id: authUser.id,
-        email: authUser.email,
-        fullName: authUser.user_metadata?.full_name,
-        avatarUrl: authUser.user_metadata?.avatar_url,
-      });
-    }
-
-    return authUser;
+    return this.syncAuthUser(authUser);
   }
 
-  /**
-   * Lấy URL đăng nhập Google OAuth
-   */
-  static async getGoogleOAuthUrl(redirectTo) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-
-    if (error) throw error;
-    return data?.url;
+  static getGoogleOAuthUrl(redirectTo) {
+    return SupabaseAuthModel.getGoogleOAuthUrl(redirectTo);
   }
 
-  /**
-   * Trao đổi mã Authorization Code lấy session
-   */
   static async exchangeCodeForSession(code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) throw error;
-    const authUser = data?.user || null;
-
-    if (authUser) {
-      await this.upsertToDatabase({
-        id: authUser.id,
-        email: authUser.email,
-        fullName: authUser.user_metadata?.full_name || authUser.user_metadata?.name,
-        avatarUrl: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
-      });
-    }
-
-    return authUser;
+    const authUser = await SupabaseAuthModel.exchangeCodeForSession(code);
+    return this.syncAuthUser(authUser);
   }
 
-  /**
-   * Lấy thông tin người dùng từ Supabase Access Token và đồng bộ vào DB
-   */
   static async getUserFromToken(accessToken) {
-    const { data, error } = await supabase.auth.getUser(accessToken);
-    if (error) throw error;
-    const authUser = data?.user || null;
-
-    if (authUser) {
-      await this.upsertToDatabase({
-        id: authUser.id,
-        email: authUser.email,
-        fullName: authUser.user_metadata?.full_name || authUser.user_metadata?.name,
-        avatarUrl: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture,
-      });
-    }
-
-    return authUser;
+    const authUser = await SupabaseAuthModel.getUserFromToken(accessToken);
+    return this.syncAuthUser(authUser);
   }
 
-  /**
-   * Tìm người dùng theo ID từ Database PostgreSQL
-   */
   static async findById(userId) {
     if (!userId) return null;
-    try {
-      const text = "SELECT id, email, full_name, avatar_url, created_at FROM public.users WHERE id = $1 LIMIT 1;";
-      const { rows } = await query(text, [userId]);
-      if (rows && rows.length > 0) return rows[0];
-    } catch (err) {
-      console.warn("Lỗi truy vấn users table theo id:", err.message);
+
+    if (UUID_PATTERN.test(userId)) {
+      try {
+        const { rows } = await query(
+          "SELECT id, email, full_name, avatar_url, created_at FROM public.users WHERE id = $1 LIMIT 1;",
+          [userId]
+        );
+        if (rows?.length) return rows[0];
+      } catch (error) {
+        console.warn("Lỗi truy vấn users table theo id:", error.message);
+      }
     }
 
-    try {
-    const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
-      if (error || !data?.user) return null;
-      return data.user;
-    } catch {
-      return null;
-    }
+    return SupabaseAuthModel.findById(userId);
   }
 
-  /**
-   * Tìm người dùng theo Email từ Database PostgreSQL
-   */
   static async findByEmail(email) {
     if (!email) return null;
-    const normalized = email.toLowerCase().trim();
-    try {
-      const text = "SELECT id, email, full_name, avatar_url, created_at FROM public.users WHERE LOWER(email) = $1 LIMIT 1;";
-      const { rows } = await query(text, [normalized]);
-      if (rows && rows.length > 0) return rows[0];
-    } catch (err) {
-      console.warn("Lỗi truy vấn users table theo email:", err.message);
-    }
+    const normalizedEmail = email.toLowerCase().trim();
 
     try {
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-    if (error) {
-      console.error("Supabase Admin user lookup failed:", error.message);
-      throw error;
+      const { rows } = await query(
+        "SELECT id, email, full_name, avatar_url, created_at FROM public.users WHERE LOWER(email) = $1 LIMIT 1;",
+        [normalizedEmail]
+      );
+      if (rows?.length) return rows[0];
+    } catch (error) {
+      console.warn("Lỗi truy vấn users table theo email:", error.message);
     }
-    if (!data?.users) return null;
-      return data.users.find((u) => u.email?.toLowerCase() === normalized) || null;
-    } catch {
-      return null;
-    }
+
+    return SupabaseAuthModel.findByEmail(normalizedEmail);
   }
 
-  /**
-   * Cập nhật mật khẩu mới cho người dùng
-   */
-  static async updatePassword(userId, newPassword) {
-    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      password: newPassword,
-    });
-
-    if (error) throw error;
-    return data?.user || null;
+  static updatePassword(userId, newPassword) {
+    return SupabaseAuthModel.updatePassword(userId, newPassword);
   }
 
-  /**
-   * Đăng xuất session phía Supabase
-   */
-  static async signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    return true;
+  static signOut() {
+    return SupabaseAuthModel.signOut();
   }
 }
 
