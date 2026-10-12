@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Card } from "~/components/ui/card";
 import { useAuth } from "~/hooks/useAuth";
+import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 
 /**
  * AuthCallback - Trang tiếp nhận OAuth Callback từ Google / Supabase
@@ -23,6 +24,8 @@ function AuthCallback() {
 
     async function processOAuthCallback() {
       try {
+        const returnUrl = getSafeReturnUrl(window.location.search);
+
         // 1. Kiểm tra Hash Fragment (#access_token=...&refresh_token=...)
         const rawHash = window.location.hash ? window.location.hash.substring(1) : "";
         const hashParams = new URLSearchParams(rawHash);
@@ -46,14 +49,14 @@ function AuthCallback() {
           });
 
           if (!isCancelled) {
-            navigate("/", { replace: true });
+            navigate(returnUrl, { replace: true });
           }
           return;
         }
 
         if (queryCode) {
-          // Trường hợp callback trả qua Authorization Code
-          navigate("/", { replace: true });
+          // Let the backend exchange Authorization Codes when this flow is configured.
+          window.location.assign(`/api/auth/google/callback?code=${encodeURIComponent(queryCode)}`);
           return;
         }
 

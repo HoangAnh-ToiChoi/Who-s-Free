@@ -1,4 +1,5 @@
 import UserModel from "../models/user.model.js";
+import OtpModel from "../models/otp.model.js";
 import TokenService from "./token.service.js";
 import AppError from "../utils/AppError.js";
 
@@ -11,6 +12,12 @@ import AppError from "../utils/AppError.js";
  *   - Sử dụng TokenService để cấp phát JWT
  */
 class AuthService {
+  /**
+   * Getter tương thích ngược cho otpStore (ủy quyền tới OtpModel)
+   */
+  static get otpStore() {
+    return OtpModel.store;
+  }
   /**
    * Đăng ký tài khoản mới bằng email và mật khẩu
    * @param {{ email: string, password: string, fullName?: string }} payload

@@ -10,6 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { calcPercentage } from "~/utils";
 import { getGroupThemeColor } from "~/data/groupPalettes";
+import MemberAvatarStack from "./MemberAvatarStack";
 
 function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
   const { t } = useTranslation();
@@ -99,37 +100,18 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
       <div className="mt-6 pt-4 border-t border-slate-100">
         <div className="flex items-center justify-between text-xs text-slate-500">
           {/* Member avatar stack */}
-          {(() => {
-            const avatars =
-              group.avatarPreviews ||
-              group.members?.map((m) => m.avatar || m.avatarUrl).filter(Boolean) ||
-              [];
-            return (
-              <div className="flex -space-x-1.5 overflow-hidden">
-                {avatars.slice(0, 3).map((avatarSrc, idx) => (
-                  <img
-                    key={idx}
-                    src={avatarSrc}
-                    alt="Member avatar"
-                    className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
-                  />
-                ))}
-                {group.memberCount > avatars.length && avatars.length > 0 && (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
-                    +{group.memberCount - avatars.length}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+          <MemberAvatarStack
+            members={group.memberPreviews}
+            totalCount={group.memberCount}
+          />
 
           {/* Active Sessions badge */}
-          <div className="flex items-center gap-1.5 font-medium text-slate-600">
-            <Calendar size={14} className="text-slate-400" />
-            <span>
-              {t("groupCard.sessionsCount", { count: group.activeSessionsCount })}
-            </span>
-          </div>
+          {Number.isFinite(Number(group.activeSessionsCount)) && group.activeSessionsCount !== null && group.activeSessionsCount !== undefined && (
+            <div className="flex items-center gap-1.5 font-medium text-slate-600">
+              <Calendar size={14} className="text-slate-400" />
+              <span>{t("groupCard.sessionsCount", { count: group.activeSessionsCount })}</span>
+            </div>
+          )}
         </div>
 
         {/* Action Button */}

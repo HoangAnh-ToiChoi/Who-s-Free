@@ -2,13 +2,15 @@ import BaseController from "./BaseController.js";
 import AuthService from "../services/auth.service.js";
 import RecoveryService from "../services/recovery.service.js";
 import TokenService from "../services/token.service.js";
+import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { getSafeReturnUrl } from "../utils/safeReturnUrl.js";
 
 /**
  * AuthController - HTTP Layer tiếp nhận request và trả response cho module Auth
  *
  * Trách nhiệm duy nhất (SRP):
- *   - Nhận HTTP request từ route
+ *   - Nhận HTTP request từ route (đã qua Zod validation middleware)
  *   - Gọi service tương ứng (AuthService hoặc RecoveryService)
  *   - Trả response chuẩn Envelope qua BaseController
  *   - Tự động bắt lỗi chuyển về Centralized Error Handler nhờ asyncHandler
@@ -29,7 +31,11 @@ class AuthController extends BaseController {
     const { email, password, fullName } = req.body;
     const result = await this.authService.register({ email, password, fullName });
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return this.sendCreated(res, { user: result.user, accessToken: result.accessToken }, result.message);
+    return this.sendCreated(
+      res,
+      { ...result.user, user: result.user, accessToken: result.accessToken },
+      result.message
+    );
   });
 
   /**
@@ -43,14 +49,22 @@ class AuthController extends BaseController {
     });
 
     TokenService.setAuthCookies(res, accessToken, refreshToken);
-    return this.sendSuccess(res, { user, accessToken }, "Đăng nhập thành công");
+    return this.sendSuccess(
+      res,
+      { ...user, user, accessToken },
+      "Đăng nhập thành công"
+    );
   });
 
   /**
    * GET /api/auth/google
    */
   googleOAuth = asyncHandler(async (req, res) => {
-    const redirectTo = `${process.env.API_BASE_URL}/api/auth/google/callback`;
+    const returnUrl = getSafeReturnUrl(req.query.returnUrl);
+    const clientUrl = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const callbackUrl = new URL("/auth/callback", clientUrl);
+    callbackUrl.searchParams.set("returnUrl", returnUrl);
+    const redirectTo = callbackUrl.toString();
     const { url } = await this.authService.getGoogleOAuthUrl(redirectTo);
     return res.redirect(url);
   });
@@ -59,37 +73,35 @@ class AuthController extends BaseController {
    * GET /api/auth/google/callback
    */
   googleCallback = asyncHandler(async (req, res) => {
-    const { code } = req.query;
+    const { code, error: providerError } = req.query;
     const clientUrl = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const returnUrl = getSafeReturnUrl(req.cookies?.oauth_return_url);
+    res.clearCookie("oauth_return_url", { path: "/" });
 
-    // 1. Nếu có Authorization Code từ Google (PKCE / Code Flow)
-    if (code) {
-      const { accessToken, refreshToken } = await this.authService.handleGoogleCallback(code);
-      TokenService.setAuthCookies(res, accessToken, refreshToken);
-      return res.redirect(`${clientUrl}/`);
+    if (providerError) {
+      console.error("Google OAuth provider rejected the callback:", {
+        error: providerError,
+        description: req.query.error_description,
+      });
+      throw AppError.badRequest(
+        "Google không hoàn tất xác thực. Hãy kiểm tra cấu hình OAuth rồi thử lại.",
+        "OAUTH_PROVIDER_ERROR"
+      );
     }
 
-    // 2. Nếu là Implicit / Hash Fragment Flow (trình duyệt giữ #access_token=...):
-    // Trả về một trang HTML Bridge siêu nhẹ để lấy hash trên trình duyệt và điều hướng về Frontend
-    return res.send(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Xác thực Google...</title>
-</head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8fafc;color:#334155;">
-  <div style="text-align:center;">
-    <div style="width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#4f46e5;border-radius:50%;margin:0 auto 16px;animation:spin 1s linear infinite;"></div>
-    <p style="font-size:14px;font-weight:600;">Đang hoàn tất đăng nhập Google...</p>
-  </div>
-  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-  <script>
-    const hash = window.location.hash;
-    const target = "${clientUrl}/auth/callback" + (hash || window.location.search);
-    window.location.replace(target);
-  </script>
-</body>
-</html>`);
+    if (!code) {
+      console.error("Google OAuth callback did not include an authorization code", {
+        queryParameters: Object.keys(req.query || {}),
+      });
+      throw AppError.badRequest(
+        "Không nhận được mã xác thực từ Google. Hãy kiểm tra Redirect URLs trong Supabase Auth.",
+        "OAUTH_CODE_MISSING"
+      );
+    }
+
+    const { accessToken, refreshToken } = await this.authService.handleGoogleCallback(code);
+    TokenService.setAuthCookies(res, accessToken, refreshToken);
+    return res.redirect(new URL(returnUrl, clientUrl).toString());
   });
 
   /**
@@ -101,7 +113,7 @@ class AuthController extends BaseController {
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
     return this.sendSuccess(
       res,
-      { user: result.user, accessToken: result.accessToken },
+      { ...result.user, user: result.user, accessToken: result.accessToken },
       "Đăng nhập Google thành công"
     );
   });
@@ -111,15 +123,25 @@ class AuthController extends BaseController {
    */
   refresh = asyncHandler(async (req, res) => {
     const refreshToken = req.cookies?.refresh_token;
-    const { accessToken } = await this.authService.refreshAccessToken(refreshToken);
+    if (!refreshToken) {
+      TokenService.clearAuthCookies(res);
+      throw AppError.unauthorized("Thiếu Refresh Token", "MISSING_REFRESH_TOKEN");
+    }
 
-    res.cookie(
-      "access_token",
-      accessToken,
-      TokenService.cookieOptions(TokenService.ACCESS_TOKEN_MAX_AGE)
-    );
+    try {
+      const { accessToken } = await this.authService.refreshAccessToken(refreshToken);
 
-    return this.sendSuccess(res, { accessToken }, "Token đã được làm mới");
+      res.cookie(
+        "access_token",
+        accessToken,
+        TokenService.cookieOptions(TokenService.ACCESS_TOKEN_MAX_AGE)
+      );
+
+      return this.sendSuccess(res, { accessToken }, "Token đã được làm mới");
+    } catch (err) {
+      TokenService.clearAuthCookies(res);
+      throw err;
+    }
   });
 
   /**

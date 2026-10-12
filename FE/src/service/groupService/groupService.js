@@ -1,269 +1,256 @@
-import http from "~/utils/http";
-import { slugify, generateRandomId, extractIdFromSlug } from "~/utils/slugify";
-import { getRandomAvatars } from "~/data/avatars";
-
-// Local in-memory cache for fallback
-let groupsStore = [];
+import { backendRequest } from "~/utils/backendApi";
 
 /**
- * Service quản lý các API liên quan đến Groups / Workspaces.
- * Đọc ghi trực tiếp từ REST API (db.json).
+ * groupService - Quản lý giao tiếp dữ liệu Nhóm / Workspace trực tiếp với Backend API
+ *
+ * Single Source of Truth:
+ *   - Dữ liệu nhóm chỉ lấy từ API backend.
+ *   - Dữ liệu thành viên chỉ lấy từ API backend.
+ *   - Lỗi API được trả về cho UI, không thay bằng dữ liệu mock.
  */
 export const groupService = {
   /**
-   * Lấy danh sách groups (hỗ trợ lọc/search)
-   * @param {Object} params - query params { search, filter }
-   * @returns {Promise<Array>} Danh sách groups
+   * Chuẩn hóa Group Entity từ Backend API.
    */
-  async getGroups(params = {}) {
-    try {
-      const res = await http.get("/groups");
-      let result = Array.isArray(res) ? res : [...groupsStore];
+  formatGroup(g) {
+    if (!g) return null;
+    const userRoleLower = String(g.userRole || g.user_role || g.role || "member").toLowerCase();
+    const isOwner = userRoleLower === "owner" || g.role === "Owner";
+    const parsedMemberCount = Number.parseInt(g.memberCount ?? g.member_count, 10);
+    const memberCount = Number.isFinite(parsedMemberCount) ? parsedMemberCount : 0;
+    const capacity = parseInt(g.capacity, 10) || 10;
 
-      if (params.filter === "owner") {
-        result = result.filter((g) => g.role === "Owner");
-      } else if (params.filter === "joined") {
-        result = result.filter((g) => g.role === "Joined");
+    let memberPreviews = g.memberPreviews || g.member_previews || [];
+    if (typeof memberPreviews === "string") {
+      try {
+        memberPreviews = JSON.parse(memberPreviews);
+      } catch {
+        memberPreviews = [];
       }
-
-      if (params.search?.trim()) {
-        const q = params.search.toLowerCase();
-        result = result.filter(
-          (g) =>
-            g.name.toLowerCase().includes(q) ||
-            g.description?.toLowerCase().includes(q)
-        );
-      }
-
-      return result;
-    } catch {
-      let result = [...groupsStore];
-
-      if (params.filter === "owner") {
-        result = result.filter((g) => g.role === "Owner");
-      } else if (params.filter === "joined") {
-        result = result.filter((g) => g.role === "Joined");
-      }
-
-      if (params.search?.trim()) {
-        const q = params.search.toLowerCase();
-        result = result.filter(
-          (g) =>
-            g.name.toLowerCase().includes(q) ||
-            g.description?.toLowerCase().includes(q)
-        );
-      }
-
-      return result;
     }
+    if (!Array.isArray(memberPreviews)) {
+      memberPreviews = [];
+    }
+
+    const normalizedPreviews = memberPreviews.map((m) => ({
+      id: m.id || m.userId || m.user_id,
+      name: m.name || m.fullName || m.full_name || "",
+      avatarUrl: m.avatarUrl || m.avatar_url || "",
+    }));
+
+    return {
+      id: g.id,
+      slug: g.slug || g.id,
+      name: g.name,
+      category: g.category || "work",
+      description: g.description || "",
+      icon: g.icon || "Users",
+      color: g.color || "indigo",
+      role: isOwner ? "Owner" : "Joined",
+      userRole: userRoleLower,
+      userGroupRole: g.userGroupRole || g.user_group_role || "core",
+      memberCount,
+      capacity,
+      cohort: g.cohort || null,
+      leadAdmin: g.leadAdmin || g.lead_admin || null,
+      activeSessionsCount: g.activeSessionsCount ?? g.active_sessions_count,
+      memberPreviews: normalizedPreviews,
+      createdAt: g.createdAt || g.created_at || null,
+      updatedAt: g.updatedAt || g.updated_at || null,
+    };
   },
 
   /**
-   * Lấy chi tiết một group theo ID (ưu tiên ID tuyệt đối, fallback Slug)
-   * @param {string|number} id
+   * Chuẩn hóa thực thể Member từ Backend API (/api/groups/:id/members).
+   */
+  formatMember(m) {
+    if (!m) return null;
+    const userObj = m.user || {};
+    const roleLower = String(m.role || "").toLowerCase();
+    const groupRoleLower = String(m.groupRole || m.group_role || "").toLowerCase();
+
+    const isLead =
+      roleLower === "owner" ||
+      roleLower === "lead" ||
+      roleLower === "lead admin" ||
+      groupRoleLower === "leadership";
+
+    return {
+      id: m.id || m.userId || m.user_id || userObj.id || m.email || userObj.email || null,
+      userId: m.userId || userObj.id || m.id,
+      name:
+        userObj.fullName ||
+        userObj.full_name ||
+        m.name ||
+        m.fullName ||
+        (userObj.email ? userObj.email.split("@")[0] : "") ||
+        (m.email ? m.email.split("@")[0] : "") ||
+        "",
+      email: userObj.email || m.email || "",
+      avatarUrl: userObj.avatarUrl || userObj.avatar_url || m.avatarUrl || m.avatar_url || "",
+      role: m.role || "member",
+      groupRole: m.groupRole || m.group_role || "core",
+      isLead,
+      isOwner: roleLower === "owner",
+    };
+  },
+
+  /**
+   * Lấy danh sách groups từ Backend API (/api/groups).
+   * @param {Object} params - { search, filter }
+   * @returns {Promise<Array>}
+   */
+  async getGroups(params = {}) {
+    const data = await backendRequest("/groups");
+    const list = Array.isArray(data) ? data.map((group) => this.formatGroup(group)) : [];
+
+    let result = [...list];
+
+    if (params.filter === "owner") {
+      result = result.filter((g) => g.role === "Owner");
+    } else if (params.filter === "joined") {
+      result = result.filter((g) => g.role === "Joined");
+    }
+
+    if (params.search?.trim()) {
+      const q = params.search.toLowerCase();
+      result = result.filter(
+        (g) =>
+          g.name?.toLowerCase().includes(q) ||
+          g.description?.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  },
+
+  /**
+   * Lấy chi tiết một group theo UUID hoặc slug từ Backend API.
+   * @param {string} id - Group UUID hoặc slug
    * @returns {Promise<Object>}
    */
   async getGroupById(id) {
     if (!id) throw new Error("Group ID is required");
-    const actualId = extractIdFromSlug(id);
-    try {
-      // Tìm chính xác theo id thực tế trước
-      let res = await http.get(`/groups/${actualId}`).catch(() => null);
-      if (!res && actualId !== id) {
-        res = await http.get(`/groups/${id}`).catch(() => null);
-      }
-      if (!res) {
-        // Fallback kiểm tra slug nếu người dùng nhập url cũ
-        const list = await http.get(`/groups?slug=${id}`).catch(() => []);
-        res = Array.isArray(list) ? list[0] : null;
-      }
-      if (res) return res;
-    } catch (err) {
-      console.warn("API error fetching group, using store:", err);
-    }
-
-    const found =
-      groupsStore.find((g) => String(g.id) === String(actualId) || String(g.id) === String(id)) ||
-      groupsStore.find((g) => String(g.slug) === String(id));
-    if (found) return found;
-    throw new Error("Group not found");
+    const group = await backendRequest(`/groups/${encodeURIComponent(id)}`);
+    if (!group) throw new Error("Group not found");
+    return this.formatGroup(group);
   },
 
   /**
-   * Lấy danh sách thành viên của nhóm từ db.json
-   * @param {string|number} groupId
+   * Lấy danh sách thành viên thực tế của nhóm từ Backend API.
+   * @param {string} groupId
    * @returns {Promise<Array>}
    */
-  async getMembers(groupId) {
-    const actualId = groupId ? extractIdFromSlug(groupId) : null;
-    try {
-      if (actualId) {
-        const list = await http.get(`/members?groupId=${actualId}`).catch(() => []);
-        if (Array.isArray(list) && list.length > 0) return list;
-      }
-      const res = await http.get("/members");
-      return Array.isArray(res) ? res : [];
-    } catch (err) {
-      console.warn("Failed to get members:", err);
-      return [];
+  async getMembers(groupId, { signal } = {}) {
+    if (!groupId) throw new Error("Group ID is required");
+    const data = await backendRequest(
+      `/groups/${encodeURIComponent(groupId)}/members`,
+      { signal }
+    );
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid response while loading group members");
     }
+    return data.map((item) => this.formatMember(item)).filter((member) => member?.id);
   },
 
   /**
-   * Tạo mới một group - Định danh bằng ID duy nhất
-   * @param {Object} payload - { name: string, capacity: number, description?: string }
-   * @returns {Promise<Object>} Group vừa tạo
+   * Tạo mới một nhóm trực tiếp trên Backend API (POST /api/groups)
+   * Đồng bộ toàn diện ID, slug và quyền sở hữu trong CSDL thực tế.
+   * @param {Object} payload - { name, capacity, category, description, color }
+   * @returns {Promise<Object>}
    */
   async createGroup(payload) {
-    const randomId = generateRandomId(6);
-    const newId = `ws-${randomId}`;
-    const baseSlug = slugify(payload.name) || `group-${randomId}`;
-    const slug = `${baseSlug}--${newId}`;
-    const category = payload.category || "work";
-    const color = payload.color || (category === "hangout" ? "emerald" : category === "other" ? "amber" : "indigo");
-    const icon = category === "hangout" ? "Coffee" : category === "other" ? "Sparkles" : "BookOpen";
-    const defaultDesc =
-      category === "hangout"
-        ? "Nhóm bạn thân, tụ tập cafe, ăn uống, xem phim và du lịch."
-        : category === "other"
-          ? "Nhóm sinh hoạt chung, chia sẻ lịch rảnh và sự kiện."
-          : "Không gian làm việc nhóm, đồ án, chạy deadline và học tập.";
-
-    const newGroup = {
-      id: newId,
-      slug,
-      name: payload.name,
-      category,
-      description: payload.description || defaultDesc,
-      icon,
-      color,
-      role: "Owner",
-      memberCount: 1,
+    const body = {
+      name: (payload.name || "").trim(),
+      category: payload.category || "work",
+      description: payload.description || "",
       capacity: parseInt(payload.capacity, 10) || 10,
-      leadAdmin: "Maya Lin (You)",
-      cohort: "2026",
-      activeSessionsCount: 0,
-      responseRate: 100,
-      avatarPreviews: getRandomAvatars(3),
+      color: payload.color || "indigo",
+      icon: payload.icon || "Users",
+      cohort: payload.cohort || "2026",
     };
 
-    try {
-      const res = await http.post("/groups", newGroup);
-      if (res) {
-        groupsStore = [res, ...groupsStore];
-        return res;
-      }
-    } catch (err) {
-      console.warn("API error creating group, using store:", err);
-    }
+    const created = await backendRequest("/groups", {
+      method: "POST",
+      body,
+    });
 
-    groupsStore = [newGroup, ...groupsStore];
-    return newGroup;
+    return this.formatGroup(created);
   },
 
   /**
-   * Cập nhật thông tin group
-   * @param {string|number} id
+   * Cập nhật thông tin group qua Backend API (PATCH /api/groups/:id)
+   * @param {string} id
    * @param {Object} payload
    */
   async updateGroup(id, payload) {
-    try {
-      const res = await http.patch(`/groups/${id}`, payload);
-      if (res) {
-        groupsStore = groupsStore.map((g) => (g.id === id ? { ...g, ...res } : g));
-        return res;
-      }
-    } catch (err) {
-      console.warn("API error updating group, using store:", err);
-    }
-
-    groupsStore = groupsStore.map((g) =>
-      g.id === id ? { ...g, ...payload } : g
-    );
-    return groupsStore.find((g) => g.id === id);
+    const updated = await backendRequest(`/groups/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: payload,
+    });
+    return this.formatGroup(updated);
   },
 
   /**
-   * Xóa group
-   * @param {string|number} id
+   * Xóa group qua Backend API (DELETE /api/groups/:id)
+   * @param {string} id
    */
   async deleteGroup(id) {
-    try {
-      await http.del(`/groups/${id}`);
-    } catch (err) {
-      console.warn("API error deleting group, using store:", err);
-    }
-
-    groupsStore = groupsStore.filter((g) => g.id !== id);
-    return { success: true, id };
+    return backendRequest(`/groups/${encodeURIComponent(id)}`, { method: "DELETE" });
   },
 
   /**
-   * Lấy thông tin link mời và danh sách pending invites của nhóm từ db.json
-   * @param {string|number} groupId
-   * @returns {Promise<{ inviteCode: string, inviteLink: string, pendingInvites: Array }>}
+   * Lấy danh sách các lời mời đang chờ (pending) của nhóm từ Backend API
+   * @param {string} groupId
+   * @returns {Promise<Array>}
    */
-  async getGroupInviteInfo(groupId) {
-    try {
-      const [group, invites] = await Promise.all([
-        this.getGroupById(groupId).catch(() => null),
-        http.get(groupId ? `/invites?groupId=${groupId}` : "/invites").catch(() => []),
-      ]);
-
-      const code = group?.code || "ROBO-2026";
-      const origin = window.location.origin;
-      const baseUrl = import.meta.env.BASE_URL || "/";
-      const cleanBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-
-      return {
-        inviteCode: code,
-        inviteLink: `${origin}${cleanBase}join/${code}`,
-        pendingInvites: Array.isArray(invites) ? invites : [],
-      };
-    } catch (err) {
-      console.warn("Failed to get invite info:", err);
-      return { inviteCode: "ROBO-2026", inviteLink: "", pendingInvites: [] };
+  async getPendingInvitations(groupId) {
+    if (!groupId) return [];
+    const data = await backendRequest(
+      `/groups/${encodeURIComponent(groupId)}/invitations`
+    );
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid response while loading pending invitations");
     }
+    return data;
   },
 
   /**
-   * Gửi lời mời thành viên qua Email, lưu vào db.json
-   * @param {string|number} groupId
+   * Gửi lời mời thành viên qua Email (POST /api/groups/:id/invitations)
+   * Tách biệt hoàn toàn khỏi API thêm thành viên trực tiếp
+   * @param {string} groupId
    * @param {Object} payload { email, role }
-   * @returns {Promise<Object>}
    */
-  async sendGroupInvite(groupId, { email, role = "Member" }) {
-    const newInvite = {
-      id: `inv-${Date.now()}`,
-      groupId,
-      email,
-      role,
-      invitedAt: "Just now",
-      status: "pending",
-    };
-
-    try {
-      const res = await http.post("/invites", newInvite);
-      return res || newInvite;
-    } catch (err) {
-      console.warn("Failed to save invite to db.json:", err);
-      return newInvite;
-    }
+  async sendGroupInvite(groupId, { email, role = "member" }) {
+    const normalizedRole = String(role).toLowerCase() === "lead" ? "lead" : "member";
+    return backendRequest(`/groups/${encodeURIComponent(groupId)}/invitations`, {
+      method: "POST",
+      body: { email: email.trim(), role: normalizedRole },
+    });
   },
 
   /**
-   * Gửi lại lời mời cho một thành viên đang chờ xác thực
-   * @param {string|number} groupId
-   * @param {string} inviteId
-   * @returns {Promise<Object>}
+   * Gửi lại lời mời (cấp hạn 24h mới và hủy link cũ)
+   * @param {string} groupId
+   * @param {string} invitationId
    */
-  async resendGroupInvite(groupId, inviteId) {
-    try {
-      await http.patch(`/invites/${inviteId}`, { invitedAt: "Just now" });
-    } catch (err) {
-      console.warn("Failed to resend invite in db.json:", err);
-    }
-    return { success: true, inviteId };
+  async resendGroupInvite(groupId, invitationId) {
+    return backendRequest(
+      `/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}/resend`,
+      { method: "POST" }
+    );
+  },
+
+  /**
+   * Thu hồi lời mời (DELETE /api/groups/:id/invitations/:invitationId)
+   * @param {string} groupId
+   * @param {string} invitationId
+   */
+  async revokeGroupInvite(groupId, invitationId) {
+    return backendRequest(
+      `/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}`,
+      { method: "DELETE" }
+    );
   },
 };
 

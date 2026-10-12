@@ -6,17 +6,19 @@ import { validateEmail, validatePassword } from "~/utils";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { authService } from "~/service/authService/authService";
 import { useAuth } from "~/hooks/useAuth";
+import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 
 function Login() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const searchParams = new URLSearchParams(location.search);
+  const returnUrl = getSafeReturnUrl(location.search);
 
   const [formData, setFormData] = useState(() => ({
-    email: location.state?.email || "",
+    email: location.state?.email || searchParams.get("email") || "",
     password: "",
   }));
 
@@ -45,7 +47,7 @@ function Login() {
     setIsSubmitting(true);
     try {
       await login(formData);
-      navigate("/", { replace: true });
+      navigate(returnUrl, { replace: true });
     } catch (error) {
       const messageKey =
         error.message === "INVALID_CREDENTIALS"
@@ -61,7 +63,8 @@ function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+    const params = new URLSearchParams({ returnUrl });
+    window.location.href = `/api/auth/google?${params}`;
   };
 
   return (
@@ -236,7 +239,7 @@ function Login() {
       <div className="mt-6 text-center text-xs text-slate-500">
         <span>{t("auth.noAccount")} </span>
         <Link
-          to="/auth/register"
+          to={`/auth/register${location.search}`}
           className="font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
         >
           {t("auth.signUpNow")}

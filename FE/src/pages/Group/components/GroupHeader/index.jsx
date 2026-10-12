@@ -9,6 +9,35 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { useCurrentUser } from "~/hooks";
+
+function HeaderAvatarItem({ member, src }) {
+  const [imageError, setImageError] = useState(false);
+  const avatarUrl = typeof src === "string" ? src : member?.avatarUrl;
+  const name = member?.name || "Thành viên";
+  const initial = name.charAt(0).toUpperCase() || "U";
+  const hasAvatar = Boolean(avatarUrl) && !imageError;
+
+  if (hasAvatar) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        onError={() => setImageError(true)}
+        className="inline-block h-7 w-7 rounded-full ring-2 ring-white object-cover shrink-0 select-none"
+      />
+    );
+  }
+
+  return (
+    <div
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 font-bold text-[10px] text-indigo-700 ring-2 ring-white select-none"
+      title={name}
+    >
+      {initial}
+    </div>
+  );
+}
 
 function GroupHeader({
   group,
@@ -21,12 +50,43 @@ function GroupHeader({
   onOpenCreateCalendar,
 }) {
   const { t } = useTranslation();
+  const { currentUser } = useCurrentUser();
 
-  const memberAvatars =
-    group?.avatarPreviews ||
-    group?.members?.map((m) => m.avatar || m.avatarUrl).filter(Boolean) ||
-    [];
-  const remainingCount = Math.max(0, (group?.memberCount || 0) - memberAvatars.length);
+  const currentUserName =
+    currentUser?.fullName ||
+    currentUser?.name ||
+    (currentUser?.email ? currentUser.email.split("@")[0] : "");
+  const normalizedUserRole = (group?.userRole || group?.role || "").toLowerCase();
+  const isOwner = normalizedUserRole === "owner";
+  const canInvite = normalizedUserRole === "owner" || normalizedUserRole === "lead";
+
+  // Xác định tên hiển thị của Leader (không dùng dữ liệu tĩnh)
+  const rawLead = group?.leadAdmin;
+  const isMockLead = !rawLead || rawLead.includes("Maya Lin");
+
+  const displayLeadName = isOwner && currentUserName
+    ? currentUserName
+    : !isMockLead
+      ? rawLead
+      : currentUserName || "";
+
+  const previews =
+    Array.isArray(group?.memberPreviews) && group.memberPreviews.length > 0
+      ? group.memberPreviews.slice(0, 4)
+      : Array.isArray(group?.avatarPreviews) && group.avatarPreviews.length > 0
+        ? group.avatarPreviews.slice(0, 4).map((url, i) => ({
+            id: `av-${i}`,
+            name: i === 0 ? (displayLeadName || "Trưởng nhóm") : `Thành viên ${i + 1}`,
+            avatarUrl: url,
+          }))
+        : [];
+
+  const finalLeadName =
+    displayLeadName ||
+    (previews[0]?.name && !previews[0].name.includes("Maya Lin") ? previews[0].name : "");
+
+  const totalMembers = parseInt(group?.memberCount, 10) || (previews.length > 0 ? previews.length : 1);
+  const remainingCount = Math.max(0, totalMembers - previews.length);
 
   const tabs = [
     { id: "calendars", label: t("groupDetail.tabCalendars"), count: sessionsCount, minW: "min-w-[105px]" },
@@ -83,29 +143,39 @@ function GroupHeader({
 
           {/* Avatars & Lead Admin */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {memberAvatars.length > 0 && (
-              <div className="flex -space-x-2 overflow-hidden shrink-0">
-                {memberAvatars.slice(0, 4).map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt="Member avatar"
-                    className="inline-block h-7 w-7 rounded-full ring-2 ring-white object-cover"
+            {previews.length > 0 ? (
+              <div className="flex -space-x-2 overflow-hidden shrink-0 items-center">
+                {previews.map((item, i) => (
+                  <HeaderAvatarItem
+                    key={item.id || i}
+                    member={item}
+                    src={item.avatarUrl}
                   />
                 ))}
                 {remainingCount > 0 && (
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white text-[10px] font-bold text-slate-600">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white text-[10px] font-bold text-slate-600 shrink-0 select-none">
                     +{remainingCount}
                   </div>
                 )}
               </div>
-            )}
+            ) : totalMembers > 0 ? (
+              <div className="flex -space-x-2 overflow-hidden shrink-0 items-center">
+                <HeaderAvatarItem
+                  member={{ name: finalLeadName || group?.name || "U" }}
+                />
+                {totalMembers > 1 && (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white text-[10px] font-bold text-slate-600 shrink-0 select-none">
+                    +{totalMembers - 1}
+                  </div>
+                )}
+              </div>
+            ) : null}
 
-            {group?.leadAdmin && (
+            {finalLeadName && (
               <span className="text-xs text-slate-500 font-medium">
                 {t("groupDetail.leadAdmin")}{" "}
                 <strong className="text-slate-800 font-semibold">
-                  {group.leadAdmin}
+                  {finalLeadName}
                 </strong>
               </span>
             )}
@@ -114,15 +184,17 @@ function GroupHeader({
 
         {/* Right: Actions - Cố định height và min-width chống giật layout */}
         <div className="flex items-center gap-3 shrink-0">
-          <Button
-            type="button"
-            onClick={onOpenInvite}
-            variant="outline"
-            className="h-9.5 min-w-[140px] justify-center gap-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs rounded-xl whitespace-nowrap"
-          >
-            <UserPlus size={14} className="text-slate-500 shrink-0" />
-            <span>{t("groupDetail.inviteMembers")}</span>
-          </Button>
+          {canInvite && (
+            <Button
+              type="button"
+              onClick={onOpenInvite}
+              variant="outline"
+              className="h-9.5 min-w-[140px] justify-center gap-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs rounded-xl whitespace-nowrap"
+            >
+              <UserPlus size={14} className="text-slate-500 shrink-0" />
+              <span>{t("groupDetail.inviteMembers")}</span>
+            </Button>
+          )}
 
           <Button
             onClick={onOpenCreateCalendar}

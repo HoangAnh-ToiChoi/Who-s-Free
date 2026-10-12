@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   User,
@@ -24,19 +24,23 @@ import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/useAuth";
+import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 
 function Register() {
   const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
   const { register } = useAuth();
+  const searchParams = new URLSearchParams(location.search);
+  const returnUrl = getSafeReturnUrl(location.search);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     fullName: "",
-    email: "",
+    email: searchParams.get("email") || "",
     password: "",
     confirmPassword: "",
     agreeTerms: false,
-  });
+  }));
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -83,7 +87,7 @@ function Register() {
     setIsSubmitting(true);
     try {
       const user = await register(formData);
-      navigate("/", {
+      navigate(returnUrl, {
         replace: true,
         state: { user },
       });
@@ -418,7 +422,8 @@ function Register() {
         variant="outline"
         size="lg"
         onClick={() => {
-          window.location.href = "/api/auth/google";
+          const params = new URLSearchParams({ returnUrl });
+          window.location.href = `/api/auth/google?${params}`;
         }}
         className="h-11 w-full gap-3 rounded-xl border-slate-200/90 bg-white text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all cursor-pointer"
       >
@@ -447,7 +452,7 @@ function Register() {
       <div className="mt-6 text-center text-xs text-slate-500">
         <span>{t("auth.alreadyHaveAccount")} </span>
         <Link
-          to="/auth/login"
+          to={`/auth/login${location.search}`}
           className="font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
         >
           {t("auth.signInNow")}

@@ -51,8 +51,26 @@ CREATE TABLE IF NOT EXISTS group_members (
 );
 
 -- ==============================================================================
--- 5. BẢNG GROUP_INVITES (Lời mời tham gia nhóm)
+-- 5. BẢNG GROUP_INVITATIONS (Lời mời tham gia nhóm qua email - Hạn 24 giờ)
 -- ==============================================================================
+CREATE TABLE IF NOT EXISTS group_invitations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'member', -- 'member' | 'lead'
+    token_hash VARCHAR(255) UNIQUE NOT NULL,
+    invited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending', -- 'pending' | 'accepted' | 'revoked'
+    accepted_at TIMESTAMPTZ,
+    accepted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    revoked_at TIMESTAMPTZ,
+    revoked_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Bảng cũ group_invites để tương thích ngược nếu cần
 CREATE TABLE IF NOT EXISTS group_invites (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
@@ -63,6 +81,7 @@ CREATE TABLE IF NOT EXISTS group_invites (
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- ==============================================================================
 -- 6. BẢNG SESSIONS (Phiên khảo sát / Lịch trình họp nhóm)
@@ -126,7 +145,9 @@ CREATE INDEX IF NOT EXISTS idx_sessions_slug ON sessions(slug);
 CREATE INDEX IF NOT EXISTS idx_session_participants_session ON session_participants(session_id);
 CREATE INDEX IF NOT EXISTS idx_avail_slots_session_user ON availability_slots(session_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_avail_slots_session_day ON availability_slots(session_id, day_index);
-CREATE INDEX IF NOT EXISTS idx_avail_slots_minutes ON availability_slots(session_id, start_minutes, end_minutes);
+CREATE INDEX IF NOT EXISTS idx_group_invitations_token_hash ON group_invitations(token_hash);
+CREATE INDEX IF NOT EXISTS idx_group_invitations_group_status ON group_invitations(group_id, status);
+CREATE INDEX IF NOT EXISTS idx_group_invitations_email ON group_invitations(email);
 
 -- ==============================================================================
 -- 10. ROW LEVEL SECURITY (RLS) - BẢO MẬT & PHÂN QUYỀN TRUY CẬP DỮ LIỆU
@@ -137,6 +158,7 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_invites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE availability_slots ENABLE ROW LEVEL SECURITY;

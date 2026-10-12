@@ -49,6 +49,7 @@ const REQUIRED_TABLES = [
   "users",
   "groups",
   "group_members",
+  "group_invitations",
   "group_invites",
   "sessions",
   "session_participants",

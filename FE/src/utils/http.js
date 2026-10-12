@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_BASE_API || "http://localhost:3001",
+  baseURL: import.meta.env.VITE_BASE_API || "/api",
 });
 
 const _send = async (url, method, data, config) => {

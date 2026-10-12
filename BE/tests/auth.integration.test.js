@@ -7,7 +7,7 @@ const TEST_JWT_SECRET = "auth-integration-test-secret-at-least-32-characters";
 const TEST_REFRESH_SECRET = "auth-integration-refresh-secret-at-least-32-characters";
 const TEST_EMAIL = "auth-test@example.com";
 const TEST_USER = {
-  id: "test-user-id",
+  id: "00000000-0000-0000-0000-000000000001",
   email: TEST_EMAIL,
   user_metadata: { full_name: "Auth Test" },
   role: "authenticated",
@@ -16,6 +16,7 @@ const TEST_USER = {
 
 let app;
 let supabase;
+let supabaseAdmin;
 let AuthService;
 let server;
 let baseUrl;
@@ -79,27 +80,35 @@ function setDefaultAuthMocks() {
     error: null,
   }));
   stub(supabase.auth, "signOut", async () => ({ error: null }));
-  stub(supabase.auth.admin, "getUserById", async () => ({
-    data: { user: TEST_USER },
-    error: null,
-  }));
-  stub(supabase.auth.admin, "listUsers", async () => ({
-    data: { users: [TEST_USER] },
-    error: null,
-  }));
-  stub(supabase.auth.admin, "updateUserById", async () => ({
-    data: { user: TEST_USER },
-    error: null,
-  }));
+
+  const adminList = [supabase.auth.admin];
+  if (supabaseAdmin?.auth?.admin && supabaseAdmin.auth.admin !== supabase.auth.admin) {
+    adminList.push(supabaseAdmin.auth.admin);
+  }
+  for (const admin of adminList) {
+    stub(admin, "getUserById", async () => ({
+      data: { user: TEST_USER },
+      error: null,
+    }));
+    stub(admin, "listUsers", async () => ({
+      data: { users: [TEST_USER] },
+      error: null,
+    }));
+    stub(admin, "updateUserById", async () => ({
+      data: { user: TEST_USER },
+      error: null,
+    }));
+  }
 }
 
 before(async () => {
+  process.env.NODE_ENV = "test";
   process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.JWT_REFRESH_SECRET = TEST_REFRESH_SECRET;
   process.env.CLIENT_ORIGIN = "http://localhost:5173";
 
   ({ default: app } = await import("../src/app.js"));
-  ({ default: supabase } = await import("../src/configs/supabase.config.js"));
+  ({ default: supabase, supabaseAdmin } = await import("../src/configs/supabase.config.js"));
   ({ default: AuthService } = await import("../src/services/auth.service.js"));
 
   server = app.listen(0, "127.0.0.1");
@@ -447,6 +456,9 @@ test("Google callback requires a code and sets session cookies on success", asyn
 
   const response = await fetch(`${baseUrl}/api/auth/google/callback?code=test-code`, {
     redirect: "manual",
+    headers: {
+      cookie: "oauth_return_url=%2Fauth%2Fsuccess",
+    },
   });
   assert.equal(response.status, 302);
   assert.equal(response.headers.get("location"), "http://localhost:5173/auth/success");
