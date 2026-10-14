@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
 import AppError from "../utils/AppError.js";
+import { isUuid } from "../utils/uuid.js";
 
 /**
  * GroupMemberModel - Data Access Layer cho Bảng Quan hệ public.group_members
@@ -12,28 +13,6 @@ import AppError from "../utils/AppError.js";
  *   - Ngăn chặn race condition bằng row-level locking và giao dịch nguyên tử
  */
 class GroupMemberModel {
-  /**
-   * Chuẩn hóa cấu trúc thành viên trả về (an toàn kể cả khi profile bị thiếu hoặc null)
-   */
-  static toPublicMember(member) {
-    if (!member) return null;
-
-    return {
-      id: member.id,
-      groupId: member.group_id || member.groupId,
-      userId: member.user_id || member.userId,
-      role: member.role || "member",
-      groupRole: member.group_role || member.groupRole || "core",
-      joinedAt: member.joined_at || member.joinedAt || new Date().toISOString(),
-      user: {
-        id: member.user_id || member.userId,
-        email: member.email || "",
-        fullName: member.full_name || member.fullName || member.name || "Thành viên",
-        avatarUrl: member.avatar_url || member.avatarUrl || "",
-      },
-    };
-  }
-
   /**
    * Thêm thành viên vào nhóm có kiểm tra sức chứa và trùng lặp nguyên tử (Row Lock FOR UPDATE)
    */
@@ -96,9 +75,7 @@ class GroupMemberModel {
    */
   static async findMember(groupId, userId) {
     if (!groupId || !userId) return null;
-    const isGroupUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-    const isUserUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
-    if (!isGroupUuid || !isUserUuid) return null;
+    if (!isUuid(groupId) || !isUuid(userId)) return null;
 
     const sql = `
       SELECT gm.*, u.email, u.full_name, u.avatar_url
@@ -115,9 +92,7 @@ class GroupMemberModel {
    * Lấy danh sách toàn bộ thành viên trong nhóm kèm thông tin User
    */
   static async getGroupMembers(groupId) {
-    if (!groupId) return [];
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-    if (!isUuid) return [];
+    if (!groupId || !isUuid(groupId)) return [];
 
     const sql = `
       SELECT gm.*, u.email, u.full_name, u.avatar_url
@@ -140,9 +115,7 @@ class GroupMemberModel {
    * Lấy tối đa N thành viên đại diện (avatar preview) cho nhóm
    */
   static async getMemberPreviews(groupId, limit = 3) {
-    if (!groupId) return [];
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-    if (!isUuid) return [];
+    if (!groupId || !isUuid(groupId)) return [];
 
     const sql = `
       SELECT 
@@ -169,9 +142,7 @@ class GroupMemberModel {
    * Đếm số lượng thành viên trong nhóm
    */
   static async countMembers(groupId) {
-    if (!groupId) return 0;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-    if (!isUuid) return 0;
+    if (!groupId || !isUuid(groupId)) return 0;
 
     const sql = "SELECT COUNT(*) as count FROM public.group_members WHERE group_id = $1;";
     const { rows } = await query(sql, [groupId]);
@@ -183,9 +154,7 @@ class GroupMemberModel {
    */
   static async removeMember(groupId, userId) {
     if (!groupId || !userId) return false;
-    const isGroupUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-    const isUserUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
-    if (!isGroupUuid || !isUserUuid) return false;
+    if (!isUuid(groupId) || !isUuid(userId)) return false;
 
     const sql = "DELETE FROM public.group_members WHERE group_id = $1 AND user_id = $2 RETURNING id;";
     const { rows } = await query(sql, [groupId, userId]);

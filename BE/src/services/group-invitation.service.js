@@ -6,6 +6,9 @@ import UserModel from "../models/user.model.js";
 import EmailService from "./email.service.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
+import { toPublicInvitation } from "../utils/mappers/invitation.mapper.js";
+import { toPublicGroup } from "../utils/mappers/group.mapper.js";
+import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
 
 /**
  * GroupInvitationService - Quản lý Vòng đời Lời mời Tham gia Nhóm qua Email
@@ -130,7 +133,7 @@ class GroupInvitationService {
         );
 
         return {
-            invitation: GroupInvitationModel.toPublicInvitation({
+            invitation: toPublicInvitation({
                 ...invitation,
                 group_name: group.name,
                 group_slug: group.slug,
@@ -265,7 +268,7 @@ class GroupInvitationService {
             groupRole,
         });
 
-        const publicMember = GroupMemberModel.toPublicMember({
+        const publicMember = toPublicMember({
             ...newMember,
             email: currentUser.email,
             full_name: currentUser.full_name || currentUser.name,
@@ -279,7 +282,7 @@ class GroupInvitationService {
         const group = await GroupModel.findById(inv.group_id);
         return {
             member: publicMember,
-            group: GroupModel.toPublicGroup(group),
+            group: toPublicGroup(group),
         };
     }
 
@@ -310,7 +313,7 @@ class GroupInvitationService {
         }
 
         return list.map((item) =>
-            GroupInvitationModel.toPublicInvitation(item),
+            toPublicInvitation(item),
         );
     }
 

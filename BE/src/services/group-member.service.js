@@ -3,6 +3,8 @@ import GroupMemberModel from "../models/group-member.model.js";
 import UserModel from "../models/user.model.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
+import { isUuid } from "../utils/uuid.js";
+import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
 
 /**
  * GroupMemberService - Quản lý Thành viên và Phân quyền Nhóm
@@ -29,7 +31,7 @@ class GroupMemberService {
     }
 
     const members = await GroupMemberModel.getGroupMembers(group.id);
-    return members.map((m) => GroupMemberModel.toPublicMember(m));
+    return members.map((m) => toPublicMember(m));
   }
 
   /**
@@ -82,7 +84,7 @@ class GroupMemberService {
       groupRole,
     });
 
-    const publicMember = GroupMemberModel.toPublicMember({
+    const publicMember = toPublicMember({
       ...newMember,
       email: targetUser.email,
       full_name: targetUser.full_name || targetUser.name,
@@ -99,8 +101,7 @@ class GroupMemberService {
    * Xóa thành viên khỏi nhóm hoặc Rời nhóm
    */
   async removeMember(groupId, callerId, targetUserId) {
-    const isTargetUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId);
-    if (!isTargetUuid) {
+    if (!isUuid(targetUserId)) {
       throw AppError.badRequest("userId không đúng định dạng UUID", "INVALID_ID");
     }
 

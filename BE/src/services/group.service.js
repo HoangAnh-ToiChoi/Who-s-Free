@@ -4,6 +4,7 @@ import UserModel from "../models/user.model.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { generateUniqueSlug } from "../utils/slugify.js";
+import { toPublicGroup } from "../utils/mappers/group.mapper.js";
 
 /**
  * GroupService - Quản lý Vòng đời Nhóm / Workspace
@@ -40,7 +41,7 @@ class GroupService {
       creator?.name ||
       creator?.user_metadata?.full_name ||
       "Trưởng nhóm";
-    const publicGroup = GroupModel.toPublicGroup({
+    const publicGroup = toPublicGroup({
       ...created,
       leadAdmin: creatorName,
       memberCount: 1,
@@ -66,7 +67,7 @@ class GroupService {
    */
   async getUserGroups(userId) {
     const list = await GroupModel.findUserGroups(userId);
-    return list.map((g) => GroupModel.toPublicGroup(g));
+    return list.map((g) => toPublicGroup(g));
   }
 
   /**
@@ -78,7 +79,7 @@ class GroupService {
       throw AppError.notFound("Không tìm thấy thông tin nhóm", "GROUP_NOT_FOUND");
     }
 
-    return GroupModel.toPublicGroup(detail);
+    return toPublicGroup(detail);
   }
 
   /**
@@ -109,7 +110,7 @@ class GroupService {
     }
 
     const updated = await GroupModel.update(groupId, payload);
-    const publicGroup = GroupModel.toPublicGroup(updated);
+    const publicGroup = toPublicGroup(updated);
 
     RealtimeService.broadcastGroupUpdate(groupId, "GROUP_UPDATED", publicGroup);
     return publicGroup;

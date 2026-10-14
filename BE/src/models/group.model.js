@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
+import { isUuid } from "../utils/uuid.js";
 
 /**
  * GroupModel - Data Access Layer cho Thực thể Nhóm (Group Entity)
@@ -10,49 +11,6 @@ import { query, withTransaction } from "../configs/db.config.js";
  *   - Đảm bảo tính nguyên tử (Transaction) và không nuốt lỗi DB
  */
 class GroupModel {
-  /**
-   * Chuẩn hóa cấu trúc dữ liệu Group trả về cho client
-   */
-  static toPublicGroup(group) {
-    if (!group) return null;
-
-    let memberPreviews = group.member_previews || group.memberPreviews || [];
-    if (typeof memberPreviews === "string") {
-      try {
-        memberPreviews = JSON.parse(memberPreviews);
-      } catch {
-        memberPreviews = [];
-      }
-    }
-    if (!Array.isArray(memberPreviews)) {
-      memberPreviews = [];
-    }
-
-    return {
-      id: group.id,
-      slug: group.slug,
-      name: group.name,
-      category: group.category || "work",
-      description: group.description || "",
-      icon: group.icon || "Users",
-      color: group.color || "indigo",
-      capacity: parseInt(group.capacity, 10) || 10,
-      cohort: group.cohort || "2026",
-      createdBy: group.created_by || group.createdBy || null,
-      leadAdmin: group.lead_admin || group.leadAdmin || null,
-      memberCount: parseInt(group.member_count ?? group.memberCount ?? 1, 10),
-      memberPreviews: memberPreviews.map((m) => ({
-        id: m.id,
-        name: m.name || m.fullName || "Thành viên",
-        avatarUrl: m.avatarUrl || m.avatar_url || null,
-      })),
-      userRole: group.user_role || group.userRole || "member",
-      userGroupRole: group.user_group_role || group.userGroupRole || "core",
-      createdAt: group.created_at || group.createdAt || new Date().toISOString(),
-      updatedAt: group.updated_at || group.updatedAt || new Date().toISOString(),
-    };
-  }
-
   /**
    * Tạo nhóm mới và thêm Creator làm Owner trong cùng một Transaction (Atomic)
    */
@@ -123,9 +81,7 @@ class GroupModel {
    * Tìm nhóm theo ID (UUID)
    */
   static async findById(id) {
-    if (!id) return null;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    if (!isUuid) return null;
+    if (!id || !isUuid(id)) return null;
 
     const sql = "SELECT * FROM public.groups WHERE id = $1 LIMIT 1;";
     const { rows } = await query(sql, [id]);
@@ -148,8 +104,7 @@ class GroupModel {
    */
   static async findByIdOrSlug(identifier) {
     if (!identifier) return null;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
-    if (isUuid) {
+    if (isUuid(identifier)) {
       const group = await this.findById(identifier);
       if (group) return group;
     }
@@ -161,13 +116,13 @@ class GroupModel {
    */
   static async findDetailByIdOrSlug(identifier, userId = null) {
     if (!identifier) return null;
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
-    const validUserId = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId) ? userId : null;
+    const identifierIsUuid = isUuid(identifier);
+    const validUserId = userId && isUuid(userId) ? userId : null;
 
     const sql = `
       WITH target_group AS (
         SELECT * FROM public.groups
-        WHERE ${isUuid ? "id = $1::uuid" : "slug = $1"}
+        WHERE ${identifierIsUuid ? "id = $1::uuid" : "slug = $1"}
         LIMIT 1
       ),
       user_membership AS (
@@ -194,20 +149,20 @@ class GroupModel {
       previews AS (
         SELECT COALESCE(json_agg(sub), '[]'::json) as member_previews
         FROM (
-          SELECT 
+          SELECT
             u.id,
             COALESCE(u.full_name, u.email, 'Thành viên') as name,
             u.avatar_url as "avatarUrl"
           FROM public.group_members gm
           JOIN target_group tg ON gm.group_id = tg.id
           LEFT JOIN public.users u ON gm.user_id = u.id
-          ORDER BY 
+          ORDER BY
             CASE WHEN gm.role = 'owner' THEN 1 WHEN gm.role = 'lead' THEN 2 ELSE 3 END,
             gm.joined_at ASC
           LIMIT 3
         ) sub
       )
-      SELECT 
+      SELECT
         tg.*,
         COALESCE(um.role, 'guest') as user_role,
         COALESCE(um.group_role, 'guest') as user_group_role,
@@ -228,9 +183,7 @@ class GroupModel {
    * Lấy danh sách nhóm của một người dùng kèm vai trò (tối ưu hóa CTE duy nhất, triệt tiêu N+1 subqueries)
    */
   static async findUserGroups(userId) {
-    if (!userId) return [];
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
-    if (!isUuid) return [];
+    if (!userId || !isUuid(userId)) return [];
 
     const sql = `
       WITH user_grps AS (
@@ -240,7 +193,7 @@ class GroupModel {
         WHERE gm.user_id = $1::uuid
       ),
       grp_stats AS (
-        SELECT 
+        SELECT
           gm.group_id,
           COUNT(*)::int as member_count
         FROM public.group_members gm
@@ -257,13 +210,13 @@ class GroupModel {
         ORDER BY gm.group_id, CASE WHEN gm.role = 'owner' THEN 1 ELSE 2 END, gm.joined_at ASC
       ),
       ranked_members AS (
-        SELECT 
+        SELECT
           gm.group_id,
           u.id,
           COALESCE(u.full_name, u.email, 'Thành viên') as name,
           u.avatar_url as "avatarUrl",
           ROW_NUMBER() OVER (
-            PARTITION BY gm.group_id 
+            PARTITION BY gm.group_id
             ORDER BY CASE WHEN gm.role = 'owner' THEN 1 WHEN gm.role = 'lead' THEN 2 ELSE 3 END, gm.joined_at ASC
           ) as rn
         FROM public.group_members gm
@@ -271,14 +224,14 @@ class GroupModel {
         WHERE gm.group_id IN (SELECT id FROM user_grps)
       ),
       grp_previews AS (
-        SELECT 
+        SELECT
           group_id,
           json_agg(json_build_object('id', id, 'name', name, 'avatarUrl', "avatarUrl")) as member_previews
         FROM ranked_members
         WHERE rn <= 3
         GROUP BY group_id
       )
-      SELECT 
+      SELECT
         ug.*,
         COALESCE(gs.member_count, 1) as member_count,
         COALESCE(gl.lead_admin, 'Trưởng nhóm') as lead_admin,
@@ -329,8 +282,7 @@ class GroupModel {
    * Xóa nhóm (không nuốt lỗi DB)
    */
   static async delete(id) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    if (!isUuid) return false;
+    if (!isUuid(id)) return false;
 
     const sql = "DELETE FROM public.groups WHERE id = $1 RETURNING id;";
     const { rows } = await query(sql, [id]);
@@ -339,4 +291,3 @@ class GroupModel {
 }
 
 export default GroupModel;
-
