@@ -19,13 +19,13 @@ class SessionController extends BaseController {
   });
 
   createSession = asyncHandler(async (req, res) => {
-    const session = await sessionService.createSession(req.body);
+    const session = await sessionService.createSession(req.body, req.user?.id);
     return this.sendCreated(res, session, "Tạo phiên khảo sát mới thành công");
   });
 
   deleteSession = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const result = await sessionService.deleteSession(id);
+    const result = await sessionService.deleteSession(id, req.user?.id);
     return this.sendSuccess(res, result, "Xóa phiên khảo sát thành công");
   });
 }

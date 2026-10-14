@@ -14,9 +14,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     avatar_url TEXT,
+    refresh_token TEXT,
+    refresh_token_created_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_refresh_token ON users(refresh_token);
 
 -- ==============================================================================
 -- 3. BẢNG GROUPS (Không gian làm việc / Nhóm)

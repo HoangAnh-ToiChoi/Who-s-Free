@@ -1,144 +1,75 @@
-import jwt from "jsonwebtoken";
 import ApiResponse from "../utils/ApiResponse.js";
-import UserModel from "../models/user.model.js";
+import TokenService from "../services/token.service.js";
 
-/**
- * AuthMiddleware - Xác thực JWT Token trên mọi request được bảo vệ.
- *
- * Luồng xác thực:
- *   1. Đọc token từ Authorization header (Bearer <token>) HOẶC cookie "access_token"
- *   2. Thử verify signature + expiry bằng JWT_SECRET nội bộ
- *   3. Nếu không khớp (ví dụ token từ Supabase OAuth), fallback xác thực qua Supabase Auth SDK
- *   4. Gắn payload đã giải mã vào req.user để các controller downstream sử dụng
- *   5. Nếu không có/hết hạn/sai token → trả 401 Unauthorized ngay lập tức
- */
+/** Shared Bearer-token parsing and verification for protected and optional auth. */
 class AuthMiddleware {
-  /**
-   * Middleware bảo vệ route — phải đăng nhập mới dùng được.
-   */
-  static async authenticate(req, res, next) {
-    try {
-      // Ưu tiên đọc từ Authorization header, fallback sang cookie
-      const authHeader = req.headers["authorization"];
-      const cookieToken = req.cookies?.access_token;
+  static getBearerToken(req) {
+    const authorization = req.headers?.authorization;
+    if (typeof authorization !== "string") return null;
 
-      const token =
-        authHeader && authHeader.startsWith("Bearer ")
-          ? authHeader.split(" ")[1]
-          : cookieToken;
+    const match = authorization.match(/^Bearer\s+(.+)$/i);
+    return match?.[1]?.trim() || null;
+  }
 
-      if (!token) {
-        return res
-          .status(401)
-          .json(
-            ApiResponse.error(
-              "Không tìm thấy token xác thực",
-              "Unauthorized — Vui lòng đăng nhập"
-            )
-          );
-      }
+  static sendAuthError(res, error) {
+    const statusCode = error.statusCode || 401;
+    const errorCode = error.errorCode || "INVALID_ACCESS_TOKEN";
+    return res
+      .status(statusCode)
+      .json(ApiResponse.error(errorCode, error.message || "Token không hợp lệ"));
+  }
 
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        console.error("❌ CRITICAL: JWT_SECRET chưa được cấu hình trong .env!");
-        return res
-          .status(500)
-          .json(ApiResponse.error("Lỗi cấu hình máy chủ", "Internal Server Error"));
-      }
+  static setRequestUser(req, decoded) {
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      role: decoded.role || "user",
+      iat: decoded.iat,
+      exp: decoded.exp,
+    };
+  }
 
-      // 1. Thử verify với JWT_SECRET nội bộ của hệ thống
-      try {
-        const decoded = jwt.verify(token, secret);
-        req.user = {
-          id: decoded.sub,
-          email: decoded.email,
-          role: decoded.role || "user",
-          iat: decoded.iat,
-          exp: decoded.exp,
-        };
-        return next();
-      } catch (jwtErr) {
-        // 2. Fallback: Nếu không khớp chữ ký nội bộ, kiểm tra xem có phải Token từ Supabase OAuth không
-        try {
-          const authUser = await UserModel.getUserFromToken(token);
-          if (authUser) {
-            req.user = {
-              id: authUser.id,
-              email: authUser.email,
-              role: authUser.role || "user",
-            };
-            return next();
-          }
-        } catch {
-          // Token không hợp lệ ở cả 2 nơi
-        }
-
-        if (jwtErr.name === "TokenExpiredError") {
-          return res
-            .status(401)
-            .json(ApiResponse.error("Token đã hết hạn — vui lòng đăng nhập lại", "Token Expired"));
-        }
-
-        return res
-          .status(401)
-          .json(ApiResponse.error("Token không hợp lệ", "Invalid Token"));
-      }
-    } catch (err) {
-      if (err.name === "TokenExpiredError") {
-        return res
-          .status(401)
-          .json(
-            ApiResponse.error(
-              "Token đã hết hạn — vui lòng đăng nhập lại",
-              "Token Expired"
-            )
-          );
-      }
-
-      if (err.name === "JsonWebTokenError") {
-        return res
-          .status(401)
-          .json(ApiResponse.error("Token không hợp lệ", "Invalid Token"));
-      }
-
+  /** Protected routes require a valid internal Bearer access token. */
+  static authenticate = (req, res, next) => {
+    const token = AuthMiddleware.getBearerToken(req);
+    if (!token) {
       return res
-        .status(500)
-        .json(ApiResponse.error(err.message, "Internal Server Error"));
+        .status(401)
+        .json(ApiResponse.error("MISSING_ACCESS_TOKEN", "Vui lòng đăng nhập"));
     }
-  }
+
+    try {
+      const decoded = TokenService.verifyAccessToken(token);
+      AuthMiddleware.setRequestUser(req, decoded);
+      return next();
+    } catch (error) {
+      return AuthMiddleware.sendAuthError(res, error);
+    }
+  };
 
   /**
-   * Middleware tùy chọn — không bắt buộc đăng nhập.
-   * Nếu có token hợp lệ thì gắn req.user, không có thì bỏ qua (vẫn cho qua).
-   * Dùng cho các route public nhưng cần biết user là ai nếu họ đã đăng nhập.
+   * Optional auth allows anonymous requests only when no Authorization header
+   * is provided. A supplied malformed/invalid token is rejected consistently.
    */
-  static optionalAuth(req, res, next) {
-    try {
-      const authHeader = req.headers["authorization"];
-      const cookieToken = req.cookies?.access_token;
-      const token =
-        authHeader && authHeader.startsWith("Bearer ")
-          ? authHeader.split(" ")[1]
-          : cookieToken;
+  static optionalAuth = (req, res, next) => {
+    const authorization = req.headers?.authorization;
+    if (!authorization) return next();
 
-      if (!token) return next();
-
-      const secret = process.env.JWT_SECRET;
-      if (!secret) return next();
-
-      const decoded = jwt.verify(token, secret);
-      req.user = {
-        id: decoded.sub,
-        email: decoded.email,
-        role: decoded.role || "user",
-      };
-
-      return next();
-    } catch {
-      // Token lỗi → bỏ qua, vẫn cho tiếp tục như anonymous
-      return next();
+    const token = AuthMiddleware.getBearerToken(req);
+    if (!token) {
+      return res
+        .status(401)
+        .json(ApiResponse.error("INVALID_AUTHORIZATION_HEADER", "Authorization header không hợp lệ"));
     }
-  }
+
+    try {
+      const decoded = TokenService.verifyAccessToken(token);
+      AuthMiddleware.setRequestUser(req, decoded);
+      return next();
+    } catch (error) {
+      return AuthMiddleware.sendAuthError(res, error);
+    }
+  };
 }
 
 export default AuthMiddleware;

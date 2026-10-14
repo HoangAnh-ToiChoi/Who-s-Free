@@ -19,13 +19,13 @@ class AvailabilityController extends BaseController {
   });
 
   createAvailability = asyncHandler(async (req, res) => {
-    const created = await availabilityService.createAvailability(req.body);
+    const created = await availabilityService.createAvailability(req.body, req.user?.id);
     return this.sendCreated(res, created, "Lưu khung giờ rảnh thành công");
   });
 
   updateAvailability = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const updated = await availabilityService.updateAvailability(id, req.body);
+    const updated = await availabilityService.updateAvailability(id, req.body, req.user?.id);
     return this.sendSuccess(res, updated, "Cập nhật khung giờ rảnh thành công");
   });
 }

@@ -10,6 +10,10 @@ import AppError from "../utils/AppError.js";
  *   - Điều phối luồng Đăng ký, Đăng nhập, Làm mới Token, Đăng xuất, Lấy thông tin user
  *   - Sử dụng UserModel để truy vấn dữ liệu và chuẩn hóa toPublicUser
  *   - Sử dụng TokenService để cấp phát JWT
+ *
+ * Contract theo AUTH_REFACTOR_PLAN:
+ *   - Service trả { user, accessToken, refreshToken } cho Controller
+ *   - Controller chịu trách nhiệm đặt cookie và loại refreshToken khỏi JSON response
  */
 class AuthService {
   /**
@@ -18,6 +22,20 @@ class AuthService {
   static get otpStore() {
     return OtpModel.store;
   }
+
+  /**
+   * Hàm dùng chung để phát hành app session (access + refresh token).
+   * Gom logic lặp từ register, login, Google flows vào một nơi.
+   * @param {object} publicUser - User đã được chuẩn hóa bởi UserModel.toPublicUser
+   * @returns {{ accessToken, refreshToken }}
+   */
+  async #issueSession(publicUser) {
+    const accessToken = TokenService.generateAccessToken(publicUser);
+    const refreshToken = TokenService.generateRefreshToken();
+    await UserModel.updateRefreshToken(publicUser.id, refreshToken);
+    return { accessToken, refreshToken };
+  }
+
   /**
    * Đăng ký tài khoản mới bằng email và mật khẩu
    * @param {{ email: string, password: string, fullName?: string }} payload
@@ -31,9 +49,7 @@ class AuthService {
       const createdUser = await UserModel.createInAuth({ email, password, fullName });
       const publicUser = UserModel.toPublicUser(createdUser);
 
-      // Cấp JWT Token ngay sau khi đăng ký thành công để đăng nhập tức thì
-      const accessToken = TokenService.generateAccessToken(publicUser);
-      const refreshToken = TokenService.generateRefreshToken(publicUser);
+      const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
       return {
         user: publicUser,
@@ -42,6 +58,7 @@ class AuthService {
         message: "Đăng ký tài khoản thành công!",
       };
     } catch (err) {
+      if (err.isOperational) throw err;
       throw AppError.badRequest(err.message || "Đăng ký tài khoản thất bại", "REGISTER_FAILED");
     }
   }
@@ -59,11 +76,11 @@ class AuthService {
       const authUser = await UserModel.signInWithPassword({ email, password });
       const publicUser = UserModel.toPublicUser(authUser);
 
-      const accessToken = TokenService.generateAccessToken(publicUser);
-      const refreshToken = TokenService.generateRefreshToken(publicUser);
+      const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
       return { accessToken, refreshToken, user: publicUser };
     } catch (err) {
+      if (err.isOperational) throw err;
       throw AppError.unauthorized("Email hoặc mật khẩu không chính xác", "INVALID_CREDENTIALS");
     }
   }
@@ -81,7 +98,7 @@ class AuthService {
   }
 
   /**
-   * Xử lý callback sau khi Google OAuth thành công
+   * Xử lý callback sau khi Google OAuth thành công (Authorization Code Flow)
    */
   async handleGoogleCallback(code) {
     if (!code) {
@@ -92,19 +109,21 @@ class AuthService {
       const authUser = await UserModel.exchangeCodeForSession(code);
       const publicUser = UserModel.toPublicUser(authUser);
 
-      const accessToken = TokenService.generateAccessToken(publicUser);
-      const refreshToken = TokenService.generateRefreshToken(publicUser);
+      const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
       return { accessToken, refreshToken, user: publicUser };
     } catch (err) {
+      if (err.isOperational) throw err;
       throw AppError.unauthorized("Xác thực Google OAuth thất bại", "OAUTH_FAILED");
     }
   }
 
   /**
    * Xử lý khởi tạo session từ Supabase OAuth token (khi dùng Implicit Hash Flow)
+   * Lưu ý: refreshToken từ FE bị bỏ qua — BE tự tạo refresh token app mới
+   * @param {string} token - Supabase access token
    */
-  async handleGoogleSession(token, refreshToken) {
+  async handleGoogleSession(token) {
     if (!token) {
       throw AppError.badRequest("Thiếu Access Token từ Google", "MISSING_TOKEN");
     }
@@ -116,10 +135,9 @@ class AuthService {
       }
 
       const publicUser = UserModel.toPublicUser(authUser);
-      const accessToken = TokenService.generateAccessToken(publicUser);
-      const newRefreshToken = TokenService.generateRefreshToken(publicUser);
+      const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
-      return { accessToken, refreshToken: newRefreshToken, user: publicUser };
+      return { accessToken, refreshToken, user: publicUser };
     } catch (err) {
       if (err instanceof AppError) throw err;
       throw AppError.unauthorized(err.message || "Xác thực Google thất bại", "OAUTH_FAILED");
@@ -127,27 +145,71 @@ class AuthService {
   }
 
   /**
-   * Làm mới Access Token từ Refresh Token
+   * Làm mới Access Token từ Refresh Token (với cơ chế Refresh Token Rotation - RTR)
    */
   async refreshAccessToken(refreshToken) {
-    const decoded = TokenService.verifyRefreshToken(refreshToken);
+    if (!refreshToken) {
+      throw AppError.unauthorized("Thiếu Refresh Token", "MISSING_REFRESH_TOKEN");
+    }
 
-    const user = await UserModel.findById(decoded.sub);
+    const user = await UserModel.findByRefreshToken(refreshToken);
     if (!user) {
-      throw AppError.unauthorized("Người dùng không còn tồn tại", "USER_NOT_FOUND");
+      throw AppError.unauthorized(
+        "Refresh Token không hợp lệ hoặc đã hết hạn",
+        "INVALID_REFRESH_TOKEN"
+      );
+    }
+
+    // Kiểm tra xem refresh token đã quá hạn 5 ngày hay chưa
+    if (TokenService.isRefreshTokenExpired(user.refresh_token_created_at)) {
+      await UserModel.clearRefreshToken(user.id);
+      throw AppError.unauthorized(
+        "Refresh Token đã hết hạn",
+        "REFRESH_TOKEN_EXPIRED"
+      );
     }
 
     const publicUser = UserModel.toPublicUser(user);
+    // RTR: Rotate cả access token và refresh token cùng lúc bằng Compare-and-Swap (CAS)
     const newAccessToken = TokenService.generateAccessToken(publicUser);
+    const newRefreshToken = TokenService.generateRefreshToken();
 
-    return { accessToken: newAccessToken };
+    const rotated = await UserModel.rotateRefreshToken(
+      user.id,
+      refreshToken,
+      newRefreshToken
+    );
+
+    if (!rotated) {
+      throw AppError.unauthorized(
+        "Refresh Token không hợp lệ hoặc đã được sử dụng",
+        "INVALID_REFRESH_TOKEN"
+      );
+    }
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+      user: publicUser,
+    };
   }
 
   /**
-   * Đăng xuất tài khoản
+   * Tìm người dùng theo refresh token hiện tại
    */
-  async logout() {
-    await UserModel.signOut();
+  async getUserByRefreshToken(refreshToken) {
+    if (!refreshToken) return null;
+    return UserModel.findByRefreshToken(refreshToken);
+  }
+
+  /**
+   * Đăng xuất tài khoản và thu hồi refresh token trong CSDL
+   */
+  async logout(userId) {
+    if (userId) {
+      await UserModel.clearRefreshToken(userId);
+    }
+    // Không gọi Supabase signOut vì app chỉ dùng app token, không dùng Supabase session
     return { message: "Đăng xuất thành công" };
   }
 

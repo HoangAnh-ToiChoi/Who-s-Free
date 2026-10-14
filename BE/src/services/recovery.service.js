@@ -96,6 +96,8 @@ class RecoveryService {
     };
   }
 
+  static consumedResetTokens = new Set();
+
   /**
    * Đặt lại mật khẩu mới với resetToken
    * @param {{ email: string, resetToken: string, password: string, confirmPassword: string }} payload
@@ -115,16 +117,25 @@ class RecoveryService {
       );
     }
 
-    // 2. Xác minh chữ ký resetToken
+    // 2. Chặn tái sử dụng resetToken (One-Time Token Enforcement)
+    if (RecoveryService.consumedResetTokens.has(resetToken)) {
+      throw AppError.badRequest("Token đặt lại mật khẩu đã được sử dụng", "RESET_TOKEN_ALREADY_USED");
+    }
+
+    // 3. Xác minh chữ ký resetToken
     TokenService.verifyResetToken(resetToken, normalizedEmail);
 
-    // 3. Tìm user và cập nhật mật khẩu trong UserModel
+    // 4. Tìm user và cập nhật mật khẩu trong UserModel
     const user = await UserModel.findByEmail(normalizedEmail);
     if (!user) {
       throw AppError.notFound("Không tìm thấy tài khoản người dùng tương ứng", "USER_NOT_FOUND");
     }
 
     await UserModel.updatePassword(user.id, password);
+
+    // Đánh dấu token đã sử dụng và hủy bỏ toàn bộ refresh token cũ
+    RecoveryService.consumedResetTokens.add(resetToken);
+    await UserModel.clearRefreshToken(user.id);
 
     return {
       message: "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập ngay bằng mật khẩu mới.",

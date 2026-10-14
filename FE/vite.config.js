@@ -16,6 +16,12 @@ export default defineConfig(({ command }) => ({
       "~": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  esbuild: {
+    // Khi build production: tự động xóa sạch các console.log rải rác để nhẹ web & bảo mật
+    // Giữ lại console.warn để hiển thị Security Banner cảnh báo an ninh
+    pure: command === "build" ? ["console.log", "console.debug"] : [],
+    drop: command === "build" ? ["debugger"] : [],
+  },
   server: {
     proxy: {
       "/api": {

@@ -17,7 +17,20 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()); // Parse httpOnly cookies từ request
-app.use(morgan("dev"));
+// ─── Security Headers & Content Security Policy (CSP) ───────────────────────
+app.use((req, res, next) => {
+    // Chống Clickjacking
+    res.setHeader("X-Frame-Options", "DENY");
+    // Chống MIME-sniffing
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    // Cấm gửi dữ liệu ra domain lạ (Chống tuồn token qua XSS / Console)
+    const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    res.setHeader(
+        "Content-Security-Policy",
+        `default-src 'self'; connect-src 'self' ${clientOrigin} https://*.supabase.co; frame-ancestors 'none';`
+    );
+    next();
+});
 
 // ─── Healthcheck Route ───────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {

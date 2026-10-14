@@ -12,8 +12,12 @@ import { getSafeReturnUrl } from "../utils/safeReturnUrl.js";
  * Trách nhiệm duy nhất (SRP):
  *   - Nhận HTTP request từ route (đã qua Zod validation middleware)
  *   - Gọi service tương ứng (AuthService hoặc RecoveryService)
- *   - Trả response chuẩn Envelope qua BaseController
+ *   - Trả response chuẩn Envelope { user, accessToken } qua BaseController
  *   - Tự động bắt lỗi chuyển về Centralized Error Handler nhờ asyncHandler
+ *
+ * Contract theo AUTH_REFACTOR_PLAN:
+ *   - Response JSON: { user, accessToken } — refreshToken KHÔNG lộ trong body
+ *   - Refresh token được gửi qua HttpOnly cookie
  */
 class AuthController extends BaseController {
   constructor() {
@@ -26,6 +30,7 @@ class AuthController extends BaseController {
 
   /**
    * POST /api/auth/register
+   * Response: { user, accessToken } — refreshToken chỉ qua HttpOnly cookie
    */
   register = asyncHandler(async (req, res) => {
     const { email, password, fullName } = req.body;
@@ -33,13 +38,14 @@ class AuthController extends BaseController {
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
     return this.sendCreated(
       res,
-      { ...result.user, user: result.user, accessToken: result.accessToken },
+      { user: result.user, accessToken: result.accessToken },
       result.message
     );
   });
 
   /**
    * POST /api/auth/login
+   * Response: { user, accessToken } — refreshToken chỉ qua HttpOnly cookie
    */
   login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -51,7 +57,7 @@ class AuthController extends BaseController {
     TokenService.setAuthCookies(res, accessToken, refreshToken);
     return this.sendSuccess(
       res,
-      { ...user, user, accessToken },
+      { user, accessToken },
       "Đăng nhập thành công"
     );
   });
@@ -106,20 +112,24 @@ class AuthController extends BaseController {
 
   /**
    * POST /api/auth/google/session
+   * Chỉ nhận accessToken từ FE — refreshToken FE gửi lên bị bỏ qua, BE tự sinh mới
+   * Response: { user, accessToken } — refreshToken chỉ qua HttpOnly cookie
    */
   googleSession = asyncHandler(async (req, res) => {
-    const { accessToken, refreshToken } = req.body;
-    const result = await this.authService.handleGoogleSession(accessToken, refreshToken);
+    const { accessToken } = req.body;
+    // refreshToken từ FE (nếu có) bị bỏ qua — BE tự tạo refresh token mới
+    const result = await this.authService.handleGoogleSession(accessToken);
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
     return this.sendSuccess(
       res,
-      { ...result.user, user: result.user, accessToken: result.accessToken },
+      { user: result.user, accessToken: result.accessToken },
       "Đăng nhập Google thành công"
     );
   });
 
   /**
    * POST /api/auth/refresh
+   * Đọc refresh_token từ HttpOnly cookie, trả accessToken mới trong JSON
    */
   refresh = asyncHandler(async (req, res) => {
     const refreshToken = req.cookies?.refresh_token;
@@ -129,15 +139,15 @@ class AuthController extends BaseController {
     }
 
     try {
-      const { accessToken } = await this.authService.refreshAccessToken(refreshToken);
+      const result = await this.authService.refreshAccessToken(refreshToken);
 
-      res.cookie(
-        "access_token",
-        accessToken,
-        TokenService.cookieOptions(TokenService.ACCESS_TOKEN_MAX_AGE)
+      TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
+
+      return this.sendSuccess(
+        res,
+        { accessToken: result.accessToken, user: result.user },
+        "Token đã được làm mới"
       );
-
-      return this.sendSuccess(res, { accessToken }, "Token đã được làm mới");
     } catch (err) {
       TokenService.clearAuthCookies(res);
       throw err;
@@ -148,7 +158,12 @@ class AuthController extends BaseController {
    * POST /api/auth/logout
    */
   logout = asyncHandler(async (req, res) => {
-    await this.authService.logout();
+    let userId = req.user?.id;
+    if (!userId && req.cookies?.refresh_token) {
+      const user = await this.authService.getUserByRefreshToken(req.cookies.refresh_token);
+      userId = user?.id;
+    }
+    await this.authService.logout(userId);
     TokenService.clearAuthCookies(res);
     return this.sendSuccess(res, null, "Đăng xuất thành công");
   });

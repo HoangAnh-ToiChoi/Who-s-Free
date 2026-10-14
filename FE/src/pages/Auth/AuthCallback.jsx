@@ -45,7 +45,6 @@ function AuthCallback() {
           // Lưu session và cập nhật user
           await handleGoogleSession({
             accessToken: hashAccessToken,
-            refreshToken: hashRefreshToken,
           });
 
           if (!isCancelled) {

@@ -1,4 +1,5 @@
 import SessionModel from "../models/session.model.js";
+import GroupMemberModel from "../models/group-member.model.js";
 import AppError from "../utils/AppError.js";
 
 /**
@@ -20,17 +21,39 @@ class SessionService {
     return session;
   }
 
-  async createSession(payload) {
+  async createSession(payload, actorId) {
     if (!payload?.title) {
       throw AppError.badRequest("Tiêu đề phiên khảo sát là bắt buộc", "SESSION_TITLE_REQUIRED");
     }
-    return await SessionModel.create(payload);
+    const sessionData = {
+      ...payload,
+      createdBy: actorId || payload.createdBy || null,
+    };
+    return await SessionModel.create(sessionData);
   }
 
-  async deleteSession(id) {
+  async deleteSession(id, actorId) {
     if (!id) {
       throw AppError.badRequest("Mã phiên khảo sát không được để trống", "SESSION_ID_REQUIRED");
     }
+    const session = await SessionModel.findById(id);
+    if (!session) {
+      throw AppError.notFound("Không tìm thấy phiên khảo sát cần xóa", "SESSION_NOT_FOUND");
+    }
+
+    // Kiểm tra quyền sở hữu hoặc quyền Lead/Owner của nhóm
+    if (session.createdBy && actorId && session.createdBy !== actorId) {
+      if (session.groupId) {
+        const member = await GroupMemberModel.findMember(session.groupId, actorId).catch(() => null);
+        const isLeadOrOwner = member?.role === "owner" || member?.role === "lead";
+        if (!isLeadOrOwner) {
+          throw AppError.forbidden("Bạn không có quyền xóa phiên khảo sát này", "FORBIDDEN");
+        }
+      } else {
+        throw AppError.forbidden("Bạn không có quyền xóa phiên khảo sát này", "FORBIDDEN");
+      }
+    }
+
     const deleted = await SessionModel.delete(id);
     if (!deleted) {
       throw AppError.notFound("Không tìm thấy phiên khảo sát cần xóa", "SESSION_NOT_FOUND");

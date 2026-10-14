@@ -78,17 +78,12 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async ({ fullName, email, password }) => {
     const result = await authService.register({ fullName, email, password });
-    const userObj = result.user || result;
-    if (result.accessToken) {
-      return await verifyAuthenticatedUser();
-    }
-    authRevision.current += 1;
-    setUser(userObj);
-    return userObj;
+    const currentUser = await verifyAuthenticatedUser();
+    return { ...result, user: currentUser };
   }, [verifyAuthenticatedUser]);
 
-  const handleGoogleSession = useCallback(async ({ accessToken, refreshToken }) => {
-    const result = await authService.syncGoogleSession({ accessToken, refreshToken });
+  const handleGoogleSession = useCallback(async ({ accessToken }) => {
+    await authService.syncGoogleSession({ accessToken });
     return await verifyAuthenticatedUser();
   }, [verifyAuthenticatedUser]);
 
@@ -115,11 +110,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const fetchMe = useCallback(async () => {
-    authRevision.current += 1;
-    const me = await authService.getMe();
-    setUser(me);
-    return me;
-  }, []);
+    return await verifyAuthenticatedUser();
+  }, [verifyAuthenticatedUser]);
 
   const value = {
     user,

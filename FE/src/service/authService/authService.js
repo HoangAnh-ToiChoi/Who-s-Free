@@ -1,17 +1,18 @@
 /**
  * AuthService - Tầng giao tiếp dữ liệu xác thực (Auth Service Layer)
  * 
- * Tuân thủ Single Responsibility Principle (SRP):
+ * Tuân thủ Single Responsibility Principle (SRP) & AUTH_REFACTOR_PLAN:
  * - Chỉ chịu trách nhiệm kết nối API xác thực với Backend (/api/auth/*)
- * - Quản lý lưu trữ Token và Session cục bộ (localStorage)
- * - Cung cấp cơ chế Offline Fallback an toàn giúp trải nghiệm và kiểm thử UI không bị gián đoạn.
+ * - Quản lý Access Token trong Memory qua tokenManager (Zero-XSS)
+ * - Quản lý Session Profile cục bộ (localStorage currentUser phục vụ Frame 0)
+ * - Refresh Token được lưu trữ và bảo vệ hoàn toàn qua HttpOnly Cookie phía BE.
  */
 
+import tokenManager from "~/utils/tokenManager";
+import { backendRequest, requestTokenRefresh } from "~/utils/backendApi";
+
 const STORAGE_KEYS = {
-  ACCESS_TOKEN: "accessToken",
-  REFRESH_TOKEN: "refreshToken",
   CURRENT_USER: "currentUser",
-  MOCK_USERS: "whosfree_auth_users",
 };
 
 let inFlightGetMe = null;
@@ -40,7 +41,7 @@ function formatUser(raw) {
   };
 }
 
-// ─── Local Storage Token & Session Helpers ────────────────────────────────────
+// ─── Local Storage Session Profile Helpers (Zero-Wait State Transfer) ────────
 
 export function getStoredUser() {
   try {
@@ -63,81 +64,24 @@ export function setStoredUser(user) {
   }
 }
 
-export function getStoredTokens() {
-  return {
-    accessToken: localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || null,
-    refreshToken: localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || null,
-  };
-}
-
-export function setStoredTokens({ accessToken, refreshToken }) {
-  authStateVersion += 1;
-  inFlightGetMe = null;
-  if (accessToken) {
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-  }
-  if (refreshToken) {
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-  }
-}
-
 export function clearStoredAuth() {
   authStateVersion += 1;
   inFlightGetMe = null;
-  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+  tokenManager.clearAccessToken();
+  // Dọn sạch user cache và bất kỳ token cũ nào còn sót lại
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("whosfree_auth_users");
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-}
-
-// ─── Local Mock Fallback Helpers (Dành cho kiểm thử khi BE chưa bật) ─────────
-
-function getMockUsers() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.MOCK_USERS);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveMockUser(user) {
-  const users = getMockUsers();
-  const filtered = users.filter((u) => u.email !== user.email);
-  filtered.push(user);
-  localStorage.setItem(STORAGE_KEYS.MOCK_USERS, JSON.stringify(filtered));
 }
 
 // ─── API Client Wrapper ───────────────────────────────────────────────────────
 
 async function sendAuthRequest(endpoint, options = {}) {
-  const { accessToken } = getStoredTokens();
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
-
-  if (accessToken) {
-    headers["Authorization"] = `Bearer ${accessToken}`;
-  }
-
-  const response = await fetch(endpoint, {
+  return backendRequest(endpoint, {
     ...options,
-    headers,
-    credentials: "include", // Mang cookie httpOnly qua lại
+    credentials: options.credentials || "omit",
   });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    const errorMessage =
-      data?.message || data?.error || `Request failed with status ${response.status}`;
-    const error = new Error(errorMessage);
-    error.status = response.status;
-    error.response = data;
-    throw error;
-  }
-
-  return data;
 }
 
 // ─── Authentication Operations ────────────────────────────────────────────────
@@ -149,45 +93,26 @@ async function sendAuthRequest(endpoint, options = {}) {
 export async function register({ fullName, email, password }) {
   const normalizedEmail = normalizeEmail(email);
 
-  try {
-    // 1. Gửi request đến Backend API
-    const res = await sendAuthRequest("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify({
-        fullName: fullName.trim(),
-        email: normalizedEmail,
-        password,
-      }),
-    });
+  const res = await sendAuthRequest("/auth/register", {
+    method: "POST",
+    credentials: "include",
+    body: JSON.stringify({
+      fullName: fullName.trim(),
+      email: normalizedEmail,
+      password,
+    }),
+  });
 
-    const userData = res.data?.user || res.data || { fullName, email: normalizedEmail };
-    const user = formatUser(userData);
-    const accessToken = res.data?.accessToken;
-    const refreshToken = res.data?.refreshToken;
-
-    if (accessToken) {
-      setStoredTokens({ accessToken, refreshToken });
-    }
-    setStoredUser(user);
-    saveMockUser({ ...user, password });
-
-    return { user, accessToken };
-  } catch (err) {
-    if (err.status && err.status < 500) {
-      throw err;
-    }
-
-    console.warn("Backend offline, sử dụng offline auth fallback:", err.message);
-    const existing = getMockUsers().find((u) => u.email === normalizedEmail);
-    if (existing) {
-      throw new Error("EMAIL_ALREADY_REGISTERED");
-    }
-
-    const fallbackUser = formatUser({ fullName, email: normalizedEmail });
-    setStoredUser(fallbackUser);
-    saveMockUser({ ...fallbackUser, password });
-    return { user: fallbackUser, accessToken: null };
+  const accessToken = res?.accessToken;
+  if (accessToken) {
+    tokenManager.setAccessToken(accessToken);
   }
+
+  const userData = res?.user || res || { fullName, email: normalizedEmail };
+  const user = formatUser(userData);
+
+  setStoredUser(user);
+  return { user, accessToken };
 }
 
 /**
@@ -197,63 +122,60 @@ export async function register({ fullName, email, password }) {
 export async function login({ email, password }) {
   const normalizedEmail = normalizeEmail(email);
 
-  try {
-    const res = await sendAuthRequest("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email: normalizedEmail, password }),
-    });
+  const res = await sendAuthRequest("/auth/login", {
+    method: "POST",
+    credentials: "include",
+    body: JSON.stringify({ email: normalizedEmail, password }),
+  });
 
-    const user = formatUser(res.data?.user);
-    const accessToken = res.data?.accessToken;
-    const refreshToken = res.data?.refreshToken;
-
-    setStoredTokens({ accessToken, refreshToken });
-    setStoredUser(user);
-
-    return { user, accessToken };
-  } catch (err) {
-    if (err.status && err.status < 500) {
-      throw err;
-    }
-
-    console.warn("Backend offline, kiểm tra dữ liệu local:", err.message);
-    const mockUser = getMockUsers().find(
-      (u) => u.email === normalizedEmail && u.password === password
-    );
-
-    if (mockUser || (normalizedEmail === "demo@whosfree.com" && password.length >= 8)) {
-      const user = formatUser(mockUser || { email: normalizedEmail, fullName: "Demo User" });
-      const demoToken = `mock-token-${Date.now()}`;
-      setStoredTokens({ accessToken: demoToken });
-      setStoredUser(user);
-      return { user, accessToken: demoToken };
-    }
-
-    throw new Error("INVALID_CREDENTIALS");
+  const accessToken = res?.accessToken;
+  if (accessToken) {
+    tokenManager.setAccessToken(accessToken);
   }
+
+  const user = formatUser(res?.user);
+  setStoredUser(user);
+
+  return { user, accessToken };
 }
 
 /**
  * Đồng bộ phiên đăng nhập Google từ OAuth Hash Fragment
- * @param {{ accessToken: string, refreshToken?: string }} payload
+ * (Không gửi refreshToken từ FE lên BE theo AUTH_REFACTOR_PLAN §82)
+ * @param {{ accessToken: string }} payload
  */
-export async function syncGoogleSession({ accessToken, refreshToken }) {
+export async function syncGoogleSession({ accessToken }) {
   try {
-    const res = await sendAuthRequest("/api/auth/google/session", {
+    const res = await sendAuthRequest("/auth/google/session", {
       method: "POST",
-      body: JSON.stringify({ accessToken, refreshToken }),
+      credentials: "include",
+      body: JSON.stringify({ accessToken }),
     });
 
-    const user = formatUser(res.data?.user);
-    const systemToken = res.data?.accessToken || accessToken;
-    const systemRefreshToken = res.data?.refreshToken || refreshToken;
+    const newAccessToken = res?.accessToken;
+    if (newAccessToken) {
+      tokenManager.setAccessToken(newAccessToken);
+    }
 
-    setStoredTokens({ accessToken: systemToken, refreshToken: systemRefreshToken });
+    const user = formatUser(res?.user);
     setStoredUser(user);
 
-    return { user, accessToken: systemToken };
+    return { user, accessToken: newAccessToken };
   } catch (err) {
     console.error("Lỗi đồng bộ session Google:", err);
+    throw err;
+  }
+}
+
+/**
+ * Làm mới Access Token từ Refresh Cookie (Dùng khi F5 reload trang)
+ */
+export async function refreshSession() {
+  try {
+    const accessToken = await requestTokenRefresh();
+    return { user: null, accessToken };
+  } catch (err) {
+    tokenManager.clearAccessToken();
     throw err;
   }
 }
@@ -263,8 +185,9 @@ export async function syncGoogleSession({ accessToken, refreshToken }) {
  */
 export async function logout() {
   try {
-    await sendAuthRequest("/api/auth/logout", {
+    await sendAuthRequest("/auth/logout", {
       method: "POST",
+      credentials: "include",
     }).catch(() => null);
   } finally {
     clearStoredAuth();
@@ -272,13 +195,12 @@ export async function logout() {
 }
 
 /**
- * Lấy thông tin user hiện tại từ token xác thực (Chuẩn Threads / Meta)
- * - Luôn xác thực lại token hiện có với backend, không dùng user cache thay cho /me
+ * Lấy thông tin user hiện tại từ token xác thực
+ * - Nếu memory chưa có token (sau reload F5), tự động gọi refreshSession trước để lấy Access Token
+ * - Gửi Authorization: Bearer <accessToken> tới /api/auth/me
  * - Tự động chặn request trùng lặp (Single-Flight Promise Deduplication)
  */
 export async function getMe() {
-  // Luôn hỏi backend, kể cả khi localStorage không có token: session có thể
-  // còn trong HttpOnly cookie và backend sẽ tự trả 401 nếu không có phiên.
   if (inFlightGetMe) {
     return inFlightGetMe;
   }
@@ -286,11 +208,20 @@ export async function getMe() {
   const requestAuthVersion = authStateVersion;
   const request = (async () => {
     try {
-      const res = await sendAuthRequest("/api/auth/me", {
-        method: "GET",
-      });
+      // Nếu memory chưa có token (ví dụ vừa tải lại trang F5), thử phục hồi bằng refresh cookie
+      if (!tokenManager.hasAccessToken()) {
+        try {
+          await refreshSession();
+        } catch {
+          // Không có refresh cookie hợp lệ -> phiên đã hết hạn
+          clearStoredAuth();
+          return null;
+        }
+      }
 
-      const userData = res.data?.user || res.data;
+      const res = await sendAuthRequest("/auth/me", { method: "GET" });
+
+      const userData = res?.user || res;
       if (userData) {
         const user = formatUser(userData);
         setStoredUser(user);
@@ -302,15 +233,12 @@ export async function getMe() {
     } catch (err) {
       // Token hết hạn/không hợp lệ: xóa toàn bộ auth state.
       if (err.status === 401) {
-        // Bỏ qua 401 từ request cũ nếu user vừa đăng nhập trong lúc request bay.
         if (requestAuthVersion === authStateVersion) {
           clearStoredAuth();
         }
         return null;
       }
 
-      // Lỗi mạng/server không đồng nghĩa token hợp lệ; để AuthContext quyết định
-      // giữ user cache để giao diện không bị logout giả khi backend tạm gián đoạn.
       throw err;
     } finally {
       if (inFlightGetMe === request) {
@@ -329,12 +257,12 @@ export async function getMe() {
  */
 export async function createPasswordResetOtp(email) {
   const normalizedEmail = normalizeEmail(email);
-  const res = await sendAuthRequest("/api/auth/forgot-password", {
+  const res = await sendAuthRequest("/auth/forgot-password", {
     method: "POST",
     body: JSON.stringify({ email: normalizedEmail }),
   });
 
-  return res.data?.otp || null;
+  return res?.otp || null;
 }
 
 /**
@@ -343,12 +271,12 @@ export async function createPasswordResetOtp(email) {
  */
 export async function verifyOtp({ email, otp }) {
   const normalizedEmail = normalizeEmail(email);
-  const res = await sendAuthRequest("/api/auth/verify-otp", {
+  const res = await sendAuthRequest("/auth/verify-otp", {
     method: "POST",
     body: JSON.stringify({ email: normalizedEmail, otp: String(otp).trim() }),
   });
 
-  return res.data?.resetToken;
+  return res?.resetToken;
 }
 
 /**
@@ -357,7 +285,7 @@ export async function verifyOtp({ email, otp }) {
  */
 export async function resetPassword({ email, resetToken, password, confirmPassword }) {
   const normalizedEmail = normalizeEmail(email);
-  const res = await sendAuthRequest("/api/auth/reset-password", {
+  const res = await sendAuthRequest("/auth/reset-password", {
     method: "POST",
     body: JSON.stringify({
       email: normalizedEmail,
@@ -367,13 +295,14 @@ export async function resetPassword({ email, resetToken, password, confirmPasswo
     }),
   });
 
-  return res.message || "SUCCESS";
+  return res?.message || "SUCCESS";
 }
 
 export const authService = {
   register,
   login,
   syncGoogleSession,
+  refreshSession,
   logout,
   getMe,
   createPasswordResetOtp,

@@ -30,7 +30,7 @@ export const googleSessionSchema = z.object({
   accessToken: z
     .string({ required_error: "Thiếu Access Token từ Google" })
     .min(1, "Thiếu Access Token từ Google"),
-  refreshToken: z.string().optional(),
+  // refreshToken từ FE không được dùng — BE tự tạo mới (AUTH_REFACTOR_PLAN §82)
 });
 
 export const forgotPasswordSchema = z.object({
