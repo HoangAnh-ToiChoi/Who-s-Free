@@ -1,5 +1,6 @@
 import OtpModel from "../models/otp.model.js";
 import UserModel from "../models/user.model.js";
+import TokenModel from "../models/token.model.js";
 import EmailService from "./email.service.js";
 import TokenService from "./token.service.js";
 import AppError from "../utils/AppError.js";
@@ -135,7 +136,7 @@ class RecoveryService {
 
     // Đánh dấu token đã sử dụng và hủy bỏ toàn bộ refresh token cũ
     RecoveryService.consumedResetTokens.add(resetToken);
-    await UserModel.clearRefreshToken(user.id);
+    await TokenModel.clearRefreshToken(user.id);
 
     return {
       message: "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập ngay bằng mật khẩu mới.",

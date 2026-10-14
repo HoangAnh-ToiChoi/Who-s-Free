@@ -1,42 +1,22 @@
-import crypto from "node:crypto";
 import { query } from "../configs/db.config.js";
 import SupabaseAuthModel from "./supabase-auth.model.js";
+import { isUuid } from "../utils/uuid.js";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** Data access and public entity mapping for application users. */
+/** Data access for application users (public.users profile fields only). */
 class UserModel {
-  // Bộ nhớ đệm tạm thời cho môi trường test hoặc khi CSDL gián đoạn
-  static _inMemoryTokens = new Map();
+  // In-memory store used by test environments (no real DB available in unit tests).
+  // In production, DB is always the source of truth — these maps act only as a
+  // short-lived write-through cache. Max size prevents unbounded memory growth.
   static _inMemoryUsers = new Map();
+  static #MAX_CACHE_SIZE = 500;
 
-  /**
-   * Tạo mã SHA-256 hash của refresh token để lưu an toàn vào DB
-   * Ngăn chặn rò rỉ token thô nếu database bị đọc trộm (AUTH_REFACTOR_PLAN §58)
-   */
-  static hashToken(token) {
-    if (!token) return null;
-    return crypto.createHash("sha256").update(token).digest("hex");
-  }
-
-  static toPublicUser(rawUser) {
-    if (!rawUser) return null;
-
-    const metadata = rawUser.user_metadata || {};
-    return {
-      id: rawUser.id,
-      email: (rawUser.email || "").toLowerCase(),
-      fullName:
-        rawUser.full_name ||
-        metadata.full_name ||
-        rawUser.fullName ||
-        rawUser.name ||
-        (rawUser.email ? rawUser.email.split("@")[0] : "Thành viên"),
-      avatarUrl:
-        rawUser.avatar_url || metadata.avatar_url || rawUser.avatarUrl || "",
-      role: rawUser.role || metadata.role || "member",
-      createdAt: rawUser.created_at || rawUser.createdAt || new Date().toISOString(),
-    };
+  static #pruneUserCache() {
+    if (this._inMemoryUsers.size < this.#MAX_CACHE_SIZE) return;
+    const iter = this._inMemoryUsers.keys();
+    for (let i = 0; i < 50; i++) {
+      const key = iter.next().value;
+      if (key !== undefined) this._inMemoryUsers.delete(key);
+    }
   }
 
   /** Persist Supabase Auth profile data in public.users. */
@@ -44,9 +24,8 @@ class UserModel {
     if (!email) return null;
 
     const normalizedEmail = email.toLowerCase().trim();
-    const validId = UUID_PATTERN.test(id || "") ? id : null;
+    const validId = isUuid(id) ? id : null;
 
-    // Cache in-memory cho test environment
     const userRecord = {
       id: validId || id || `usr-${Date.now()}`,
       email: normalizedEmail,
@@ -55,9 +34,14 @@ class UserModel {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    if (userRecord.id) {
-      this._inMemoryUsers.set(userRecord.id, userRecord);
-      this._inMemoryUsers.set(normalizedEmail, userRecord);
+
+    if (process.env.NODE_ENV === "test") {
+      this.#pruneUserCache();
+      if (userRecord.id) {
+        this._inMemoryUsers.set(userRecord.id, userRecord);
+        this._inMemoryUsers.set(normalizedEmail, userRecord);
+      }
+      return userRecord;
     }
 
     const sql = `
@@ -71,23 +55,21 @@ class UserModel {
       RETURNING *;
     `;
 
-    try {
-      const { rows } = await query(sql, [
-        validId,
-        normalizedEmail,
-        fullName || email.split("@")[0],
-        avatarUrl || "",
-      ]);
-      if (rows?.[0]) {
-        this._inMemoryUsers.set(rows[0].id, rows[0]);
-        this._inMemoryUsers.set(normalizedEmail, rows[0]);
-        return rows[0];
-      }
-      return userRecord;
-    } catch (error) {
-      console.warn("Lỗi khi ghi user vào public.users database:", error.message);
-      return userRecord;
+    const { rows } = await query(sql, [
+      validId,
+      normalizedEmail,
+      fullName || email.split("@")[0],
+      avatarUrl || "",
+    ]);
+
+    if (rows?.[0]) {
+      this.#pruneUserCache();
+      this._inMemoryUsers.set(rows[0].id, rows[0]);
+      this._inMemoryUsers.set(normalizedEmail, rows[0]);
+      return rows[0];
     }
+
+    return userRecord;
   }
 
   static async syncAuthUser(authUser, { fullName, avatarUrl } = {}) {
@@ -138,12 +120,11 @@ class UserModel {
   static async findById(userId) {
     if (!userId) return null;
 
-    // Ưu tiên tra cứu in-memory cache (cho môi trường test hoặc session vừa ghi)
     if (this._inMemoryUsers.has(userId)) {
       return this._inMemoryUsers.get(userId);
     }
 
-    if (UUID_PATTERN.test(userId)) {
+    if (isUuid(userId)) {
       try {
         const { rows } = await query(
           "SELECT id, email, full_name, avatar_url, created_at FROM public.users WHERE id = $1 LIMIT 1;",
@@ -157,6 +138,7 @@ class UserModel {
 
     const supabaseUser = await SupabaseAuthModel.findById(userId);
     if (supabaseUser) {
+      this.#pruneUserCache();
       this._inMemoryUsers.set(userId, supabaseUser);
       return supabaseUser;
     }
@@ -184,152 +166,12 @@ class UserModel {
 
     const supabaseUser = await SupabaseAuthModel.findByEmail(normalizedEmail);
     if (supabaseUser) {
+      this.#pruneUserCache();
       this._inMemoryUsers.set(normalizedEmail, supabaseUser);
       return supabaseUser;
     }
 
     return null;
-  }
-
-  /**
-   * Lưu SHA-256 hash của Refresh Token vào database
-   * @param {string} userId
-   * @param {string} refreshToken - Chuỗi refresh token thô
-   */
-  static async updateRefreshToken(userId, refreshToken) {
-    if (!userId) return null;
-    const now = new Date();
-    const tokenHash = this.hashToken(refreshToken);
-
-    this._inMemoryTokens.set(userId, {
-      refreshToken,
-      tokenHash,
-      createdAt: now,
-    });
-
-    if (UUID_PATTERN.test(userId)) {
-      try {
-        const sql = `
-          UPDATE public.users
-          SET refresh_token = $2, refresh_token_created_at = NOW(), updated_at = NOW()
-          WHERE id = $1
-          RETURNING *;
-        `;
-        const { rows } = await query(sql, [userId, tokenHash]);
-        if (rows?.[0]) return rows[0];
-      } catch (error) {
-        console.warn("Lỗi cập nhật refresh_token vào database:", error.message);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Xoay vòng Refresh Token bằng Compare-and-Swap (CAS):
-   * Chỉ cập nhật token mới nếu token cũ trong DB khớp chính xác.
-   * Ngăn chặn hoàn toàn Race Condition và Replay Attack.
-   */
-  static async rotateRefreshToken(userId, oldRefreshToken, newRefreshToken) {
-    if (!userId || !oldRefreshToken || !newRefreshToken) return null;
-    const oldHash = this.hashToken(oldRefreshToken);
-    const newHash = this.hashToken(newRefreshToken);
-    const now = new Date();
-
-    if (UUID_PATTERN.test(userId)) {
-      try {
-        const sql = `
-          UPDATE public.users
-          SET refresh_token = $3, refresh_token_created_at = NOW(), updated_at = NOW()
-          WHERE id = $1 AND (refresh_token = $2 OR refresh_token = $4)
-          RETURNING *;
-        `;
-        const { rows } = await query(sql, [userId, oldHash, newHash, oldRefreshToken]);
-        if (rows?.[0]) {
-          this._inMemoryTokens.set(userId, {
-            refreshToken: newRefreshToken,
-            tokenHash: newHash,
-            createdAt: now,
-          });
-          return rows[0];
-        }
-        // Nếu DB cập nhật 0 hàng -> Token cũ đã bị rotate hoặc không khớp
-        return null;
-      } catch (error) {
-        console.warn("Lỗi xoay vòng refresh_token trong database:", error.message);
-        if (process.env.NODE_ENV === "production") {
-          throw AppError.internal("Lỗi cập nhật phiên làm việc", "DATABASE_ERROR");
-        }
-      }
-    }
-
-    // In-memory fallback cho môi trường test
-    if (this._inMemoryTokens.has(userId)) {
-      const record = this._inMemoryTokens.get(userId);
-      if (record.refreshToken === oldRefreshToken || record.tokenHash === oldHash) {
-        this._inMemoryTokens.set(userId, {
-          refreshToken: newRefreshToken,
-          tokenHash: newHash,
-          createdAt: now,
-        });
-        return await this.findById(userId);
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Tìm người dùng bằng Refresh Token (so khớp qua SHA-256 hash hoặc raw legacy)
-   * @param {string} refreshToken
-   */
-  static async findByRefreshToken(refreshToken) {
-    if (!refreshToken) return null;
-    const tokenHash = this.hashToken(refreshToken);
-
-    // Ưu tiên tra cứu in-memory cache trước
-    for (const [userId, record] of this._inMemoryTokens.entries()) {
-      if (record.refreshToken === refreshToken || record.tokenHash === tokenHash) {
-        const user = await this.findById(userId);
-        if (user) {
-          return {
-            ...user,
-            refresh_token: record.tokenHash,
-            refresh_token_created_at: record.createdAt,
-          };
-        }
-      }
-    }
-
-    try {
-      const { rows } = await query(
-        "SELECT id, email, full_name, avatar_url, refresh_token, refresh_token_created_at, created_at FROM public.users WHERE refresh_token = $1 OR refresh_token = $2 LIMIT 1;",
-        [tokenHash, refreshToken]
-      );
-      if (rows?.length) return rows[0];
-    } catch (error) {
-      console.warn("Lỗi truy vấn user theo refresh_token:", error.message);
-    }
-
-    return null;
-  }
-
-  /**
-   * Thu hồi Refresh Token
-   */
-  static async clearRefreshToken(userId) {
-    if (!userId) return;
-    this._inMemoryTokens.delete(userId);
-
-    if (UUID_PATTERN.test(userId)) {
-      try {
-        await query(
-          "UPDATE public.users SET refresh_token = NULL, refresh_token_created_at = NULL, updated_at = NOW() WHERE id = $1;",
-          [userId]
-        );
-      } catch (error) {
-        console.warn("Lỗi xóa refresh_token trong database:", error.message);
-      }
-    }
   }
 
   static updatePassword(userId, newPassword) {

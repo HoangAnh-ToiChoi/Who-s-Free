@@ -1,7 +1,9 @@
 import UserModel from "../models/user.model.js";
+import TokenModel from "../models/token.model.js";
 import OtpModel from "../models/otp.model.js";
 import TokenService from "./token.service.js";
 import AppError from "../utils/AppError.js";
+import { toPublicUser } from "../utils/mappers/user.mapper.js";
 
 /**
  * AuthService - Nghiệp vụ Xác thực Người dùng (Core Authentication Service)
@@ -32,7 +34,7 @@ class AuthService {
   async #issueSession(publicUser) {
     const accessToken = TokenService.generateAccessToken(publicUser);
     const refreshToken = TokenService.generateRefreshToken();
-    await UserModel.updateRefreshToken(publicUser.id, refreshToken);
+    await TokenModel.updateRefreshToken(publicUser.id, refreshToken);
     return { accessToken, refreshToken };
   }
 
@@ -47,7 +49,7 @@ class AuthService {
 
     try {
       const createdUser = await UserModel.createInAuth({ email, password, fullName });
-      const publicUser = UserModel.toPublicUser(createdUser);
+      const publicUser = toPublicUser(createdUser);
 
       const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
@@ -74,7 +76,7 @@ class AuthService {
 
     try {
       const authUser = await UserModel.signInWithPassword({ email, password });
-      const publicUser = UserModel.toPublicUser(authUser);
+      const publicUser = toPublicUser(authUser);
 
       const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
@@ -107,7 +109,7 @@ class AuthService {
 
     try {
       const authUser = await UserModel.exchangeCodeForSession(code);
-      const publicUser = UserModel.toPublicUser(authUser);
+      const publicUser = toPublicUser(authUser);
 
       const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
@@ -134,7 +136,7 @@ class AuthService {
         throw AppError.unauthorized("Không tìm thấy thông tin xác thực từ token", "INVALID_TOKEN");
       }
 
-      const publicUser = UserModel.toPublicUser(authUser);
+      const publicUser = toPublicUser(authUser);
       const { accessToken, refreshToken } = await this.#issueSession(publicUser);
 
       return { accessToken, refreshToken, user: publicUser };
@@ -152,7 +154,7 @@ class AuthService {
       throw AppError.unauthorized("Thiếu Refresh Token", "MISSING_REFRESH_TOKEN");
     }
 
-    const user = await UserModel.findByRefreshToken(refreshToken);
+    const user = await TokenModel.findByRefreshToken(refreshToken);
     if (!user) {
       throw AppError.unauthorized(
         "Refresh Token không hợp lệ hoặc đã hết hạn",
@@ -162,19 +164,19 @@ class AuthService {
 
     // Kiểm tra xem refresh token đã quá hạn 5 ngày hay chưa
     if (TokenService.isRefreshTokenExpired(user.refresh_token_created_at)) {
-      await UserModel.clearRefreshToken(user.id);
+      await TokenModel.clearRefreshToken(user.id);
       throw AppError.unauthorized(
         "Refresh Token đã hết hạn",
         "REFRESH_TOKEN_EXPIRED"
       );
     }
 
-    const publicUser = UserModel.toPublicUser(user);
+    const publicUser = toPublicUser(user);
     // RTR: Rotate cả access token và refresh token cùng lúc bằng Compare-and-Swap (CAS)
     const newAccessToken = TokenService.generateAccessToken(publicUser);
     const newRefreshToken = TokenService.generateRefreshToken();
 
-    const rotated = await UserModel.rotateRefreshToken(
+    const rotated = await TokenModel.rotateRefreshToken(
       user.id,
       refreshToken,
       newRefreshToken
@@ -199,7 +201,7 @@ class AuthService {
    */
   async getUserByRefreshToken(refreshToken) {
     if (!refreshToken) return null;
-    return UserModel.findByRefreshToken(refreshToken);
+    return TokenModel.findByRefreshToken(refreshToken);
   }
 
   /**
@@ -207,7 +209,7 @@ class AuthService {
    */
   async logout(userId) {
     if (userId) {
-      await UserModel.clearRefreshToken(userId);
+      await TokenModel.clearRefreshToken(userId);
     }
     // Không gọi Supabase signOut vì app chỉ dùng app token, không dùng Supabase session
     return { message: "Đăng xuất thành công" };
@@ -222,7 +224,7 @@ class AuthService {
       throw AppError.notFound("Không tìm thấy thông tin người dùng", "USER_NOT_FOUND");
     }
 
-    return UserModel.toPublicUser(user);
+    return toPublicUser(user);
   }
 }
 

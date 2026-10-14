@@ -38,6 +38,7 @@ let supabase;
 let supabaseAdmin;
 let AuthService;
 let UserModel;
+let TokenModel;
 let TokenService;
 let pool;
 let server;
@@ -134,6 +135,7 @@ before(async () => {
   ({ default: supabase, supabaseAdmin } = await import("../src/configs/supabase.config.js"));
   ({ default: AuthService } = await import("../src/services/auth.service.js"));
   ({ default: UserModel } = await import("../src/models/user.model.js"));
+  ({ default: TokenModel } = await import("../src/models/token.model.js"));
   ({ default: TokenService } = await import("../src/services/token.service.js"));
 
   server = app.listen(0, "127.0.0.1");
@@ -148,7 +150,7 @@ after(async () => {
 });
 
 beforeEach(() => {
-  if (UserModel?._inMemoryTokens) UserModel._inMemoryTokens.clear();
+  if (TokenModel?._inMemoryTokens) TokenModel._inMemoryTokens.clear();
   if (AuthService?.otpStore) AuthService.otpStore.clear();
   setDefaultMocks();
 });
@@ -236,7 +238,7 @@ test("[C1] google/session: response JSON chứa accessToken và KHÔNG chứa re
 
 test("[C1] refresh: trả accessToken mới trong JSON — không trả refreshToken trong body", async () => {
   const initialRefreshToken = TokenService.generateRefreshToken();
-  await UserModel.updateRefreshToken(TEST_USER.id, initialRefreshToken);
+  await TokenModel.updateRefreshToken(TEST_USER.id, initialRefreshToken);
 
   const { response, data } = await post(
     "/api/auth/refresh",
@@ -318,7 +320,7 @@ test("[C2] reset token bị từ chối khi dùng làm access token", async () =
 
 test("[C3] refresh thực hiện RTR: token mới trong cookie, token cũ bị thu hồi trong DB", async () => {
   const initialToken = TokenService.generateRefreshToken();
-  await UserModel.updateRefreshToken(TEST_USER.id, initialToken);
+  await TokenModel.updateRefreshToken(TEST_USER.id, initialToken);
 
   const { response, data } = await post(
     "/api/auth/refresh",
@@ -337,11 +339,11 @@ test("[C3] refresh thực hiện RTR: token mới trong cookie, token cũ bị t
   assert.notEqual(newToken, initialToken, "Token mới phải khác token cũ");
 
   // Token cũ phải bị vô hiệu
-  const oldUser = await UserModel.findByRefreshToken(initialToken);
+  const oldUser = await TokenModel.findByRefreshToken(initialToken);
   assert.equal(oldUser, null, "Token cũ phải bị thu hồi khỏi DB");
 
   // Token mới phải tồn tại trong DB
-  const newUser = await UserModel.findByRefreshToken(newToken);
+  const newUser = await TokenModel.findByRefreshToken(newToken);
   assert.ok(newUser, "Token mới phải được lưu vào DB");
   assert.equal(newUser.id, TEST_USER.id);
 });
@@ -358,7 +360,7 @@ test("[C3] refresh từ chối token không tồn tại trong DB", async () => {
 
 test("[C3] refresh từ chối token quá 5 ngày và xóa khỏi DB", async () => {
   const expiredToken = TokenService.generateRefreshToken();
-  UserModel._inMemoryTokens.set(TEST_USER.id, {
+  TokenModel._inMemoryTokens.set(TEST_USER.id, {
     refreshToken: expiredToken,
     createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 ngày trước
   });
@@ -372,7 +374,7 @@ test("[C3] refresh từ chối token quá 5 ngày và xóa khỏi DB", async () 
   assert.equal(data.error, "REFRESH_TOKEN_EXPIRED");
 
   // Sau khi hết hạn, DB phải xóa token
-  const user = await UserModel.findByRefreshToken(expiredToken);
+  const user = await TokenModel.findByRefreshToken(expiredToken);
   assert.equal(user, null, "Token hết hạn phải bị xóa khỏi DB");
 });
 
@@ -392,7 +394,7 @@ test("[C3] refresh không có cookie thì xóa cookies và trả 401", async () 
 
 test("[C5] register: refresh token được persist vào DB (in-memory store có token)", async () => {
   // Xóa sạch in-memory store
-  UserModel._inMemoryTokens.clear();
+  TokenModel._inMemoryTokens.clear();
 
   await post("/api/auth/register", {
     fullName: "DB Persist Test",
@@ -401,20 +403,20 @@ test("[C5] register: refresh token được persist vào DB (in-memory store có
   });
 
   // Kiểm tra refresh token được lưu (qua in-memory fallback trong test env)
-  const stored = UserModel._inMemoryTokens.get(TEST_USER.id);
+  const stored = TokenModel._inMemoryTokens.get(TEST_USER.id);
   assert.ok(stored, "Refresh token phải được persist sau register");
   assert.match(stored.refreshToken, /^rt_/, "Refresh token phải có định dạng rt_...");
 });
 
 test("[C5] login: refresh token được persist vào store sau khi login thành công", async () => {
-  UserModel._inMemoryTokens.clear();
+  TokenModel._inMemoryTokens.clear();
 
   await post("/api/auth/login", {
     email: TEST_EMAIL,
     password: "StrongPassword123!",
   });
 
-  const stored = UserModel._inMemoryTokens.get(TEST_USER.id);
+  const stored = TokenModel._inMemoryTokens.get(TEST_USER.id);
   assert.ok(stored, "Refresh token phải được persist sau login");
   assert.ok(stored.refreshToken.startsWith("rt_"), "Refresh token format phải đúng");
   assert.ok(stored.createdAt instanceof Date, "createdAt phải được ghi nhận");
@@ -477,7 +479,7 @@ test("[C6] GET /api/availabilities vẫn là public — không cần auth để 
 
 test("[C7] logout xóa cả access_token và refresh_token cookie với Expires epoch", async () => {
   const userToken = TokenService.generateRefreshToken();
-  await UserModel.updateRefreshToken(TEST_USER.id, userToken);
+  await TokenModel.updateRefreshToken(TEST_USER.id, userToken);
 
   const { response, data } = await post(
     "/api/auth/logout",
@@ -503,7 +505,7 @@ test("[C7] logout xóa cả access_token và refresh_token cookie với Expires 
 
 test("[C7] logout thu hồi refresh token khỏi DB", async () => {
   const userToken = TokenService.generateRefreshToken();
-  await UserModel.updateRefreshToken(TEST_USER.id, userToken);
+  await TokenModel.updateRefreshToken(TEST_USER.id, userToken);
 
   await post(
     "/api/auth/logout",
@@ -512,7 +514,7 @@ test("[C7] logout thu hồi refresh token khỏi DB", async () => {
   );
 
   // Token phải bị thu hồi
-  const user = await UserModel.findByRefreshToken(userToken);
+  const user = await TokenModel.findByRefreshToken(userToken);
   assert.equal(user, null, "Refresh token phải bị xóa khỏi DB sau logout");
 });
 
