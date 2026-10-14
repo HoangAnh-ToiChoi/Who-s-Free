@@ -2,6 +2,7 @@ import { Router } from "express";
 import AuthController from "../controllers/auth.controller.js";
 import AuthMiddleware from "../middlewares/auth.middleware.js";
 import validate from "../middlewares/validate.middleware.js";
+import { authRateLimit, forgotPasswordRateLimit } from "../middlewares/rateLimit.middleware.js";
 import {
   registerSchema,
   loginSchema,
@@ -36,18 +37,18 @@ const authController = new AuthController();
  */
 
 // ─── Public Routes ───────────────────────────────────────────────────────────
-router.post("/register", validate(registerSchema), authController.register);
-router.post("/login", validate(loginSchema), authController.login);
+router.post("/register", authRateLimit, validate(registerSchema), authController.register);
+router.post("/login", authRateLimit, validate(loginSchema), authController.login);
 router.get("/google", authController.googleOAuth);
 router.get("/google/callback", authController.googleCallback);
-router.post("/google/session", validate(googleSessionSchema), authController.googleSession);
+router.post("/google/session", authRateLimit, validate(googleSessionSchema), authController.googleSession);
 router.post("/refresh", authController.refresh);
 router.post("/logout", authController.logout);
 
 // Recovery Flow (Quên mật khẩu qua OTP 6 số)
-router.post("/forgot-password", validate(forgotPasswordSchema), authController.forgotPassword);
-router.post("/verify-otp", validate(verifyOtpSchema), authController.verifyOtp);
-router.post("/reset-password", validate(resetPasswordSchema), authController.resetPassword);
+router.post("/forgot-password", forgotPasswordRateLimit, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post("/verify-otp", authRateLimit, validate(verifyOtpSchema), authController.verifyOtp);
+router.post("/reset-password", authRateLimit, validate(resetPasswordSchema), authController.resetPassword);
 
 // ─── Protected Routes ────────────────────────────────────────────────────────
 router.get("/me", AuthMiddleware.authenticate, authController.getMe);
