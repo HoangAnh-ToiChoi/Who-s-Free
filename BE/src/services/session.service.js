@@ -1,13 +1,14 @@
 import SessionModel from "../models/session.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import AppError from "../utils/AppError.js";
+import { toPublicSession } from "../utils/mappers/session.mapper.js";
 
 /**
  * SessionService - Xử lý nghiệp vụ Lịch trình & Phiên khảo sát (Sessions)
  */
 class SessionService {
   async getSessions(filters = {}) {
-    return await SessionModel.findAll(filters);
+    return (await SessionModel.findAll(filters)).map(toPublicSession);
   }
 
   async getSessionById(id) {
@@ -18,7 +19,7 @@ class SessionService {
     if (!session) {
       throw AppError.notFound("Không tìm thấy phiên khảo sát", "SESSION_NOT_FOUND");
     }
-    return session;
+    return toPublicSession(session);
   }
 
   async createSession(payload, actorId) {
@@ -29,7 +30,7 @@ class SessionService {
       ...payload,
       createdBy: actorId || payload.createdBy || null,
     };
-    return await SessionModel.create(sessionData);
+    return toPublicSession(await SessionModel.create(sessionData));
   }
 
   async deleteSession(id, actorId) {

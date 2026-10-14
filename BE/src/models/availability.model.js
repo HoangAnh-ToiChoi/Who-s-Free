@@ -186,21 +186,6 @@ const INITIAL_AVAILABILITIES = [
 class AvailabilityModel {
   static store = new Map(INITIAL_AVAILABILITIES.map((a) => [a.id, { ...a }]));
 
-  static toPublicAvailability(a) {
-    if (!a) return null;
-    return {
-      id: a.id,
-      sessionId: a.sessionId,
-      memberId: a.memberId,
-      memberName: a.memberName || "Thành viên",
-      role: a.role || "Thành viên",
-      groupRole: a.groupRole || "core",
-      avatarUrl: a.avatarUrl || null,
-      slots: Array.isArray(a.slots) ? a.slots : [],
-      updatedAt: a.updatedAt || new Date().toISOString(),
-    };
-  }
-
   static async findAll({ sessionId, memberId } = {}) {
     let list = Array.from(this.store.values());
     if (sessionId) {
@@ -209,13 +194,13 @@ class AvailabilityModel {
     if (memberId) {
       list = list.filter((a) => a.memberId === memberId);
     }
-    return list.map(this.toPublicAvailability);
+    return list;
   }
 
   static async findById(id) {
     if (!id) return null;
     const item = this.store.get(id);
-    return item ? this.toPublicAvailability(item) : null;
+    return item || null;
   }
 
   static async create(payload) {
@@ -227,7 +212,7 @@ class AvailabilityModel {
       updatedAt: new Date().toISOString(),
     };
     this.store.set(id, record);
-    return this.toPublicAvailability(record);
+    return record;
   }
 
   static async update(id, payload) {
@@ -241,7 +226,7 @@ class AvailabilityModel {
       updatedAt: new Date().toISOString(),
     };
     this.store.set(id, updated);
-    return this.toPublicAvailability(updated);
+    return updated;
   }
 }
 

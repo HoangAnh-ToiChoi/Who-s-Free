@@ -1,12 +1,13 @@
 import AvailabilityModel from "../models/availability.model.js";
 import AppError from "../utils/AppError.js";
+import { toPublicAvailability } from "../utils/mappers/availability.mapper.js";
 
 /**
  * AvailabilityService - Xử lý nghiệp vụ khung giờ rảnh của thành viên (Availability Slots)
  */
 class AvailabilityService {
   async getAvailabilities(filters = {}) {
-    return await AvailabilityModel.findAll(filters);
+    return (await AvailabilityModel.findAll(filters)).map(toPublicAvailability);
   }
 
   async getAvailabilityById(id) {
@@ -17,7 +18,7 @@ class AvailabilityService {
     if (!record) {
       throw AppError.notFound("Không tìm thấy khung giờ rảnh", "AVAILABILITY_NOT_FOUND");
     }
-    return record;
+    return toPublicAvailability(record);
   }
 
   async createAvailability(payload, actorId) {
@@ -29,7 +30,7 @@ class AvailabilityService {
       ...payload,
       userId: actorId || payload.userId || null,
     };
-    return await AvailabilityModel.create(data);
+    return toPublicAvailability(await AvailabilityModel.create(data));
   }
 
   async updateAvailability(id, payload, actorId) {
@@ -50,7 +51,7 @@ class AvailabilityService {
     if (!updated) {
       throw AppError.notFound("Không tìm thấy khung giờ rảnh để cập nhật", "AVAILABILITY_NOT_FOUND");
     }
-    return updated;
+    return toPublicAvailability(updated);
   }
 }
 
