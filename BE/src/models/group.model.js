@@ -7,7 +7,7 @@ import { isUuid } from "../utils/uuid.js";
  *
  * Trách nhiệm duy nhất (SRP):
  *   - Thực thi các thao tác đọc/ghi dữ liệu bảng public.groups
- *   - Chuẩn hóa entity trả về cho Controller/Service (toPublicGroup)
+ *   - Đảm bảo tính nguyên tử (Transaction) cho các thao tác write
  *   - Đảm bảo tính nguyên tử (Transaction) và không nuốt lỗi DB
  */
 class GroupModel {

@@ -8,7 +8,7 @@ import AppError from "../utils/AppError.js";
  * Trách nhiệm duy nhất (SRP):
  *   - Thực thi các thao tác đọc/ghi dữ liệu lời mời tham gia nhóm
  *   - Lưu trữ bản băm token (token_hash) thay vì plain text token
- *   - Cung cấp phương thức chuẩn hóa Entity (toPublicInvitation)
+ *   - Hỗ trợ in-memory store song song cho test môi trường cô lập
  *   - Hỗ trợ in-memory store song song cho test môi trường cô lập
  */
 class GroupInvitationModel {
