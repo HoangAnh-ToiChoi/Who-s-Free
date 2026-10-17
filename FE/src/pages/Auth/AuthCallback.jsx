@@ -30,7 +30,6 @@ function AuthCallback() {
         const rawHash = window.location.hash ? window.location.hash.substring(1) : "";
         const hashParams = new URLSearchParams(rawHash);
         const hashAccessToken = hashParams.get("access_token");
-        const hashRefreshToken = hashParams.get("refresh_token");
 
         // 2. Kiểm tra Search Params (?code=...)
         const searchParams = new URLSearchParams(window.location.search);

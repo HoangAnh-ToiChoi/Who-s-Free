@@ -6,7 +6,6 @@ import HeatmapCell from "./HeatmapCell";
 import CellDetailPopover from "./CellDetailPopover";
 import { useScrollRestoration, useScrollbarGutter } from "~/hooks";
 import { useCellDetailPopover } from "../../hooks/useCellDetailPopover";
-import { START_HOUR, END_HOUR } from "~/utils/timeUtils";
 
 /**
  * HeatmapGrid - Lưới Heatmap mật độ rảnh của cả nhóm
@@ -21,7 +20,6 @@ import { START_HOUR, END_HOUR } from "~/utils/timeUtils";
  */
 function HeatmapGrid({
   weekDays,
-  matrix,
   totalMembers,
   getCell,
   selectedCell: externalSelectedCell,

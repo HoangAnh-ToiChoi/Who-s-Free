@@ -54,6 +54,7 @@ export function useSessionResolver() {
       );
 
       if (foundSession) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentSession(foundSession);
       } else {
         // Fallback: Tìm trực tiếp session qua API bằng actualId

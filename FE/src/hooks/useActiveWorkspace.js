@@ -44,6 +44,7 @@ export function useActiveWorkspace(workspaces = []) {
 
   useEffect(() => {
     if (!isMatrixRoute) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMatrixGroupId(null);
       return;
     }

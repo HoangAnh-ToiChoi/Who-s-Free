@@ -50,6 +50,7 @@ export function useGroupDetail(groupId = "ws-1") {
    * Tự động nạp lại khi groupId thay đổi
    */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadGroupData();
   }, [loadGroupData]);
 

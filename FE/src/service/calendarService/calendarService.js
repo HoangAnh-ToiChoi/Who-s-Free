@@ -1,6 +1,6 @@
 import http from "~/utils/http";
 import { slugify, generateRandomId, extractIdFromSlug } from "~/utils/slugify";
-import { calculateSessionMetrics, calculateGroupMetrics } from "~/utils/matrixCalculations";
+import { calculateSessionMetrics } from "~/utils/matrixCalculations";
 
 /**
  * Service quản lý Calendars / Planning Sessions và Availability Matrix

@@ -39,8 +39,8 @@ export function useCellDetailPopover({
     const spaceRight = containerRect.right - cellRect.right;
     const spaceLeft = cellRect.left - containerRect.left;
 
-    let left = 0;
-    let placement = "right";
+    let left;
+    let placement;
 
     // Quy tắc Auto-Flip: ưu tiên bên phải nếu còn ít nhất (width + 16px)
     if (spaceRight >= popoverWidth + 16) {
@@ -100,6 +100,7 @@ export function useCellDetailPopover({
   // Cập nhật vị trí khi selectedCell thay đổi hoặc khi resize / scroll
   useEffect(() => {
     if (!selectedCell) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPosition(null);
       return;
     }

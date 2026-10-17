@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRoutes from "./auth.routes.js";
 import groupRoutes from "./group.routes.js";
 import invitationRoutes from "./invitation.routes.js";
+import joinRoutes from "./join.routes.js";
 import sessionRoutes from "./session.routes.js";
 import availabilityRoutes from "./availability.routes.js";
 import MemberModel from "../models/member.model.js";
@@ -14,6 +15,7 @@ const router = Router();
 router.use("/auth", authRoutes);
 router.use("/groups", groupRoutes);
 router.use("/invitations", invitationRoutes);
+router.use("/join", joinRoutes);
 router.use("/sessions", sessionRoutes);
 router.use("/availabilities", availabilityRoutes);
 

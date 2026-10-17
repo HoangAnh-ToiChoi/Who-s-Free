@@ -1,6 +1,6 @@
-import { Outlet, Link } from "react-router";
+import { Outlet } from "react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import AppLogo from "~/layouts/DefaultLayout/components/Topbar/components/AppLogo";
 
 function AuthLayout() {

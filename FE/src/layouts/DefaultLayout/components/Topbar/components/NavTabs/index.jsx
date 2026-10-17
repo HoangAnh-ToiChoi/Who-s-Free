@@ -1,7 +1,4 @@
-import { NavLink } from "react-router";
-import { cn } from "~/lib/utils";
-
-function NavTabs({ tabs }) {
+function NavTabs() {
   // return (
   //   <nav className="flex items-center gap-0.5">
   //     {tabs.map((tab) => (

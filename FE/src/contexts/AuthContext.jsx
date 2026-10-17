@@ -1,10 +1,10 @@
 import { createContext, useState, useEffect, useCallback, useRef } from "react";
 import authService, {
   getStoredUser,
-  setStoredUser,
   clearStoredAuth,
 } from "~/service/authService/authService";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {

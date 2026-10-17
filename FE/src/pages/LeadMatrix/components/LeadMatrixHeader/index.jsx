@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Calendar, Users } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { createCompositeSlug } from "~/utils/slugify";
 

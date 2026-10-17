@@ -8,7 +8,7 @@ import { cn } from "~/lib/utils";
 function HeatmapTimeColumn({ blocks }) {
   return (
     <div className="flex flex-col shrink-0 w-[60px] border-r border-slate-200/60">
-      {blocks.map((blockStart, idx) => {
+      {blocks.map((blockStart) => {
         const isFullHour = blockStart % 60 === 0;
         return (
           <div

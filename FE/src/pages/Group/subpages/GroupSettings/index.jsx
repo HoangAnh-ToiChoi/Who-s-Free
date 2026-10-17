@@ -1,35 +1,11 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Settings,
-  Link2,
-  Check,
-  ShieldCheck,
-  Users,
-  Calendar,
-  Layers,
-} from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Users, Layers } from "lucide-react";
 
 function GroupSettings({ group }) {
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-
-  const inviteLink = `${window.location.origin}/invite/${group?.slug || group?.id || ""}`;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.warn("Failed to copy link:", err);
-    }
-  };
 
   return (
     <div className="mt-8 space-y-6 max-w-4xl">
-      {/* Header */}
       <div>
         <h2 className="text-xl font-bold tracking-tight text-slate-900">
           {t("groupDetail.settingsTitle")}
@@ -39,7 +15,6 @@ function GroupSettings({ group }) {
         </p>
       </div>
 
-      {/* Group Information Card */}
       <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs space-y-5">
         <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
           <Layers size={16} className="text-indigo-600" />
@@ -96,46 +71,6 @@ function GroupSettings({ group }) {
           <div className="mt-1 min-h-[64px] p-3 rounded-xl border border-slate-200 bg-slate-50/60 text-xs leading-relaxed text-slate-700">
             {group?.description || ""}
           </div>
-        </div>
-      </div>
-
-      {/* Invite Link Card */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Link2 size={16} className="text-indigo-600" />
-          <h3 className="text-sm font-bold text-slate-900">
-            {t("groupDetail.inviteLinkSection")}
-          </h3>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <input
-            type="text"
-            readOnly
-            value={inviteLink}
-            className="flex-1 h-10 rounded-xl border border-slate-200 bg-slate-50 px-3.5 font-mono text-xs text-slate-600 select-all focus:outline-none"
-          />
-          <Button
-            type="button"
-            onClick={handleCopy}
-            className={`h-10 min-w-[150px] justify-center gap-2 rounded-xl text-xs font-semibold shadow-xs cursor-pointer transition-all ${
-              copied
-                ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                : "bg-indigo-600 text-white hover:bg-indigo-700"
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check size={14} className="shrink-0" />
-                <span>{t("groupDetail.copied")}</span>
-              </>
-            ) : (
-              <>
-                <Link2 size={14} className="shrink-0" />
-                <span>{t("groupDetail.copyInviteLink")}</span>
-              </>
-            )}
-          </Button>
         </div>
       </div>
     </div>

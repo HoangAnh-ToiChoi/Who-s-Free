@@ -138,12 +138,10 @@ export function useOptimalAnalysis({
 
     const confResults = sortedConflicts.slice(0, 3).map((item) => {
       const timeLabel = `${item.dayName}, ${formatMinutes(item.startMin)} – ${formatMinutes(item.endMin)}`;
-      const presentNames = item.members.map((m) => m.name).join(", ");
       const missingMembers = allMembers.filter(
         (m) => !item.members.some((im) => im.id === (m.memberId || m.id))
       );
       const missingNames = missingMembers.map((m) => m.memberName || m.name).join(", ");
-      const missingCount = totalMembers - item.count;
 
       return {
         id: `conf-${item.dayIndex}-${item.startMin}`,

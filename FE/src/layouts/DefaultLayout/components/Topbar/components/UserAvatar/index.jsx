@@ -36,14 +36,18 @@ function UserAvatar({ user }) {
     );
   }
 
-  const initials = activeUser?.name || activeUser?.fullName
-    ? (activeUser.name || activeUser.fullName)
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "U";
+  const displayName = activeUser?.name || activeUser?.fullName || activeUser?.email || "U";
+
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const avatarSrc =
+    activeUser?.avatarUrl ||
+    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=4f46e5&textColor=ffffff&fontSize=40&bold=true`;
 
   const isVietnamese = i18n.language?.startsWith("vi");
 
@@ -61,10 +65,10 @@ function UserAvatar({ user }) {
           open ? "ring-indigo-600" : "ring-slate-200 hover:ring-slate-300"
         )}
       >
-        {activeUser?.avatarUrl && !imgError ? (
+        {!imgError ? (
           <img
-            src={activeUser.avatarUrl}
-            alt={activeUser.name || activeUser.fullName || "User"}
+            src={avatarSrc}
+            alt={displayName}
             onError={() => setImgError(true)}
             className="h-full w-full object-cover"
           />
@@ -80,10 +84,10 @@ function UserAvatar({ user }) {
           {/* User info */}
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
             <div className="h-9 w-9 overflow-hidden rounded-full shrink-0 flex items-center justify-center bg-indigo-50">
-              {activeUser?.avatarUrl && !imgError ? (
+              {!imgError ? (
                 <img
-                  src={activeUser.avatarUrl}
-                  alt={activeUser.name || activeUser.fullName || "User"}
+                  src={avatarSrc}
+                  alt={displayName}
                   onError={() => setImgError(true)}
                   className="h-full w-full object-cover"
                 />

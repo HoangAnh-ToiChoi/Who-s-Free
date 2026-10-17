@@ -77,7 +77,7 @@ export function calculateSessionMetrics(session, availabilities = [], fallbackTo
   }
 
   // 4. Định dạng chuỗi Highest Overlap Text
-  let highestOverlapText = "";
+  let highestOverlapText;
   if (maxCount > 0) {
     const formatMin = (m) => {
       const hh = String(Math.floor(m / 60)).padStart(2, "0");

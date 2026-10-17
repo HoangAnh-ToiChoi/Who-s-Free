@@ -209,6 +209,7 @@ export function useGridDrag({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragState, columnRefs, containerRef, onDragComplete]);
 
   // Vùng xem trước đang kéo (Computed preview block)

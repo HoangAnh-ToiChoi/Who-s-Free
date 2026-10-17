@@ -31,6 +31,7 @@ function SlotPopover({
 
   useEffect(() => {
     if (slotData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStartTime(minutesToTimeString(slotData.startMinutes));
       setEndTime(minutesToTimeString(slotData.endMinutes));
       setNote(slotData.note || "");

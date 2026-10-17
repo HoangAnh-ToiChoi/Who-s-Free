@@ -1,18 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { createLogger } from "redux-logger";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import { persistStore } from "redux-persist";
 
 // import authReducer from "~/features/Auth/AuthSlice";
 
 const logger = createLogger();
 
-const persistConfig = {
-  key: "User",
-  storage: storage.default || storage,
-};
-
-// const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+// const persistedAuthReducer = persistReducer(...);
 
 export const store = configureStore({
   reducer: {

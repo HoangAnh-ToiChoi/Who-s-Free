@@ -252,6 +252,28 @@ export const groupService = {
       { method: "DELETE" }
     );
   },
+
+  /**
+   * Lấy liên kết mời hiện tại của nhóm (GET /api/groups/:id/invite-link)
+   * @param {string} groupId
+   * @returns {Promise<{ token: string|null, expiresAt: string|null, inviteUrl: string|null }>}
+   */
+  async getGroupInviteLink(groupId) {
+    if (!groupId) return null;
+    return backendRequest(`/groups/${encodeURIComponent(groupId)}/invite-link`);
+  },
+
+  /**
+   * Tạo / làm mới liên kết mời nhóm (POST /api/groups/:id/invite-link)
+   * @param {string} groupId
+   * @returns {Promise<{ token: string, expiresAt: string, inviteUrl: string }>}
+   */
+  async createGroupInviteLink(groupId) {
+    if (!groupId) throw new Error("Group ID is required");
+    return backendRequest(`/groups/${encodeURIComponent(groupId)}/invite-link`, {
+      method: "POST",
+    });
+  },
 };
 
 export default groupService;

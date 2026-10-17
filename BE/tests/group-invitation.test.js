@@ -2,9 +2,6 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { after, before, beforeEach, test } from "node:test";
 import { once } from "node:events";
-import jwt from "jsonwebtoken";
-
-const TEST_JWT_SECRET = "group-invitation-test-secret-at-least-32-characters";
 
 const OWNER_USER = {
   id: "10000000-0000-0000-0000-000000000001",
@@ -48,18 +45,15 @@ let GroupModel;
 let GroupMemberModel;
 let GroupInvitationModel;
 let UserModel;
+let TokenService;
 let EmailService;
 let sendGroupInvitationImplementation;
 let usersById;
 let server;
 let baseUrl;
 
-function createToken(user, expiresIn = "5m") {
-  return jwt.sign(
-    { sub: user.id, email: user.email, role: "user" },
-    TEST_JWT_SECRET,
-    { expiresIn }
-  );
+function getAuthToken(user) {
+  return TokenService.generateAccessToken(user);
 }
 
 async function request(path, { method = "GET", body, token } = {}) {
@@ -78,7 +72,7 @@ async function request(path, { method = "GET", body, token } = {}) {
 
 before(async () => {
   process.env.NODE_ENV = "test";
-  process.env.JWT_SECRET = TEST_JWT_SECRET;
+  process.env.JWT_SECRET = "whosfree_super_secret_jwt_key_2026_dongianlaanhratdeptrai";
   process.env.CLIENT_ORIGIN = "http://localhost:5173";
 
   ({ default: app } = await import("../src/app.js"));
@@ -86,6 +80,7 @@ before(async () => {
   ({ default: GroupMemberModel } = await import("../src/models/group-member.model.js"));
   ({ default: GroupInvitationModel } = await import("../src/models/group-invitation.model.js"));
   ({ default: UserModel } = await import("../src/models/user.model.js"));
+  ({ default: TokenService } = await import("../src/services/token.service.js"));
   ({ default: EmailService } = await import("../src/services/email.service.js"));
   sendGroupInvitationImplementation = EmailService.sendGroupInvitation;
 
@@ -200,7 +195,7 @@ test("INVITE-01: Owner tạo lời mời thành công và gửi email qua Resend
 
   const { response, data } = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: "invitee@example.com", role: "member" },
   });
 
@@ -239,7 +234,7 @@ test("INVITE-02: Lỗi Resend được báo đúng và không lưu lời mời g
 
   const { response, data } = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: "fail-email@example.com", role: "member" },
   });
 
@@ -255,7 +250,7 @@ test("INVITE-02B: Gửi lại lỗi thì lời mời cũ vẫn còn hiệu lực
   EmailService.sendGroupInvitation = async () => ({ id: "ok" });
   const first = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const firstId = first.data.data.invitation.id;
@@ -269,7 +264,7 @@ test("INVITE-02B: Gửi lại lỗi thì lời mời cũ vẫn còn hiệu lực
   };
   const resend = await request(
     `/api/groups/${testGroup.id}/invitations/${firstId}/resend`,
-    { method: "POST", token: createToken(OWNER_USER) }
+    { method: "POST", token: getAuthToken(OWNER_USER) }
   );
 
   assert.equal(resend.response.status, 502);
@@ -282,7 +277,7 @@ test("INVITE-02B: Gửi lại lỗi thì lời mời cũ vẫn còn hiệu lực
 test("INVITE-03: Lead không được phép mời vai trò Lead (Chỉ Owner mới có quyền)", async () => {
   const { response, data } = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(LEAD_USER),
+    token: getAuthToken(LEAD_USER),
     body: { email: "newlead@example.com", role: "lead" },
   });
 
@@ -302,7 +297,7 @@ test("INVITE-04: Thành viên thông thường (Member) không có quyền tạo
 
   const { response, data } = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(MEMBER_USER),
+    token: getAuthToken(MEMBER_USER),
     body: { email: "outsider@example.com" },
   });
 
@@ -313,7 +308,7 @@ test("INVITE-04: Thành viên thông thường (Member) không có quyền tạo
 test("INVITE-05: Từ chối tạo lời mời nếu người nhận đã là thành viên trong nhóm", async () => {
   const { response, data } = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: LEAD_USER.email },
   });
 
@@ -333,7 +328,7 @@ test("INVITE-06: Từ chối tạo lời mời khi nhóm đã đạt sức chứ
 
   const { response, data } = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: "someone@example.com" },
   });
 
@@ -350,7 +345,7 @@ test("PREVIEW-01: Xem trước lời mời hợp lệ mà KHÔNG làm thay đổ
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -387,7 +382,7 @@ test("ACCEPT-01: Chấp nhận lời mời thành công khi đăng nhập đúng
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email, role: "member" },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -395,7 +390,7 @@ test("ACCEPT-01: Chấp nhận lời mời thành công khi đăng nhập đúng
   // Chấp nhận lời mời bằng đúng tài khoản TARGET_USER
   const { response, data } = await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
 
   assert.equal(response.status, 200);
@@ -420,7 +415,7 @@ test("ACCEPT-01B: Người chưa có tài khoản có thể đăng ký đúng em
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: NEW_USER.email },
   });
   assert.equal(createRes.response.status, 201);
@@ -430,7 +425,7 @@ test("ACCEPT-01B: Người chưa có tài khoản có thể đăng ký đúng em
   usersById.set(NEW_USER.id, NEW_USER);
   const acceptRes = await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(NEW_USER),
+    token: getAuthToken(NEW_USER),
   });
   assert.equal(acceptRes.response.status, 200);
   assert.equal(acceptRes.data.data.member.userId, NEW_USER.id);
@@ -440,7 +435,7 @@ test("ACCEPT-01C: Không đăng nhập thì không thể chấp nhận lời m�
   EmailService.sendGroupInvitation = async () => ({ id: "ok" });
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -454,7 +449,7 @@ test("ACCEPT-02: Tài khoản có email khác không thể chấp nhận lời m
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -462,7 +457,7 @@ test("ACCEPT-02: Tài khoản có email khác không thể chấp nhận lời m
   // Cố chấp nhận bằng tài khoản OTHER_USER (email wronguser@example.com)
   const { response, data } = await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(OTHER_USER),
+    token: getAuthToken(OTHER_USER),
   });
 
   assert.equal(response.status, 403);
@@ -474,7 +469,7 @@ test("ACCEPT-03: Token đã dùng (accepted) không thể dùng lại", async ()
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -482,13 +477,13 @@ test("ACCEPT-03: Token đã dùng (accepted) không thể dùng lại", async ()
   // Chấp nhận lần 1
   await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
 
   // Chấp nhận lần 2
   const { response, data } = await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
 
   assert.equal(response.status, 400);
@@ -500,7 +495,7 @@ test("ACCEPT-04: Token hết hạn sau 24 giờ không thể chấp nhận", asy
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -511,7 +506,7 @@ test("ACCEPT-04: Token hết hạn sau 24 giờ không thể chấp nhận", asy
 
   const { response, data } = await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
 
   assert.equal(response.status, 400);
@@ -528,7 +523,7 @@ test("RESEND-01: Gửi lại lời mời vô hiệu hóa link cũ và cấp hạ
   // Lời mời 1
   const firstRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const firstToken = firstRes.data.data.inviteLink.split("/invite/")[1];
@@ -539,7 +534,7 @@ test("RESEND-01: Gửi lại lời mời vô hiệu hóa link cũ và cấp hạ
     `/api/groups/${testGroup.id}/invitations/${firstInviteId}/resend`,
     {
       method: "POST",
-      token: createToken(OWNER_USER),
+      token: getAuthToken(OWNER_USER),
     }
   );
 
@@ -550,7 +545,7 @@ test("RESEND-01: Gửi lại lời mời vô hiệu hóa link cũ và cấp hạ
   // Thử dùng lại firstToken -> bị từ chối vì đã bị thu hồi
   const { response, data } = await request(`/api/invitations/${firstToken}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
   assert.equal(response.status, 400);
   assert.equal(data.error, "INVITATION_REVOKED");
@@ -558,7 +553,7 @@ test("RESEND-01: Gửi lại lời mời vô hiệu hóa link cũ và cấp hạ
   // Dùng secondToken -> thành công
   const secondAccept = await request(`/api/invitations/${secondToken}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
   assert.equal(secondAccept.response.status, 200);
   assert.equal(secondAccept.data.success, true);
@@ -569,7 +564,7 @@ test("REVOKE-01: Thu hồi lời mời thành công và link bị vô hiệu hó
 
   const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
     method: "POST",
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
     body: { email: TARGET_USER.email },
   });
   const token = createRes.data.data.inviteLink.split("/invite/")[1];
@@ -580,7 +575,7 @@ test("REVOKE-01: Thu hồi lời mời thành công và link bị vô hiệu hó
     `/api/groups/${testGroup.id}/invitations/${inviteId}`,
     {
       method: "DELETE",
-      token: createToken(OWNER_USER),
+      token: getAuthToken(OWNER_USER),
     }
   );
   assert.equal(revokeRes.response.status, 200);
@@ -588,7 +583,7 @@ test("REVOKE-01: Thu hồi lời mời thành công và link bị vô hiệu hó
   // Thử accept link đã thu hồi -> 400 INVITATION_REVOKED
   const acceptRes = await request(`/api/invitations/${token}/accept`, {
     method: "POST",
-    token: createToken(TARGET_USER),
+    token: getAuthToken(TARGET_USER),
   });
   assert.equal(acceptRes.response.status, 400);
   assert.equal(acceptRes.data.error, "INVITATION_REVOKED");
@@ -626,7 +621,7 @@ test("EMAIL-01: Không cấu hình Resend thì không báo gửi email thành c�
 
 test("LIST-01: Owner hoặc Lead lấy danh sách lời mời khi chưa có lời mời trả về 200 và mảng rỗng []", async () => {
   const { response, data } = await request(`/api/groups/${OWNER_USER.id ? "90000000-0000-0000-0000-000000000001" : ""}/invitations`, {
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
   });
   assert.equal(response.status, 200);
   assert.equal(data.success, true);
@@ -635,7 +630,7 @@ test("LIST-01: Owner hoặc Lead lấy danh sách lời mời khi chưa có lờ
 
 test("LIST-02: Member thông thường lấy danh sách lời mời bị từ chối 403 FORBIDDEN", async () => {
   const { response, data } = await request("/api/groups/90000000-0000-0000-0000-000000000001/invitations", {
-    token: createToken(MEMBER_USER),
+    token: getAuthToken(MEMBER_USER),
   });
   assert.equal(response.status, 403);
   assert.equal(data.success, false);
@@ -650,7 +645,7 @@ test("LIST-03: Chưa đăng nhập khi lấy danh sách lời mời bị từ ch
 
 test("LIST-04: Lấy danh sách lời mời của nhóm không tồn tại trả về 404 GROUP_NOT_FOUND", async () => {
   const { response, data } = await request("/api/groups/00000000-0000-0000-0000-000000000000/invitations", {
-    token: createToken(OWNER_USER),
+    token: getAuthToken(OWNER_USER),
   });
   assert.equal(response.status, 404);
   assert.equal(data.success, false);

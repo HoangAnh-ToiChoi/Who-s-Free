@@ -3,6 +3,7 @@ import GroupController from "../controllers/group.controller.js";
 import AuthMiddleware from "../middlewares/auth.middleware.js";
 import validate from "../middlewares/validate.middleware.js";
 import GroupInvitationController from "../controllers/group-invitation.controller.js";
+import GroupInviteLinkController from "../controllers/group-invite-link.controller.js";
 import {
   createGroupSchema,
   updateGroupSchema,
@@ -13,6 +14,7 @@ import {
 const router = Router();
 const groupController = new GroupController();
 const groupInvitationController = new GroupInvitationController();
+const groupInviteLinkController = new GroupInviteLinkController();
 
 // Toàn bộ API Group & Members bắt buộc người dùng phải xác thực (Bearer Token)
 router.use(AuthMiddleware.authenticate);
@@ -40,5 +42,11 @@ router.post("/:id/invitations", validate(createInvitationSchema), groupInvitatio
 router.get("/:id/invitations", groupInvitationController.getPendingInvitations);
 router.post("/:id/invitations/:invitationId/resend", groupInvitationController.resendInvitation);
 router.delete("/:id/invitations/:invitationId", groupInvitationController.revokeInvitation);
+
+/**
+ * Group Invite Link Endpoints — /api/groups/:id/invite-link
+ */
+router.post("/:id/invite-link", groupInviteLinkController.generateInviteLink);
+router.get("/:id/invite-link", groupInviteLinkController.getInviteLink);
 
 export default router;

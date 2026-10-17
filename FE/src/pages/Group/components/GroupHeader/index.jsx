@@ -42,8 +42,6 @@ function HeaderAvatarItem({ member, src }) {
 function GroupHeader({
   group,
   sessionsCount = 0,
-  onCreateCalendar,
-  isCreatingCalendar = false,
   activeTab = "calendars",
   onTabChange,
   onOpenInvite,

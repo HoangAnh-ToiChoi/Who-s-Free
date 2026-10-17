@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useMemo, useCallback } from "react";
 import { groupService } from "~/service/groupService/groupService";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const GroupContext = createContext(null);
 
 /**
@@ -38,6 +39,7 @@ export function GroupProvider({ children }) {
    * Kích hoạt tải dữ liệu 1 lần duy nhất khi GroupProvider mount
    */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadGroups();
   }, [loadGroups]);
 

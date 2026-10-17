@@ -62,11 +62,9 @@ function AvailabilityGrid({ sessionId }) {
   // 2. Hook quản lý danh sách slot rảnh & thống kê
   const {
     slots,
-    stats,
     saveSlot,
     deleteSlot,
     clearAllSlots,
-    resizeSlot,
   } = useAvailabilitySlots({ sessionId });
 
   // Lọc các slot thuộc tuần hiện tại để hiển thị và tính toán va chạm chính xác
@@ -328,7 +326,7 @@ function AvailabilityGrid({ sessionId }) {
                       activeSlotId={popover.isOpen ? popover.slotData?.id : null}
                       onMouseDown={(e) => startDrag(idx, e)}
                       onSlotClick={handleSlotClick}
-                      onResizeStart={(slotId, edge, e) => {
+                      onResizeStart={() => {
                         // Hook resize slot
                       }}
                     />

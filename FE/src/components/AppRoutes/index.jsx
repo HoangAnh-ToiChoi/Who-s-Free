@@ -16,6 +16,7 @@ const ForgotPassword = lazy(() => import("~/pages/Auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("~/pages/Auth/ResetPassword"));
 const AuthCallback = lazy(() => import("~/pages/Auth/AuthCallback"));
 const Invite = lazy(() => import("~/pages/Invite"));
+const Join = lazy(() => import("~/pages/Join"));
 
 function RouteLoading() {
   return (
@@ -36,6 +37,8 @@ function AppRoutes() {
         <Routes>
           {/* Public Invitation Acceptance Flow */}
           <Route path="/invite/:token" element={<Invite />} />
+          {/* Public Group Join Link Flow */}
+          <Route path="/join/:token" element={<Join />} />
 
           {/* Auth Flow Routes — Giao diện Layout riêng biệt */}
           <Route element={<GuestOnly />}>
