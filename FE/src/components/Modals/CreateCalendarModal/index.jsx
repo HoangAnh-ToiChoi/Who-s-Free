@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   CalendarPlus,
@@ -16,7 +15,6 @@ import { useClickOutside } from "~/hooks";
 import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { createCompositeSlug } from "~/utils/slugify";
 
 const DATE_RANGE_OPTIONS = [
   { id: "week-1", label: "Oct 20 – Oct 26, 2026 (Current Week)", viLabel: "20 Th10 – 26 Th10, 2026 (Tuần hiện tại)" },
@@ -64,7 +62,6 @@ function formatCalendarPayload(formState, sessionTypes) {
 
 function CreateCalendarFormBody({ onOpenChange, onSubmit, isSubmitting: externalIsSubmitting }) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const isVietnamese = i18n.language?.startsWith("vi");
 
   const SESSION_TYPES = [
@@ -148,14 +145,6 @@ function CreateCalendarFormBody({ onOpenChange, onSubmit, isSubmitting: external
           return;
         }
         onOpenChange?.(false);
-
-        const createdObj = result?.data || result;
-        const targetSlug = createdObj?.id
-          ? createCompositeSlug(createdObj.title, createdObj.id)
-          : (createdObj?.slug || createdObj?.id);
-        if (targetSlug) {
-          navigate(`/matrix/${targetSlug}`, { state: { session: createdObj } });
-        }
       } catch (err) {
         setErrorMessage(
           err?.message === "Network Error"

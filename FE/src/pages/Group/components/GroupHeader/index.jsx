@@ -55,35 +55,17 @@ function GroupHeader({
     currentUser?.name ||
     (currentUser?.email ? currentUser.email.split("@")[0] : "");
   const normalizedUserRole = (group?.userRole || group?.role || "").toLowerCase();
-  const isOwner = normalizedUserRole === "owner";
   const canInvite = normalizedUserRole === "owner" || normalizedUserRole === "lead";
 
-  // Xác định tên hiển thị của Leader (không dùng dữ liệu tĩnh)
-  const rawLead = group?.leadAdmin;
-  const isMockLead = !rawLead || rawLead.includes("Maya Lin");
+  const displayLeadName = group?.leadAdmin || currentUserName || "";
 
-  const displayLeadName = isOwner && currentUserName
-    ? currentUserName
-    : !isMockLead
-      ? rawLead
-      : currentUserName || "";
+  const previews = Array.isArray(group?.memberPreviews)
+    ? group.memberPreviews.slice(0, 4)
+    : [];
 
-  const previews =
-    Array.isArray(group?.memberPreviews) && group.memberPreviews.length > 0
-      ? group.memberPreviews.slice(0, 4)
-      : Array.isArray(group?.avatarPreviews) && group.avatarPreviews.length > 0
-        ? group.avatarPreviews.slice(0, 4).map((url, i) => ({
-            id: `av-${i}`,
-            name: i === 0 ? (displayLeadName || "Trưởng nhóm") : `Thành viên ${i + 1}`,
-            avatarUrl: url,
-          }))
-        : [];
+  const finalLeadName = displayLeadName || previews[0]?.name || "";
 
-  const finalLeadName =
-    displayLeadName ||
-    (previews[0]?.name && !previews[0].name.includes("Maya Lin") ? previews[0].name : "");
-
-  const totalMembers = parseInt(group?.memberCount, 10) || (previews.length > 0 ? previews.length : 1);
+  const totalMembers = parseInt(group?.memberCount, 10) || 0;
   const remainingCount = Math.max(0, totalMembers - previews.length);
 
   const tabs = [
