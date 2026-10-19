@@ -43,7 +43,22 @@ export function useSessionResolver() {
 
   // 2. Đồng bộ currentSession theo slug trên URL
   useEffect(() => {
-    if (!sessions.length) return;
+    // Khi sessions rỗng (getGroupCalendars trả về empty vì slug ≠ UUID) nhưng có slug
+    // trên URL → resolve thẳng qua ID trong composite slug, không cần session list
+    if (!sessions.length) {
+      if (!activeSlug) return;
+      const actualId = extractIdFromSlug(activeSlug);
+      calendarService
+        .getCalendarById(actualId || activeSlug)
+        .then((direct) => {
+          if (direct) {
+            setCurrentSession(direct);
+            setSessions([direct]);
+          }
+        })
+        .catch(() => {});
+      return;
+    }
 
     if (activeSlug) {
       const actualId = extractIdFromSlug(activeSlug);
