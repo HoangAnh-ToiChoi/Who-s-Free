@@ -18,7 +18,7 @@ export function useSessionsRealtime(sessions, onSessionUpdate) {
   const sessionIdsKey = sessions.map((s) => s.id).join(",");
 
   useEffect(() => {
-    if (!sessionIdsKey) return;
+    if (!sessionIdsKey || !supabase) return;
     const ids = sessionIdsKey.split(",").filter(Boolean);
 
     const channel = supabase
