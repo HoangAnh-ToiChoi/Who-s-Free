@@ -5,6 +5,34 @@ import { extractIdFromSlug } from "~/utils/slugify";
 
 // In-memory cache để tra cứu tức thì sessionId -> groupId mà không bị giật/re-fetch
 const sessionGroupCache = new Map();
+const CACHE_KEY = "whosfree_active_group_cache";
+
+function getCachedGroup(identifier) {
+  if (!identifier || typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(`${CACHE_KEY}_${identifier}`);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // Ignore storage errors
+  }
+  return null;
+}
+
+function setCachedGroup(group) {
+  if (!group || (!group.id && !group.slug) || typeof window === "undefined") return;
+  try {
+    const data = JSON.stringify({
+      id: group.id,
+      name: group.name,
+      slug: group.slug,
+      role: group.role,
+    });
+    if (group.id) sessionStorage.setItem(`${CACHE_KEY}_${group.id}`, data);
+    if (group.slug) sessionStorage.setItem(`${CACHE_KEY}_${group.slug}`, data);
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 /**
  * Custom hook nhận diện nhóm (workspace) hiện tại dựa trên route URL.
@@ -17,13 +45,14 @@ const sessionGroupCache = new Map();
  * hook nhận định đang ở Trang chủ.
  *
  * @param {Array} workspaces - Danh sách các workspace/nhóm khả dụng
+ * @param {boolean} isLoading - Trạng thái đang tải dữ liệu danh sách nhóm từ API
  * @returns {{
  *   activeWorkspace: Object|null,
  *   currentGroupId: string|null,
  *   isHome: boolean
  * }}
  */
-export function useActiveWorkspace(workspaces = []) {
+export function useActiveWorkspace(workspaces = [], isLoading = false) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [matrixGroupId, setMatrixGroupId] = useState(null);
@@ -95,22 +124,39 @@ export function useActiveWorkspace(workspaces = []) {
 
   const currentGroupId = pathGroupId || matrixGroupId;
 
-  const activeWorkspace = currentGroupId
-    ? workspaces.find(
-        (ws) =>
-          String(ws.id) === String(currentGroupId) ||
-          String(ws.slug) === String(currentGroupId)
-      ) || {
-        id: currentGroupId,
-        name: `Group #${currentGroupId}`,
-        role: "Member",
+  let activeWorkspace = null;
+
+  if (currentGroupId) {
+    const found = workspaces.find(
+      (ws) =>
+        String(ws.id) === String(currentGroupId) ||
+        String(ws.slug) === String(currentGroupId)
+    );
+
+    if (found) {
+      setCachedGroup(found);
+      activeWorkspace = found;
+    } else {
+      const cached = getCachedGroup(currentGroupId);
+      if (cached) {
+        activeWorkspace = cached;
+      } else if (isLoading || workspaces.length === 0) {
+        activeWorkspace = {
+          id: currentGroupId,
+          name: "",
+          role: "Member",
+          isLoading: true,
+        };
+      } else {
+        activeWorkspace = null;
       }
-    : null;
+    }
+  }
 
   return {
     activeWorkspace,
     currentGroupId,
-    isHome: !activeWorkspace,
+    isHome: !currentGroupId && !activeWorkspace,
   };
 }
 

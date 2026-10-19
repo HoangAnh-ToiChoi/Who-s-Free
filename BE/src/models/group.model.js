@@ -166,7 +166,7 @@ class GroupModel {
         tg.*,
         COALESCE(um.role, 'guest') as user_role,
         COALESCE(um.group_role, 'guest') as user_group_role,
-        COALESCE(s.member_count, 1) as member_count,
+        COALESCE(s.member_count, 0) as member_count,
         COALESCE(l.lead_admin, 'Trưởng nhóm') as lead_admin,
         p.member_previews
       FROM target_group tg
@@ -233,7 +233,7 @@ class GroupModel {
       )
       SELECT
         ug.*,
-        COALESCE(gs.member_count, 1) as member_count,
+        COALESCE(gs.member_count, 0) as member_count,
         COALESCE(gl.lead_admin, 'Trưởng nhóm') as lead_admin,
         COALESCE(gp.member_previews, '[]'::json) as member_previews
       FROM user_grps ug

@@ -19,24 +19,21 @@ export const calendarService = {
   async getGroupCalendars(groupId) {
     try {
       const actualGroupId = groupId ? extractIdFromSlug(groupId) : null;
-      // Dùng query param để json-server lọc đúng groupId thực tế
       const sessionPromise = actualGroupId
         ? http.get(`/sessions?groupId=${actualGroupId}`)
         : http.get("/sessions");
 
-      const [sessions, allAvails] = await Promise.all([
-        sessionPromise.catch(() => []),
-        // Fetch availabilities song song — cần để tính metrics khi đọc
-        http.get("/availabilities").catch(() => []),
-      ]);
-
+      const sessions = await sessionPromise.catch(() => []);
       const sessionList = Array.isArray(sessions) ? sessions : [];
-      const availsList = Array.isArray(allAvails) ? allAvails : [];
 
       return sessionList.map((session) => {
-        const sessionAvails = availsList.filter((a) => a.sessionId === session.id);
-        const metrics = calculateSessionMetrics(session, sessionAvails);
-        return { ...session, ...metrics };
+        const metrics = calculateSessionMetrics(session, []);
+        return {
+          ...session,
+          ...metrics,
+          respondedCount: session.respondedCount ?? metrics.respondedCount,
+          quorumPercent: session.quorumPercent ?? metrics.quorumPercent,
+        };
       });
     } catch (err) {
       console.error("Failed to fetch group calendars:", err);
@@ -61,87 +58,50 @@ export const calendarService = {
     }
     if (!session) throw new Error("Calendar session not found");
 
-    const avails = await http.get(`/availabilities?sessionId=${session.id}`).catch(() => []);
-    const metrics = calculateSessionMetrics(session, avails);
-    return { ...session, ...metrics };
+    const avails = await http.get(`/sessions/${session.id}/availabilities`).catch(() => []);
+    const safeAvails = Array.isArray(avails) ? avails : [];
+    const metrics = calculateSessionMetrics(session, safeAvails);
+    return {
+      ...session,
+      ...metrics,
+      respondedCount: session.respondedCount ?? metrics.respondedCount,
+      quorumPercent: session.quorumPercent ?? metrics.quorumPercent,
+    };
   },
 
   /**
    * Lấy danh sách availability của tất cả thành viên trong session
-   * Tự động join cùng bảng members để bảo đảm đầy đủ tên, role và avatar
    * @param {string} sessionId
    */
   async getSessionAvailabilities(sessionId) {
-    const [list, members] = await Promise.all([
-      http.get(`/availabilities?sessionId=${sessionId}`).catch(() => []),
-      http.get("/members").catch(() => []),
-    ]);
-    const safeList = Array.isArray(list) ? list : [];
-    const safeMembers = Array.isArray(members) ? members : [];
-
-    return safeList.map((item) => {
-      const found = safeMembers.find((m) => m.id === item.memberId);
-      return {
-        ...item,
-        memberName: item.memberName || found?.name || "Maya Lin",
-        role: item.role || found?.role || "Thành viên",
-        groupRole: item.groupRole || found?.groupRole || "core",
-        avatarUrl:
-          item.avatarUrl ||
-          found?.avatarUrl ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-      };
-    });
+    if (!sessionId) return [];
+    const actualId = extractIdFromSlug(sessionId);
+    const list = await http.get(`/sessions/${actualId}/availabilities`).catch(() => []);
+    return Array.isArray(list) ? list : [];
   },
 
   /**
-   * Lấy khung giờ rảnh của một thành viên trong session
+   * Lấy khung giờ rảnh của người dùng hiện tại trong session
    * @param {string} sessionId
-   * @param {string} memberId
-   * @returns {Object|null} Record availability (bao gồm id để dùng lại khi PATCH)
    */
-  async getMemberAvailability(sessionId, memberId = "mem-1") {
-    const list = await http.get(`/availabilities?sessionId=${sessionId}&memberId=${memberId}`).catch(() => []);
-    return list?.[0] || null;
+  async getMemberAvailability(sessionId) {
+    if (!sessionId) return null;
+    const actualId = extractIdFromSlug(sessionId);
+    return await http.get(`/sessions/${actualId}/my-availability`).catch(() => null);
   },
 
   /**
-   * Lưu slots của thành viên — chỉ 1 API call duy nhất
+   * Lưu slots của người dùng hiện tại trong session (Atomic Replace)
    *
    * @param {string} sessionId
-   * @param {string} memberId
+   * @param {string} _memberId
    * @param {Array} slots - Danh sách slot đã cập nhật
-   * @param {string|null} recordId - ID record availability đã có (từ lần load đầu).
-   *   Nếu có → PATCH trực tiếp. Nếu null → POST tạo mới.
-   * @returns {{ data: Object, recordId: string }} Kết quả lưu kèm recordId để cache lại
+   * @returns {{ data: Object, recordId: string }}
    */
-  async saveMemberAvailability(sessionId, memberId = "mem-1", slots = [], recordId = null) {
-    let saved;
-
-    if (recordId) {
-      // Đã tồn tại → PATCH trực tiếp, không cần GET kiểm tra
-      saved = await http.patch(`/availabilities/${recordId}`, { slots });
-    } else {
-      // Chưa có → POST tạo mới kèm thông tin hồ sơ
-      const members = await http.get("/members").catch(() => []);
-      const found = Array.isArray(members) ? members.find((m) => m.id === memberId) : null;
-      const newId = `avail-${sessionId}-${memberId}`;
-      saved = await http.post("/availabilities", {
-        id: newId,
-        sessionId,
-        memberId,
-        memberName: found?.name || "Maya Lin",
-        role: found?.role || "Lead Admin",
-        groupRole: found?.groupRole || "leadership",
-        avatarUrl:
-          found?.avatarUrl ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80",
-        slots,
-      });
-    }
-
-    // Trả về recordId để hook cache lại cho lần PATCH tiếp theo
-    return { data: saved, recordId: saved?.id || recordId };
+  async saveMemberAvailability(sessionId, _memberId, slots = []) {
+    const actualId = extractIdFromSlug(sessionId);
+    const saved = await http.put(`/sessions/${actualId}/my-availability`, { slots });
+    return { data: saved, recordId: actualId };
   },
 
   /**

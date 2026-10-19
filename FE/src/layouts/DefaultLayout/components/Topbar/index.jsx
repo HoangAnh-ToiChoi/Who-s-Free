@@ -11,11 +11,11 @@ import { useActiveWorkspace, useGroups, useCurrentUser } from "~/hooks";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
-  const { groups, createGroup, searchQuery, setSearchQuery } = useGroups();
+  const { groups, isLoading, createGroup, searchQuery, setSearchQuery } = useGroups();
   const { currentUser } = useCurrentUser();
 
   // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
-  const { activeWorkspace } = useActiveWorkspace(groups);
+  const { activeWorkspace } = useActiveWorkspace(groups, isLoading);
 
   const isVietnamese = i18n.language?.startsWith("vi");
 

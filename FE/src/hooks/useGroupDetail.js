@@ -55,6 +55,33 @@ export function useGroupDetail(groupId = "ws-1") {
   }, [loadGroupData]);
 
   /**
+   * Chỉ fetch lại sessions (không fetch lại group info) — dùng cho background polling
+   */
+  const reloadSessions = useCallback(async () => {
+    if (!group) return;
+    try {
+      const sessionsRes = await calendarService.getGroupCalendars(group.id);
+      setSessions(sessionsRes);
+    } catch {
+      // silent fail — không hiện lỗi khi background poll thất bại
+    }
+  }, [group]);
+
+  /**
+   * Polling 25s: tự fetch lại sessions khi tab đang active
+   */
+  useEffect(() => {
+    const POLL_INTERVAL = 25_000;
+    const tick = () => {
+      if (document.visibilityState === "visible") {
+        reloadSessions();
+      }
+    };
+    const id = setInterval(tick, POLL_INTERVAL);
+    return () => clearInterval(id);
+  }, [reloadSessions]);
+
+  /**
    * Tạo lịch trình khảo sát mới
    * @param {Object} calendarPayload
    */

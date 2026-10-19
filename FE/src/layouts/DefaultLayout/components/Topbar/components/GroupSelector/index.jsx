@@ -35,9 +35,13 @@ function GroupSelector({ workspaces = [], activeWorkspace, onChange, onCreateGro
             ) : (
               <Users size={16} className="text-indigo-600 shrink-0" />
             )}
-            <span className="max-w-[130px] truncate">
-              {isHome ? t("topbar.home") : activeWorkspace.name}
-            </span>
+            {activeWorkspace?.isLoading ? (
+              <span className="inline-block h-4 w-24 animate-pulse rounded bg-slate-200" />
+            ) : (
+              <span className="max-w-[130px] truncate">
+                {isHome ? t("topbar.home") : activeWorkspace.name}
+              </span>
+            )}
           </div>
           <ChevronDown
             size={14}
