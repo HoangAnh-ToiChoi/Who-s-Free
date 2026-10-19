@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
+import { isUuid } from "../utils/uuid.js";
 
 class AvailabilityModel {
   /**
@@ -32,7 +33,7 @@ class AvailabilityModel {
 
       const inserted = [];
       for (const slot of slots) {
-        const id = slot.id || randomUUID();
+        const id = (slot.id && isUuid(slot.id)) ? slot.id : randomUUID();
         const { rows } = await client.query(
           `INSERT INTO public.availability_slots
              (id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at)
