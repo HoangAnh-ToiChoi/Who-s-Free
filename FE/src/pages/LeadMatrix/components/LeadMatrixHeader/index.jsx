@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -14,12 +14,8 @@ function LeadMatrixHeader({ session }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const groupTarget = session?.groupId
-    ? session?.groupName
-      ? createCompositeSlug(session.groupName, session.groupId)
-      : session.groupId
-    : session?.groupSlug || "";
-  const backUrl = groupTarget ? `/groups/${groupTarget}` : "/";
+  const { groupId } = useParams();
+  const backUrl = groupId ? `/groups/${groupId}` : "/";
   const sessionSlug = session?.id
     ? createCompositeSlug(session.title, session.id)
     : session?.slug || session?.id || "";
@@ -58,7 +54,7 @@ function LeadMatrixHeader({ session }) {
         variant="outline"
         size="sm"
         onClick={() =>
-          navigate(`/matrix/${sessionSlug}`, { state: { session } })
+          navigate(`/groups/${groupId}/matrix/${sessionSlug}`, { state: { session } })
         }
         className="h-8 cursor-pointer gap-1.5 rounded-xl border-indigo-200/90 bg-white px-3 text-xs font-semibold text-indigo-700 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.98]"
       >

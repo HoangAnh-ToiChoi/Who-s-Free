@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Calendar,
@@ -47,6 +47,7 @@ function getSessionTheme(tagColor) {
 function SessionCard({ session }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { groupId } = useParams();
   const theme = getSessionTheme(session.tagColor);
   const HighlightIcon = theme.highlightIcon;
 
@@ -59,7 +60,7 @@ function SessionCard({ session }) {
   const sessionSlug = session.id
     ? createCompositeSlug(session.title, session.id)
     : (session.slug || session.id);
-  const matrixUrl = `/matrix/${sessionSlug}`;
+  const matrixUrl = `/groups/${groupId}/matrix/${sessionSlug}`;
 
   return (
     <div
