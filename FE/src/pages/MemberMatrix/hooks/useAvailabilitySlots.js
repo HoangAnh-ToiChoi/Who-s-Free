@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { calendarService } from "~/service/calendarService/calendarService";
+import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
 
 /**
  * Hook quản lý dữ liệu và thống kê các khung giờ rảnh (Availability Slots CRUD)
@@ -11,8 +11,8 @@ import { calendarService } from "~/service/calendarService/calendarService";
 export function useAvailabilitySlots(options = {}) {
   // Hỗ trợ truyền dạng chuỗi sessionId hoặc object { sessionId, memberId, initialData }
   const sessionId =
-    typeof options === "string" ? options : options?.sessionId || "sess-1";
-  const memberId = options?.memberId || "mem-1";
+    typeof options === "string" ? options : options?.sessionId || null;
+  const memberId = options?.memberId || null;
   const initialData = options?.initialData || null;
 
   const [slots, setSlots] = useState(() => initialData || []);

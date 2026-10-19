@@ -1,30 +1,45 @@
 import { randomUUID } from "node:crypto";
 import { query } from "../configs/db.config.js";
 import { generateUniqueSlug } from "../utils/slugify.js";
+import { isUuid } from "../utils/uuid.js";
 
 class SessionModel {
   static async findAll({ groupId } = {}) {
     if (!groupId) return [];
+
+    // Resolve slug → UUID to avoid 22P02 on the UUID group_id column
+    let resolvedGroupId = groupId;
+    if (!isUuid(groupId)) {
+      const { rows: gRows } = await query(
+        "SELECT id FROM public.groups WHERE slug = $1 LIMIT 1;",
+        [groupId]
+      );
+      if (!gRows?.length) return [];
+      resolvedGroupId = gRows[0].id;
+    }
+
     const sql = `
       SELECT s.*,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
-        (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id AND status = 'responded') AS responded_count
+        (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
       WHERE s.group_id = $1
       ORDER BY s.created_at DESC;
     `;
-    const { rows } = await query(sql, [groupId]);
+    const { rows } = await query(sql, [resolvedGroupId]);
     return rows || [];
   }
 
   static async findById(id) {
     if (!id) return null;
+    // Use the correct column to avoid 22P02 when id is a slug (non-UUID)
+    const whereClause = isUuid(id) ? "s.id = $1" : "s.slug = $1";
     const sql = `
       SELECT s.*,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
-        (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id AND status = 'responded') AS responded_count
+        (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
-      WHERE s.id = $1 OR s.slug = $1
+      WHERE ${whereClause}
       LIMIT 1;
     `;
     const { rows } = await query(sql, [id]);

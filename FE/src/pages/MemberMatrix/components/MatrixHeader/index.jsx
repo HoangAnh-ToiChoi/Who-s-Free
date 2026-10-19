@@ -1,9 +1,10 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Shield } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { createCompositeSlug } from "~/utils/slugify";
-import { useCurrentUser } from "~/hooks";
+import { groupService } from "~/service/groupService/groupService";
 
 /**
  * MatrixHeader - Thanh tiêu đề trên cùng của trang Ma trận
@@ -15,17 +16,17 @@ import { useCurrentUser } from "~/hooks";
 function MatrixHeader({ session }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { currentUser } = useCurrentUser();
-
-  // Kiểm tra vai trò Lead của người dùng hiện tại
-  const userRole = (currentUser?.role || "").toLowerCase();
-  const isLead =
-    userRole.includes("lead") ||
-    userRole.includes("admin") ||
-    userRole === "owner" ||
-    currentUser?.groupRole === "leadership";
-
   const { groupId } = useParams();
+
+  const [userGroupRole, setUserGroupRole] = useState(null);
+  useEffect(() => {
+    if (!groupId) return;
+    groupService.getGroupById(groupId)
+      .then((g) => setUserGroupRole(g?.userRole || null))
+      .catch(() => {});
+  }, [groupId]);
+
+  const isLead = userGroupRole === "owner" || userGroupRole === "lead";
   const backUrl = groupId ? `/groups/${groupId}` : "/";
   const sessionSlug = session?.id
     ? createCompositeSlug(session.title, session.id)

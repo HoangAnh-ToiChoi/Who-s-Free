@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { START_HOUR, END_HOUR } from "~/utils/timeUtils";
-import { calendarService } from "~/service/calendarService/calendarService";
+import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
 
 /**
  * useHeatmapMatrix - Hook tính toán ma trận mật độ rảnh (heatmap) cho LeadMatrix

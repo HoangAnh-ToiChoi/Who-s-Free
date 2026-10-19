@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { groupService } from "~/service/groupService/groupService";
-import { calendarService } from "~/service/calendarService/calendarService";
+import { sessionService as calendarService } from "~/service/sessionService/sessionService";
+import { useSessionsRealtime } from "~/hooks/useSessionsRealtime";
 
 /**
  * Custom hook quản lý dữ liệu chi tiết nhóm, danh sách lịch khảo sát và thao tác tạo lịch.
@@ -66,6 +67,15 @@ export function useGroupDetail(groupId = "ws-1") {
       // silent fail — không hiện lỗi khi background poll thất bại
     }
   }, [group]);
+
+  /**
+   * Realtime: cập nhật respondedCount ngay khi thành viên lưu slot
+   */
+  useSessionsRealtime(sessions, (updated) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s))
+    );
+  });
 
   /**
    * Polling 25s: tự fetch lại sessions khi tab đang active

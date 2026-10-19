@@ -2,20 +2,7 @@ import http from "~/utils/http";
 import { slugify, generateRandomId, extractIdFromSlug } from "~/utils/slugify";
 import { calculateSessionMetrics } from "~/utils/matrixCalculations";
 
-/**
- * Service quản lý Calendars / Planning Sessions và Availability Matrix
- * Kết nối trực tiếp REST API (db.json).
- *
- * Nguyên tắc tối ưu:
- * - Metrics (respondedCount, quorumPercent, sparkline...) chỉ tính khi ĐỌC (getGroupCalendars, getCalendarById).
- * - Khi GHI (save slots, tạo session) chỉ gọi đúng 1 API call cần thiết.
- */
-export const calendarService = {
-  /**
-   * Lấy danh sách sessions của nhóm, tự động tính toán các chỉ số thực tế
-   * @param {string} groupId - ID nhóm
-   * @param {string} groupSlug - Slug nhóm (fallback matching)
-   */
+export const sessionService = {
   async getGroupCalendars(groupId) {
     try {
       const actualGroupId = groupId ? extractIdFromSlug(groupId) : null;
@@ -41,10 +28,6 @@ export const calendarService = {
     }
   },
 
-  /**
-   * Lấy chi tiết một session theo ID hoặc Slug
-   * @param {string} identifier - ID hoặc slug
-   */
   async getCalendarById(identifier) {
     if (!identifier) throw new Error("Calendar identifier is required");
     const actualId = extractIdFromSlug(identifier);
@@ -69,47 +52,6 @@ export const calendarService = {
     };
   },
 
-  /**
-   * Lấy danh sách availability của tất cả thành viên trong session
-   * @param {string} sessionId
-   */
-  async getSessionAvailabilities(sessionId) {
-    if (!sessionId) return [];
-    const actualId = extractIdFromSlug(sessionId);
-    const list = await http.get(`/sessions/${actualId}/availabilities`).catch(() => []);
-    return Array.isArray(list) ? list : [];
-  },
-
-  /**
-   * Lấy khung giờ rảnh của người dùng hiện tại trong session
-   * @param {string} sessionId
-   */
-  async getMemberAvailability(sessionId) {
-    if (!sessionId) return null;
-    const actualId = extractIdFromSlug(sessionId);
-    return await http.get(`/sessions/${actualId}/my-availability`).catch(() => null);
-  },
-
-  /**
-   * Lưu slots của người dùng hiện tại trong session (Atomic Replace)
-   *
-   * @param {string} sessionId
-   * @param {string} _memberId
-   * @param {Array} slots - Danh sách slot đã cập nhật
-   * @returns {{ data: Object, recordId: string }}
-   */
-  async saveMemberAvailability(sessionId, _memberId, slots = []) {
-    const actualId = extractIdFromSlug(sessionId);
-    const saved = await http.put(`/sessions/${actualId}/my-availability`, { slots });
-    return { data: saved, recordId: actualId };
-  },
-
-  /**
-   * Tạo session mới — chỉ POST session + PATCH count đơn giản
-   * @param {string} groupId
-   * @param {Object} payload
-   * @param {string} groupSlug
-   */
   async createCalendar(groupId, payload) {
     const actualGroupId = groupId ? extractIdFromSlug(groupId) : null;
     const randomId = generateRandomId(6);
@@ -137,10 +79,8 @@ export const calendarService = {
       status: "active_poll",
     };
 
-    // API CALL #1: Tạo session
     const created = await http.post("/sessions", newSession);
 
-    // API CALL #2 (fire-and-forget): Cập nhật count nhóm bằng cách lấy group rồi +1
     if (actualGroupId) {
       http
         .get(`/groups/${actualGroupId}`)
@@ -156,13 +96,21 @@ export const calendarService = {
     return created;
   },
 
-  /**
-   * Xóa session
-   * @param {string} id
-   */
+  async getSessionById(id) {
+    if (!id) return null;
+    const session = await http.get(`/sessions/${id}`).catch(() => null);
+    if (!session) return null;
+    const metrics = calculateSessionMetrics(session, []);
+    return {
+      ...session,
+      respondedCount: session.respondedCount ?? metrics.respondedCount,
+      quorumPercent: session.quorumPercent ?? metrics.quorumPercent,
+    };
+  },
+
   async deleteCalendar(id) {
     return await http.del(`/sessions/${id}`);
   },
 };
 
-export default calendarService;
+export default sessionService;
