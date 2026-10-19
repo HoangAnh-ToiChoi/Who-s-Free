@@ -5,31 +5,29 @@ import { createCompositeSlug, extractIdFromSlug } from "~/utils/slugify";
 
 /**
  * useSessionResolver - Hook giải mã và đồng bộ phiên khảo sát (Session)
- * Hỗ trợ nhận diện slug trực tiếp từ Route Path (/matrix/:sessionSlug)
+ * Hỗ trợ nhận diện slug trực tiếp từ Route Path /groups/:groupId/matrix/:sessionSlug
  * kết hợp State Router để hiển thị tức thì frame 0 (Zero-Wait) mà không bị giật lag.
  *
  * @returns {{ currentSession: Object|null, sessions: Array }}
  */
 export function useSessionResolver() {
-  const { sessionSlug } = useParams();
+  const { sessionSlug: routeSessionSlug, groupId } = useParams();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Ưu tiên sessionSlug từ Route Path, fallback sang query param ?session= nếu có
-  const activeSlug = sessionSlug || searchParams.get("session");
+  const activeSlug = routeSessionSlug || searchParams.get("session");
 
-  // Nếu trang trước truyền sẵn session qua router state -> nạp ngay lập tức
   const passedSession = location.state?.session || null;
   const [sessions, setSessions] = useState(passedSession ? [passedSession] : []);
   const [currentSession, setCurrentSession] = useState(passedSession);
 
-  // 1. Tải danh sách sessions từ API / db.json
+  // 1. Tải danh sách sessions theo group (group-scoped)
   useEffect(() => {
     let isMounted = true;
     async function loadSessions() {
       try {
-        const data = await calendarService.getGroupCalendars();
+        const data = await calendarService.getGroupCalendars(groupId);
         if (isMounted && Array.isArray(data) && data.length > 0) {
           setSessions(data);
         }
@@ -41,7 +39,7 @@ export function useSessionResolver() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [groupId]);
 
   // 2. Đồng bộ currentSession theo slug trên URL
   useEffect(() => {
@@ -57,7 +55,6 @@ export function useSessionResolver() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentSession(foundSession);
       } else {
-        // Fallback: Tìm trực tiếp session qua API bằng actualId
         calendarService
           .getCalendarById(actualId || activeSlug)
           .then((direct) => {
@@ -73,21 +70,20 @@ export function useSessionResolver() {
           });
       }
     } else {
-      // Nếu vào trang bare (/matrix hoặc /lead-matrix) chưa có slug -> tự chuyển hướng tới session đầu tiên
+      // Bare route /groups/:groupId/matrix → redirect tới session đầu tiên của group
       const first = sessions[0];
       if (first) {
         const canonicalSlug = createCompositeSlug(first.title, first.id);
-        const basePath = location.pathname.startsWith("/lead-matrix")
-          ? "/lead-matrix"
-          : "/matrix";
-        navigate(`${basePath}/${canonicalSlug}`, {
+        const isLead = location.pathname.includes("/lead-matrix");
+        const matrixBase = isLead ? "lead-matrix" : "matrix";
+        navigate(`/groups/${groupId}/${matrixBase}/${canonicalSlug}`, {
           replace: true,
           state: { session: first },
         });
         setCurrentSession(first);
       }
     }
-  }, [activeSlug, sessions, location.pathname, navigate]);
+  }, [activeSlug, sessions, location.pathname, navigate, groupId]);
 
   return {
     currentSession,
