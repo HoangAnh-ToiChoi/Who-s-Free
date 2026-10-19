@@ -76,11 +76,11 @@ function AppRoutes() {
                 path="/overview"
                 element={<Placeholder pageName="Overview" />}
               />
-              {/* Matrix pages — Gắn trực tiếp slug lên route */}
-              <Route path="/matrix/:sessionSlug" element={<MemberMatrix />} />
-              <Route path="/matrix" element={<MemberMatrix />} />
-              <Route path="/lead-matrix/:sessionSlug" element={<LeadMatrix />} />
-              <Route path="/lead-matrix" element={<LeadMatrix />} />
+              {/* Matrix pages — Gắn dưới /groups/:groupId để Topbar luôn biết group hiện tại */}
+              <Route path="/groups/:groupId/matrix/:sessionSlug" element={<MemberMatrix />} />
+              <Route path="/groups/:groupId/matrix" element={<MemberMatrix />} />
+              <Route path="/groups/:groupId/lead-matrix/:sessionSlug" element={<LeadMatrix />} />
+              <Route path="/groups/:groupId/lead-matrix" element={<LeadMatrix />} />
               <Route
                 path="/settings"
                 element={<Placeholder pageName="Settings" />}
