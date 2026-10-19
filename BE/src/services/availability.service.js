@@ -1,57 +1,51 @@
 import AvailabilityModel from "../models/availability.model.js";
 import AppError from "../utils/AppError.js";
-import { toPublicAvailability } from "../utils/mappers/availability.mapper.js";
+import {
+  toPublicUserAvailability,
+  toPublicMemberAvailability,
+} from "../utils/mappers/availability.mapper.js";
 
-/**
- * AvailabilityService - Xử lý nghiệp vụ khung giờ rảnh của thành viên (Availability Slots)
- */
 class AvailabilityService {
-  async getAvailabilities(filters = {}) {
-    return (await AvailabilityModel.findAll(filters)).map(toPublicAvailability);
+  async getMyAvailability(sessionId, userId) {
+    if (!sessionId) throw AppError.badRequest("sessionId là bắt buộc", "SESSION_ID_REQUIRED");
+    if (!userId) throw AppError.unauthorized("Vui lòng đăng nhập", "UNAUTHORIZED");
+    const slots = await AvailabilityModel.findBySessionAndUser(sessionId, userId);
+    return toPublicUserAvailability({ sessionId, userId, slots });
   }
 
-  async getAvailabilityById(id) {
-    if (!id) {
-      throw AppError.badRequest("ID availability là bắt buộc", "AVAILABILITY_ID_REQUIRED");
-    }
-    const record = await AvailabilityModel.findById(id);
-    if (!record) {
-      throw AppError.notFound("Không tìm thấy khung giờ rảnh", "AVAILABILITY_NOT_FOUND");
-    }
-    return toPublicAvailability(record);
+  async saveMyAvailability(sessionId, userId, slots = []) {
+    if (!sessionId) throw AppError.badRequest("sessionId là bắt buộc", "SESSION_ID_REQUIRED");
+    if (!userId) throw AppError.unauthorized("Vui lòng đăng nhập", "UNAUTHORIZED");
+    await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
+    const saved = await AvailabilityModel.findBySessionAndUser(sessionId, userId);
+    return toPublicUserAvailability({ sessionId, userId, slots: saved });
   }
 
-  async createAvailability(payload, actorId) {
-    if (!payload?.sessionId) {
-      throw AppError.badRequest("Mã phiên (sessionId) là bắt buộc", "SESSION_ID_REQUIRED");
-    }
-    // Gán userId từ actorId đã xác thực, ngăn chặn giả mạo userId từ payload
-    const data = {
-      ...payload,
-      userId: actorId || payload.userId || null,
-    };
-    return toPublicAvailability(await AvailabilityModel.create(data));
-  }
+  async getSessionAvailabilities(sessionId, roleFilter = "all") {
+    if (!sessionId) throw AppError.badRequest("sessionId là bắt buộc", "SESSION_ID_REQUIRED");
+    const rows = await AvailabilityModel.findAllBySession(sessionId);
 
-  async updateAvailability(id, payload, actorId) {
-    if (!id) {
-      throw AppError.badRequest("ID availability là bắt buộc", "AVAILABILITY_ID_REQUIRED");
-    }
-    const existing = await AvailabilityModel.findById(id);
-    if (!existing) {
-      throw AppError.notFound("Không tìm thấy khung giờ rảnh để cập nhật", "AVAILABILITY_NOT_FOUND");
+    const byUser = new Map();
+    for (const row of rows) {
+      if (!byUser.has(row.user_id)) {
+        byUser.set(row.user_id, {
+          userId: row.user_id,
+          memberName: row.member_name,
+          role: row.role,
+          groupRole: row.group_role,
+          avatarUrl: row.avatar_url,
+          slots: [],
+        });
+      }
+      byUser.get(row.user_id).slots.push(row);
     }
 
-    // Kiểm tra quyền: chỉ chủ sở hữu mới có quyền cập nhật khung giờ rảnh
-    if (existing.userId && actorId && existing.userId !== actorId) {
-      throw AppError.forbidden("Bạn không có quyền cập nhật khung giờ rảnh của người khác", "FORBIDDEN");
+    let members = Array.from(byUser.values());
+    if (roleFilter && roleFilter !== "all") {
+      members = members.filter((m) => m.groupRole === roleFilter);
     }
 
-    const updated = await AvailabilityModel.update(id, payload);
-    if (!updated) {
-      throw AppError.notFound("Không tìm thấy khung giờ rảnh để cập nhật", "AVAILABILITY_NOT_FOUND");
-    }
-    return toPublicAvailability(updated);
+    return members.map(toPublicMemberAvailability);
   }
 }
 
