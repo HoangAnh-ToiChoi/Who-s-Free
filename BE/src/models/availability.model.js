@@ -29,6 +29,17 @@ class AvailabilityModel {
         [sessionId, userId]
       );
 
+      // Sync session_participants status so responded_count stays accurate
+      const participantStatus = slots.length > 0 ? "responded" : "pending";
+      const respondedAt = slots.length > 0 ? "NOW()" : "NULL";
+      await client.query(
+        `INSERT INTO public.session_participants (id, session_id, user_id, status, responded_at)
+         VALUES ($1, $2, $3, $4, ${respondedAt})
+         ON CONFLICT (session_id, user_id)
+         DO UPDATE SET status = $4, responded_at = ${respondedAt};`,
+        [randomUUID(), sessionId, userId, participantStatus]
+      );
+
       if (slots.length === 0) return [];
 
       const inserted = [];
