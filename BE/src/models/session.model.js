@@ -21,7 +21,7 @@ class SessionModel {
     const sql = `
       SELECT s.*,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
-        (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id AND status = 'responded') AS responded_count
+        (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
       WHERE s.group_id = $1
       ORDER BY s.created_at DESC;
@@ -37,7 +37,7 @@ class SessionModel {
     const sql = `
       SELECT s.*,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
-        (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id AND status = 'responded') AS responded_count
+        (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
       WHERE ${whereClause}
       LIMIT 1;
