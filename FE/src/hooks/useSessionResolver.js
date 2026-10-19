@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation, useSearchParams, useNavigate } from "react-router";
-import { calendarService } from "~/service/calendarService/calendarService";
+import { sessionService as calendarService } from "~/service/sessionService/sessionService";
 import { createCompositeSlug, extractIdFromSlug } from "~/utils/slugify";
 
 /**

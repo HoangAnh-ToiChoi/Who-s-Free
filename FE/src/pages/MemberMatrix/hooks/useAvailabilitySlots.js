@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { calendarService } from "~/service/calendarService/calendarService";
+import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
 
 /**
  * Hook quản lý dữ liệu và thống kê các khung giờ rảnh (Availability Slots CRUD)

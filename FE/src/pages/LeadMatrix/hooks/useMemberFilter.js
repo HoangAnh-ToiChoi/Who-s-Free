@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { calendarService } from "~/service/calendarService/calendarService";
+import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
 
 /**
  * useMemberFilter - Hook quản lý lọc thành viên cho LeadMatrix
