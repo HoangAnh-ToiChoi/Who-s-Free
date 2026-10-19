@@ -23,7 +23,8 @@ class SessionService {
       throw AppError.badRequest("groupId là bắt buộc khi tạo phiên", "GROUP_ID_REQUIRED");
     }
     const created = await SessionModel.create({ ...payload, createdBy: actorId });
-    return toPublicSession(created);
+    const withMetrics = await SessionModel.findById(created.id);
+    return toPublicSession(withMetrics ?? created);
   }
 
   async deleteSession(id, actorId) {
