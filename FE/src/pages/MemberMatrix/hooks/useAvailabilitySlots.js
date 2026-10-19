@@ -11,8 +11,8 @@ import { availabilityService as calendarService } from "~/service/availabilitySe
 export function useAvailabilitySlots(options = {}) {
   // Hỗ trợ truyền dạng chuỗi sessionId hoặc object { sessionId, memberId, initialData }
   const sessionId =
-    typeof options === "string" ? options : options?.sessionId || "sess-1";
-  const memberId = options?.memberId || "mem-1";
+    typeof options === "string" ? options : options?.sessionId || null;
+  const memberId = options?.memberId || null;
   const initialData = options?.initialData || null;
 
   const [slots, setSlots] = useState(() => initialData || []);
