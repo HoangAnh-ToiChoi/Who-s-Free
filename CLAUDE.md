@@ -18,11 +18,12 @@ Luồng chính của sản phẩm gồm hai vai trò:
 | Calendar | Tạo nhiều calendar tuần trong một nhóm |
 | Availability | Drag-to-select 30-min slots, riêng tư theo mặc định |
 | Lead Matrix | Overlap Density, Suggested Times, Finalize Meeting |
+| Realtime respondedCount | Supabase Realtime cập nhật badge số người đã trả lời ngay khi member kéo slot — kết hợp với 25s polling fallback |
 
 ### Ranh giới sản phẩm (không làm)
 
 - Không tích hợp AI hay mô hình ngôn ngữ vào thuật toán Overlap — thuần logic.
-- Không có real-time collaboration (WebSocket) trong MVP — polling hoặc manual refresh.
+- Không có real-time slot visibility (thấy slot của người khác kéo ngay lập tức) — chỉ sync `respondedCount` qua Supabase Realtime, không sync nội dung slot.
 - Không có mobile app native — web responsive là đủ.
 - Không có hệ thống thanh toán, subscription, hay multi-tenant phức tạp trong MVP.
 - Không mở rộng phạm vi quản lý tổ chức (org-level) — chỉ group-scoped.
@@ -34,6 +35,7 @@ Luồng chính của sản phẩm gồm hai vai trò:
 | Frontend | React + Vite, Tailwind CSS |
 | Backend | Node.js + Express (MVC: model → service → controller), ES Modules |
 | Database / Auth | Supabase PostgreSQL, Supabase Auth |
+| Realtime | Supabase Realtime (`postgres_changes` trên `availability_slots`) |
 | Hosting | Vercel (FE), Render (BE) |
 
 ---
@@ -105,32 +107,44 @@ Nếu HA đồng ý → push lên nhánh `feature/` tương ứng. Không tự p
 ```
 Who'sFree/
 ├── BE/                          # Backend — Node.js + Express
-│   ├── src/
-│   │   ├── configs/             # db.config.js, supabase.config.js
-│   │   ├── controllers/         # Điều hướng request/response
-│   │   ├── middlewares/         # auth, rateLimit, validation
-│   │   ├── models/              # Data access — mỗi file = 1 bảng DB
-│   │   ├── routes/              # Route definitions
-│   │   ├── services/            # Business logic
-│   │   └── utils/
-│   │       ├── mappers/         # Pure transform functions (toPublicX)
-│   │       ├── AppError.js
-│   │       ├── ApiResponse.js
-│   │       └── uuid.js
-│   └── tests/                   # Integration tests (node:test)
+│   └── src/
+│       ├── configs/             # db.config.js, supabase.config.js
+│       ├── constants/           # errorCodes.js
+│       ├── controllers/         # Điều hướng request/response
+│       ├── middlewares/         # auth, rateLimit, validate
+│       ├── models/              # Data access — mỗi file = 1 bảng DB
+│       ├── routes/              # Route definitions + index.js aggregator
+│       ├── services/            # Business logic
+│       ├── utils/
+│       │   ├── mappers/         # Pure transform functions (toPublicX)
+│       │   ├── AppError.js
+│       │   ├── ApiResponse.js
+│       │   └── uuid.js
+│       └── validations/         # Input validation schemas (Joi/tự viết)
 │
 ├── FE/                          # Frontend — React + Vite + Tailwind
 │   └── src/
-│       ├── components/
-│       ├── features/
-│       ├── hooks/
-│       └── services/
+│       ├── components/          # Shared UI — Modals, ui/ primitives (shadcn)
+│       ├── configs/             # supabase.js — Supabase Realtime client (null-safe)
+│       ├── contexts/            # AuthContext, GroupContext
+│       ├── events/              # Custom event emitters (groupEvents.js)
+│       ├── hooks/               # useGroupDetail, useSessionsRealtime, useAuth, ...
+│       ├── layouts/             # DefaultLayout, AuthLayout
+│       ├── pages/               # Auth, Group, Home, LeadMatrix, MemberMatrix, Invite, Join
+│       ├── service/             # sessionService/, availabilityService/, authService/, ...
+│       └── utils/               # http, tokenManager, slugify, calculations, dateUtils, ...
 │
 └── docs/
     └── superpowers/
         ├── specs/               # Design docs
         └── plans/               # Implementation plans
 ```
+
+### Ghi chú kiến trúc quan trọng
+
+- **`FE/src/configs/supabase.js`**: Export `supabase = null` nếu env vars chưa được điền hoặc còn là placeholder — tránh crash khi dev local không có credentials.
+- **`FE/src/hooks/useSessionsRealtime.js`**: Subscribe `postgres_changes` trên `availability_slots`. Khi có thay đổi → gọi `sessionService.getSessionById` để lấy data mới rồi callback. Kết hợp với polling 25s trong `useGroupDetail`.
+- **`responded_count` trong BE**: Được tính bằng `COUNT(DISTINCT user_id) FROM availability_slots` — không dùng `session_participants` (có RLS issues).
 
 ---
 
