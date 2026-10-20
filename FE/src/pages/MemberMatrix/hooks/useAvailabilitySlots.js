@@ -1,146 +1,103 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
+import { getCachedSlots, setCachedSlots } from "~/utils/availabilityCache";
 
-/**
- * Hook quản lý dữ liệu và thống kê các khung giờ rảnh (Availability Slots CRUD)
- *
- * Tối ưu hiệu năng:
- * - Cache recordId từ lần load đầu → PATCH trực tiếp, không GET kiểm tra.
- * - Debounce 300ms gom nhiều thao tác kéo thả thành 1 API call duy nhất.
- */
 export function useAvailabilitySlots(options = {}) {
-  // Hỗ trợ truyền dạng chuỗi sessionId hoặc object { sessionId, memberId, initialData }
-  const sessionId =
-    typeof options === "string" ? options : options?.sessionId || null;
-  const memberId = options?.memberId || null;
-  const initialData = options?.initialData || null;
+  const sessionId = typeof options === "string" ? options : options?.sessionId ?? null;
+  const memberId = options?.memberId ?? null;
+  const initialData = options?.initialData ?? null;
+  // cacheKey: slug dễ đọc cho localStorage; sessionId: UUID thật cho API
+  const cacheKey = options?.cacheKey ?? sessionId;
 
-  const [slots, setSlots] = useState(() => initialData || []);
+  const [slots, setSlots] = useState(() => getCachedSlots(cacheKey, memberId) ?? initialData ?? []);
 
-  // Cache recordId để PATCH trực tiếp mà không cần GET kiểm tra
   const recordIdRef = useRef(null);
-
-  // Debounce timer ref
   const debounceRef = useRef(null);
+  const hasLocalChangesRef = useRef(false);
 
-  // Tải dữ liệu slots thực tế từ db.json + cache recordId
   useEffect(() => {
     let isMounted = true;
-    async function loadRemoteSlots() {
+    hasLocalChangesRef.current = false;
+
+    async function load() {
       if (!sessionId) {
         setSlots([]);
         recordIdRef.current = null;
         return;
       }
+
+      const cached = getCachedSlots(cacheKey, memberId);
+      if (cached && isMounted) setSlots(cached);
+
       try {
         const record = await calendarService.getMemberAvailability(sessionId, memberId);
-        if (isMounted) {
-          if (record && Array.isArray(record.slots)) {
+        if (!isMounted) return;
+
+        if (record && Array.isArray(record.slots)) {
+          recordIdRef.current = record.id;
+          // Chỉ ghi đè nếu user chưa tương tác trong lúc fetch — tránh race condition
+          if (!hasLocalChangesRef.current) {
             setSlots(record.slots);
-            recordIdRef.current = record.id; // Cache ID cho PATCH sau này
-          } else {
-            setSlots([]); // Phiên mới tạo → slot trống rỗng
-            recordIdRef.current = null;
+            setCachedSlots(cacheKey, memberId, record.slots);
           }
+        } else if (!cached && !hasLocalChangesRef.current) {
+          setSlots([]);
+          recordIdRef.current = null;
         }
-      } catch (err) {
-        console.warn("Could not load availability from db.json:", err);
-        if (isMounted) {
+      } catch {
+        if (isMounted && !cached && !hasLocalChangesRef.current) {
           setSlots([]);
           recordIdRef.current = null;
         }
       }
     }
-    loadRemoteSlots();
-    return () => {
-      isMounted = false;
-    };
-  }, [sessionId, memberId]);
 
-  // Cleanup debounce timer khi unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
+    load();
+    return () => { isMounted = false; };
+  }, [sessionId, cacheKey, memberId]);
 
-  /**
-   * Đồng bộ slots lên DB — debounce 300ms
-   * Gom nhiều thao tác kéo/resize liên tục thành 1 API call duy nhất
-   */
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+
   const syncWithDb = useCallback(
     (updatedSlots) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
+      hasLocalChangesRef.current = true;
+      setCachedSlots(cacheKey, memberId, updatedSlots);
+
       debounceRef.current = setTimeout(async () => {
         try {
-          const result = await calendarService.saveMemberAvailability(
-            sessionId,
-            memberId,
-            updatedSlots,
-            recordIdRef.current
-          );
-          // Cập nhật cached recordId (quan trọng cho lần POST đầu tiên → PATCH sau đó)
-          if (result?.recordId) {
-            recordIdRef.current = result.recordId;
-          }
+          const result = await calendarService.saveMemberAvailability(sessionId, memberId, updatedSlots);
+          if (result?.recordId) recordIdRef.current = result.recordId;
         } catch (err) {
-          console.warn("Failed to sync availability:", err);
+          console.error("[availability] save failed:", err?.message || err);
         }
       }, 300);
     },
-    [sessionId, memberId]
+    [sessionId, cacheKey, memberId]
   );
 
-  // Thêm mới hoặc cập nhật slot (hỗ trợ cả 1 slot hoặc danh sách nhiều slot cùng lúc)
   const saveSlot = useCallback(
     (slotPayload) => {
-      if (Array.isArray(slotPayload)) {
-        setSlots((prev) => {
-          let next = [...prev];
-          slotPayload.forEach((item) => {
-            const idx = next.findIndex((s) => s.id === item.id);
-            if (idx !== -1) {
-              next[idx] = { ...next[idx], ...item };
-            } else {
-              // Kiểm tra xem đã có slot nào cùng ngày và cùng thời gian chưa (tránh trùng toạ độ chồng lấn)
-              const dupIdx = next.findIndex(
-                (s) =>
-                  s.dayIndex === item.dayIndex &&
-                  s.startMinutes === item.startMinutes &&
-                  s.endMinutes === item.endMinutes
-              );
-              if (dupIdx !== -1) {
-                next[dupIdx] = { ...next[dupIdx], ...item, id: next[dupIdx].id };
-              } else {
-                next.push(item);
-              }
-            }
-          });
-          syncWithDb(next);
-          return next;
-        });
-        return;
-      }
-
+      const items = Array.isArray(slotPayload) ? slotPayload : [slotPayload];
       setSlots((prev) => {
-        const idx = prev.findIndex((s) => s.id === slotPayload.id);
-        let next;
-        if (idx !== -1) {
-          next = [...prev];
-          next[idx] = { ...next[idx], ...slotPayload };
-        } else {
-          const dupIdx = prev.findIndex(
-            (s) =>
-              s.dayIndex === slotPayload.dayIndex &&
-              s.startMinutes === slotPayload.startMinutes &&
-              s.endMinutes === slotPayload.endMinutes
-          );
-          if (dupIdx !== -1) {
-            next = [...prev];
-            next[dupIdx] = { ...next[dupIdx], ...slotPayload, id: next[dupIdx].id };
+        const next = [...prev];
+        for (const item of items) {
+          const idx = next.findIndex((s) => s.id === item.id);
+          if (idx !== -1) {
+            next[idx] = { ...next[idx], ...item };
           } else {
-            next = [...prev, slotPayload];
+            const dupIdx = next.findIndex(
+              (s) =>
+                s.dayIndex === item.dayIndex &&
+                s.startMinutes === item.startMinutes &&
+                s.endMinutes === item.endMinutes
+            );
+            if (dupIdx !== -1) {
+              next[dupIdx] = { ...next[dupIdx], ...item, id: next[dupIdx].id };
+            } else {
+              next.push(item);
+            }
           }
         }
         syncWithDb(next);
@@ -150,7 +107,6 @@ export function useAvailabilitySlots(options = {}) {
     [syncWithDb]
   );
 
-  // Xóa slot theo ID
   const deleteSlot = useCallback(
     (slotId) => {
       setSlots((prev) => {
@@ -162,25 +118,21 @@ export function useAvailabilitySlots(options = {}) {
     [syncWithDb]
   );
 
-  // Xóa toàn bộ các slot đã chọn
   const clearAllSlots = useCallback(() => {
     setSlots([]);
     syncWithDb([]);
   }, [syncWithDb]);
 
-  // Co giãn slot (Resize edge top / bottom)
   const resizeSlot = useCallback(
     (slotId, edge, deltaMinutes) => {
       setSlots((prev) => {
         const next = prev.map((s) => {
           if (s.id !== slotId) return s;
           if (edge === "top") {
-            const newStart = Math.min(s.endMinutes - 30, s.startMinutes + deltaMinutes);
-            return { ...s, startMinutes: Math.max(0, newStart) };
+            return { ...s, startMinutes: Math.max(0, Math.min(s.endMinutes - 30, s.startMinutes + deltaMinutes)) };
           }
           if (edge === "bottom") {
-            const newEnd = Math.max(s.startMinutes + 30, s.endMinutes + deltaMinutes);
-            return { ...s, endMinutes: newEnd };
+            return { ...s, endMinutes: Math.max(s.startMinutes + 30, s.endMinutes + deltaMinutes) };
           }
           return s;
         });
@@ -191,12 +143,8 @@ export function useAvailabilitySlots(options = {}) {
     [syncWithDb]
   );
 
-  // Thống kê tổng số slot và tổng số giờ đã chọn (Tối ưu bằng useMemo)
   const stats = useMemo(() => {
-    const totalMinutes = slots.reduce(
-      (acc, s) => acc + Math.max(0, s.endMinutes - s.startMinutes),
-      0
-    );
+    const totalMinutes = slots.reduce((acc, s) => acc + Math.max(0, s.endMinutes - s.startMinutes), 0);
     const totalHours = (totalMinutes / 60).toFixed(1);
     return {
       count: slots.length,
@@ -204,14 +152,7 @@ export function useAvailabilitySlots(options = {}) {
     };
   }, [slots]);
 
-  return {
-    slots,
-    stats,
-    saveSlot,
-    deleteSlot,
-    clearAllSlots,
-    resizeSlot,
-  };
+  return { slots, stats, saveSlot, deleteSlot, clearAllSlots, resizeSlot };
 }
 
 export default useAvailabilitySlots;

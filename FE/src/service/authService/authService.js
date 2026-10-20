@@ -10,6 +10,7 @@
 
 import tokenManager from "~/utils/tokenManager";
 import { backendRequest, requestTokenRefresh } from "~/utils/backendApi";
+import { clearAllAvailabilityCache } from "~/utils/availabilityCache";
 
 const STORAGE_KEYS = {
   CURRENT_USER: "currentUser",
@@ -73,6 +74,7 @@ export function clearStoredAuth() {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("whosfree_auth_users");
   localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  clearAllAvailabilityCache();
 }
 
 // ─── API Client Wrapper ───────────────────────────────────────────────────────

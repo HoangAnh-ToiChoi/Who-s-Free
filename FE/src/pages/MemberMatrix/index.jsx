@@ -16,7 +16,10 @@ function Matrix() {
 
       {/* Vùng hiển thị Lưới: Thành viên (AvailabilityGrid) hoặc Lead (LeadMatrix) */}
       <div className="flex-1 min-h-0 flex flex-col">
-        <AvailabilityGrid sessionId={currentSession?.id} />
+        <AvailabilityGrid
+          sessionId={currentSession?.id}
+          sessionCacheKey={currentSession?.slug || currentSession?.id}
+        />
       </div>
     </div>
   );

@@ -96,6 +96,18 @@ export const sessionService = {
     return created;
   },
 
+  async getSessionById(id) {
+    if (!id) return null;
+    const session = await http.get(`/sessions/${id}`).catch(() => null);
+    if (!session) return null;
+    const metrics = calculateSessionMetrics(session, []);
+    return {
+      ...session,
+      respondedCount: session.respondedCount ?? metrics.respondedCount,
+      quorumPercent: session.quorumPercent ?? metrics.quorumPercent,
+    };
+  },
+
   async deleteCalendar(id) {
     return await http.del(`/sessions/${id}`);
   },
