@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Shield } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { createCompositeSlug } from "~/utils/slugify";
-import { groupService } from "~/service/groupService/groupService";
+import { useUserGroupRole } from "~/hooks/useUserGroupRole";
 
 /**
  * MatrixHeader - Thanh tiêu đề trên cùng của trang Ma trận
@@ -18,14 +17,7 @@ function MatrixHeader({ session }) {
   const navigate = useNavigate();
   const { groupId } = useParams();
 
-  const [userGroupRole, setUserGroupRole] = useState(null);
-  useEffect(() => {
-    if (!groupId) return;
-    groupService.getGroupById(groupId)
-      .then((g) => setUserGroupRole(g?.userRole || null))
-      .catch(() => {});
-  }, [groupId]);
-
+  const { role: userGroupRole } = useUserGroupRole(groupId);
   const isLead = userGroupRole === "owner" || userGroupRole === "lead";
   const backUrl = groupId ? `/groups/${groupId}` : "/";
   const sessionSlug = session?.id

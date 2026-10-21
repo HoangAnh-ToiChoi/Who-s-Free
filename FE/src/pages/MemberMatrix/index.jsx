@@ -1,4 +1,4 @@
-import { useSessionResolver } from "~/hooks";
+import { useSessionResolver, useCurrentUser } from "~/hooks";
 import MatrixHeader from "./components/MatrixHeader";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 
@@ -8,6 +8,7 @@ import AvailabilityGrid from "./components/AvailabilityGrid";
  */
 function Matrix() {
   const { currentSession } = useSessionResolver();
+  const { currentUser } = useCurrentUser();
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8 h-[calc(100vh-72px)] flex flex-col overflow-hidden">
@@ -19,6 +20,7 @@ function Matrix() {
         <AvailabilityGrid
           sessionId={currentSession?.id}
           sessionCacheKey={currentSession?.slug || currentSession?.id}
+          memberId={currentUser?.id}
         />
       </div>
     </div>

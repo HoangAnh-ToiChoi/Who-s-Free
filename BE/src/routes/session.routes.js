@@ -14,6 +14,6 @@ router.delete("/:id", AuthMiddleware.authenticate, sessionController.deleteSessi
 // Availability nested under sessions
 router.get("/:id/my-availability", AuthMiddleware.authenticate, availabilityController.getMyAvailability);
 router.put("/:id/my-availability", AuthMiddleware.authenticate, availabilityController.saveMyAvailability);
-router.get("/:id/availabilities", availabilityController.getSessionAvailabilities);
+router.get("/:id/availabilities", AuthMiddleware.authenticate, availabilityController.getSessionAvailabilities);
 
 export default router;

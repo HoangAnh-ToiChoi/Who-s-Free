@@ -9,3 +9,4 @@ export { default as useWeekNavigation } from "~/hooks/useWeekNavigation";
 export { default as useSessionResolver } from "~/hooks/useSessionResolver";
 export { default as useCurrentUser } from "~/hooks/useCurrentUser";
 export { default as useAuth } from "~/hooks/useAuth";
+export { default as useUserGroupRole } from "~/hooks/useUserGroupRole";

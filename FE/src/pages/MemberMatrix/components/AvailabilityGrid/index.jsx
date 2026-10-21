@@ -36,7 +36,7 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_
  * - Khối lịch nổi 3D đa tầng đổ bóng chân thực
  * - Đồng bộ 100% bảng màu tím Indigo chuẩn thương hiệu Who's Free
  */
-function AvailabilityGrid({ sessionId, sessionCacheKey }) {
+function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -65,7 +65,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey }) {
     saveSlot,
     deleteSlot,
     clearAllSlots,
-  } = useAvailabilitySlots({ sessionId, cacheKey: sessionCacheKey });
+  } = useAvailabilitySlots({ sessionId, cacheKey: sessionCacheKey, memberId });
 
   // Lọc các slot thuộc tuần hiện tại để hiển thị và tính toán va chạm chính xác
   const currentWeekSlots = useMemo(() => {
