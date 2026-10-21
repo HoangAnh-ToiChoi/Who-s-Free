@@ -46,9 +46,9 @@ let baseUrl;
 
 function createToken(user, expiresIn = "5m") {
   return jwt.sign(
-    { sub: user.id, email: user.email, role: "user" },
+    { sub: user.id, email: user.email, role: "authenticated", token_type: "access" },
     TEST_JWT_SECRET,
-    { expiresIn }
+    { expiresIn, issuer: "whosfree-api", audience: "whosfree-client" }
   );
 }
 

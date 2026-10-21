@@ -1,5 +1,5 @@
 import http from "~/utils/http";
-import { slugify, generateRandomId, extractIdFromSlug } from "~/utils/slugify";
+import { extractIdFromSlug } from "~/utils/slugify";
 import { calculateSessionMetrics } from "~/utils/matrixCalculations";
 
 export const sessionService = {
@@ -54,16 +54,8 @@ export const sessionService = {
 
   async createCalendar(groupId, payload) {
     const actualGroupId = groupId ? extractIdFromSlug(groupId) : null;
-    const randomId = generateRandomId(6);
-    const newId = `sess-${randomId}`;
-    const baseSlug = slugify(payload.title) || `session-${randomId}`;
-    const slug = `${baseSlug}--${newId}`;
-    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const newSession = {
-      id: newId,
-      slug,
+    return await http.post("/sessions", {
       groupId: actualGroupId || groupId,
-      refCode: `Ref #${randomHex}`,
       title: payload.title,
       description: payload.description || "",
       tag: payload.tag || "CÔNG VIỆC & HỌC TẬP",
@@ -71,29 +63,7 @@ export const sessionService = {
       dateRange: payload.dateRange,
       scheduledTime: payload.scheduledTime || "Flexible Window",
       location: payload.location || "Quán Cafe / Trực tuyến",
-      totalMembers: 3,
-      respondedCount: 0,
-      quorumPercent: 0,
-      highestOverlapText: "Waiting for responses - 3 pending",
-      sparkline: [20, 20, 20, 20, 20],
-      status: "active_poll",
-    };
-
-    const created = await http.post("/sessions", newSession);
-
-    if (actualGroupId) {
-      http
-        .get(`/groups/${actualGroupId}`)
-        .then((group) => {
-          const currentCount = group?.activeSessionsCount || 0;
-          return http.patch(`/groups/${actualGroupId}`, {
-            activeSessionsCount: currentCount + 1,
-          });
-        })
-        .catch(() => {});
-    }
-
-    return created;
+    });
   },
 
   async getSessionById(id) {
