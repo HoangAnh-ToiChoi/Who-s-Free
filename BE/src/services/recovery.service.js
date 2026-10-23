@@ -40,13 +40,19 @@ class RecoveryService {
     const otp = String(randomInt(100000, 1000000));
     const expiresInMinutes = RecoveryService.OTP_TTL_SECONDS / 60;
 
-    await EmailService.sendPasswordResetOtp({
-      email: normalizedEmail,
-      otp,
-      expiresInMinutes,
-    });
+    await OtpModel.save(normalizedEmail, otp, RecoveryService.OTP_TTL_SECONDS);
 
-    OtpModel.save(normalizedEmail, otp, RecoveryService.OTP_TTL_SECONDS);
+    try {
+      await EmailService.sendPasswordResetOtp({
+        email: normalizedEmail,
+        otp,
+        expiresInMinutes,
+      });
+    } catch (error) {
+      // Gửi mail thất bại thì không giữ lại OTP không ai nhận được
+      await OtpModel.delete(normalizedEmail);
+      throw error;
+    }
 
     return result;
   }
@@ -63,7 +69,7 @@ class RecoveryService {
       throw AppError.badRequest("Email và mã OTP là bắt buộc", "INPUT_REQUIRED");
     }
 
-    const record = OtpModel.findByEmail(normalizedEmail);
+    const record = await OtpModel.findByEmail(normalizedEmail);
     if (!record) {
       throw AppError.badRequest(
         "Mã OTP đã hết hạn hoặc không tìm thấy. Vui lòng gửi lại yêu cầu.",
@@ -72,10 +78,10 @@ class RecoveryService {
     }
 
     // Kiểm tra tính chính xác của mã
-    if (record.otp !== cleanOtp) {
-      const attempts = OtpModel.recordFailedAttempt(normalizedEmail);
+    if (!OtpModel.matches(record, cleanOtp)) {
+      const attempts = await OtpModel.recordFailedAttempt(normalizedEmail);
       if (attempts >= RecoveryService.MAX_ATTEMPTS) {
-        OtpModel.delete(normalizedEmail);
+        await OtpModel.delete(normalizedEmail);
         throw AppError.badRequest(
           "Nhập sai mã quá 5 lần. Yêu cầu đã bị hủy vì lý do an toàn.",
           "MAX_ATTEMPTS_EXCEEDED"
@@ -88,7 +94,7 @@ class RecoveryService {
     }
 
     // OTP chính xác -> Thu hồi mã đã dùng và cấp resetToken dùng 1 lần (15 phút)
-    OtpModel.delete(normalizedEmail);
+    await OtpModel.delete(normalizedEmail);
     const resetToken = TokenService.generateResetToken(normalizedEmail);
 
     return {
