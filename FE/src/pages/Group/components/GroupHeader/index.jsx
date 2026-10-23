@@ -110,7 +110,7 @@ function GroupHeader({
           </div>
 
           {/* Group Title */}
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl break-words">
             {group?.name || ""}
           </h1>
 
@@ -162,8 +162,8 @@ function GroupHeader({
           </div>
         </div>
 
-        {/* Right: Actions - Cố định height và min-width chống giật layout */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: Actions */}
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           {canInvite && (
             <Button
               type="button"
