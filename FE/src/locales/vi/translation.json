@@ -382,6 +382,33 @@
       "accountNotFound": "Không tìm thấy tài khoản local với email này",
       "storageUnavailable": "Không kết nối được dữ liệu máy chủ. Vui lòng thử lại sau.",
       "emailSendFailed": "Chưa gửi được email khôi phục. Vui lòng thử lại sau hoặc liên hệ quản trị viên."
-    }
+    },
+    "connecting": "Đang kết nối...",
+    "connectingHint": "Hệ thống đang được chuẩn bị, vui lòng chờ trong giây lát."
+  },
+  "finalize": {
+    "button": "Chốt lịch",
+    "unlock": "Mở khoá",
+    "exporting": "Đang xuất...",
+    "exportDone": "Đã tải file Excel lịch của nhóm.",
+    "modalTitle": "Chốt lịch",
+    "modalSubtitle": "Chọn một khung giờ nằm trong các giờ nhóm đã chọn.",
+    "loading": "Đang tải các khung giờ của nhóm...",
+    "noRuns": "Chưa có ai chọn giờ rảnh nên chưa thể chốt lịch.",
+    "pickRun": "Các giờ nhóm đã chọn",
+    "note": "Ghi chú cuối bảng Excel (tuỳ chọn)",
+    "notePlaceholder": "Ví dụ: Mọi người nhớ mang máy ảnh",
+    "confirmHint": "Sau khi chốt, mọi người không thể sửa lịch và hệ thống sẽ gửi email kèm file Excel cho cả nhóm.",
+    "cancel": "Huỷ",
+    "confirm": "Chốt & gửi email",
+    "submitting": "Đang chốt...",
+    "banner": "Đã chốt: {{when}}",
+    "readOnlyHint": "Lịch đã khoá, bạn chỉ có thể xem.",
+    "emailResult": "Đã gửi email cho {{sent}}/{{total}} thành viên.",
+    "emailFailed": "{{count}} email chưa gửi được.",
+    "pickHint": "Bấm một ô để chọn; bấm thêm ô liền kề để kéo dài khung giờ. Ô xanh là giờ nhiều người rảnh nhất.",
+    "peopleCount": "{{count}} người",
+    "selected": "Khung giờ chốt: {{when}}",
+    "nothingSelected": "Chưa chọn khung giờ nào"
   }
 }

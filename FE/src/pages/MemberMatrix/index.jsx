@@ -1,14 +1,22 @@
 import { useSessionResolver, useCurrentUser } from "~/hooks";
 import MatrixHeader from "./components/MatrixHeader";
 import AvailabilityGrid from "./components/AvailabilityGrid";
+import LeadMatrix from "~/pages/LeadMatrix";
+import { useSessionFinalizeSync } from "~/hooks";
 
 /**
  * Trang Ma trận / Nhập thời gian rảnh của thành viên (Member Availability Input)
  * Chứa Lưới Kéo Thả thời gian cốt lõi (Core Feature) của dự án và chế độ Lead Matrix.
  */
 function Matrix() {
-  const { currentSession } = useSessionResolver();
+  const { currentSession, refreshCurrentSession } = useSessionResolver();
   const { currentUser } = useCurrentUser();
+  useSessionFinalizeSync(currentSession?.id, refreshCurrentSession);
+
+  // Lịch đã chốt: khoá kéo thả, mọi người xem như chế độ Lead (ai chọn gì, chọn như nào)
+  if (currentSession?.status === "finalized") {
+    return <LeadMatrix readOnly />;
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8 h-[calc(100vh-72px)] flex flex-col overflow-hidden">

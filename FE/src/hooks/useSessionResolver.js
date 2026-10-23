@@ -100,9 +100,23 @@ export function useSessionResolver() {
     }
   }, [activeSlug, sessions, location.pathname, navigate, groupId]);
 
+  /** Gộp dữ liệu session mới (vd: sau khi chốt / mở khoá) vào session đang xem. */
+  const updateCurrentSession = (patchData) => {
+    if (patchData) setCurrentSession((prev) => (prev ? { ...prev, ...patchData } : patchData));
+  };
+
+  /** Tải lại session từ Backend (vd: khi nhận realtime chốt / mở khoá từ Lead). */
+  const refreshCurrentSession = async () => {
+    if (!currentSession?.id) return;
+    const fresh = await calendarService.getCalendarById(currentSession.id).catch(() => null);
+    if (fresh) setCurrentSession((prev) => (prev ? { ...prev, ...fresh } : fresh));
+  };
+
   return {
     currentSession,
     sessions,
+    updateCurrentSession,
+    refreshCurrentSession,
   };
 }
 

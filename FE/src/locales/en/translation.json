@@ -382,6 +382,33 @@
       "accountNotFound": "No local account was found for this email",
       "storageUnavailable": "Could not reach server data. Please try again later.",
       "emailSendFailed": "We could not send the recovery email. Please try again later or contact support."
-    }
+    },
+    "connecting": "Connecting...",
+    "connectingHint": "We're getting things ready, please wait a moment."
+  },
+  "finalize": {
+    "button": "Finalize",
+    "unlock": "Unlock",
+    "exporting": "Exporting...",
+    "exportDone": "Group schedule Excel file downloaded.",
+    "modalTitle": "Finalize schedule",
+    "modalSubtitle": "Pick a time window within the hours the group selected.",
+    "loading": "Loading the group's time windows...",
+    "noRuns": "Nobody has picked any availability yet, so the schedule can't be finalized.",
+    "pickRun": "Hours the group selected",
+    "note": "Note at the bottom of the Excel sheet (optional)",
+    "notePlaceholder": "e.g. Everyone please bring a camera",
+    "confirmHint": "Once finalized, nobody can edit their schedule and everyone gets an email with the Excel file.",
+    "cancel": "Cancel",
+    "confirm": "Finalize & send email",
+    "submitting": "Finalizing...",
+    "banner": "Finalized: {{when}}",
+    "readOnlyHint": "The schedule is locked — view only.",
+    "emailResult": "Email sent to {{sent}}/{{total}} members.",
+    "emailFailed": "{{count}} emails could not be sent.",
+    "pickHint": "Click a slot to pick it; click an adjacent slot to extend the window. Green slots have the most people free.",
+    "peopleCount": "{{count}} people",
+    "selected": "Finalized window: {{when}}",
+    "nothingSelected": "No time window selected yet"
   }
 }

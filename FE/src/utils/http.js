@@ -8,6 +8,7 @@ const send = (url, method, data, config = {}) => {
     headers: config.headers,
     signal: config.signal,
     credentials: config.credentials || (config.withCredentials ? "include" : "omit"),
+    responseType: config.responseType,
   });
 };
 
