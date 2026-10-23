@@ -1,4 +1,5 @@
-import { useSessionResolver, useCurrentUser } from "~/hooks";
+import { useParams } from "react-router";
+import { useSessionResolver, useCurrentUser, useUserGroupRole } from "~/hooks";
 import MatrixHeader from "./components/MatrixHeader";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 import LeadMatrix from "~/pages/LeadMatrix";
@@ -11,11 +12,15 @@ import { useSessionFinalizeSync } from "~/hooks";
 function Matrix() {
   const { currentSession, refreshCurrentSession } = useSessionResolver();
   const { currentUser } = useCurrentUser();
+  const { groupId } = useParams();
+  const { role } = useUserGroupRole(groupId);
+  const isLead = role === "owner" || role === "lead";
   useSessionFinalizeSync(currentSession?.id, refreshCurrentSession);
 
-  // Lịch đã chốt: khoá kéo thả, mọi người xem như chế độ Lead (ai chọn gì, chọn như nào)
+  // Lịch đã chốt: khoá kéo thả, mọi người xem như chế độ Lead (ai chọn gì, chọn như nào).
+  // Chỉ trưởng nhóm (lead/owner) có thêm nút Xuất Excel và Huỷ chốt.
   if (currentSession?.status === "finalized") {
-    return <LeadMatrix readOnly />;
+    return <LeadMatrix readOnly={!isLead} />;
   }
 
   return (

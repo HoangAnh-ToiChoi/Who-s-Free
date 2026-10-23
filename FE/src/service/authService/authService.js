@@ -118,6 +118,25 @@ export async function register({ fullName, email, password }) {
 }
 
 /**
+ * Tạo tài khoản cho email được mời (xác nhận bằng token lời mời) rồi đăng nhập luôn
+ * @param {{ token: string, fullName: string, password: string }} payload
+ */
+export async function registerWithInvitation({ token, fullName, password }) {
+  const res = await sendAuthRequest(`/invitations/${encodeURIComponent(token)}/register`, {
+    method: "POST",
+    credentials: "include",
+    body: JSON.stringify({ fullName: fullName.trim(), password }),
+  });
+
+  const accessToken = res?.accessToken;
+  if (accessToken) tokenManager.setAccessToken(accessToken);
+
+  const user = formatUser(res?.user || res);
+  setStoredUser(user);
+  return { user, accessToken };
+}
+
+/**
  * Đăng nhập người dùng bằng email và mật khẩu
  * @param {{ email: string, password: string }} payload
  */
@@ -302,6 +321,7 @@ export async function resetPassword({ email, resetToken, password, confirmPasswo
 
 export const authService = {
   register,
+  registerWithInvitation,
   login,
   syncGoogleSession,
   refreshSession,

@@ -211,7 +211,7 @@
     "revokedDesc": "This invitation was revoked by the group administrator.",
     "groupFullDesc": "Sorry, this group has reached maximum capacity.",
     "dedicatedFor": "Invitation exclusively for:",
-    "loginRequiredNote": "Please sign in or create an account with the above email to accept this invitation.",
+    "loginRequiredNote": "Please sign in with the above email to accept this invitation.",
     "emailMismatchTitle": "Account mismatch",
     "emailMismatchDesc": "This invitation was sent to {{invitedEmail}}, but you are currently signed in as {{currentEmail}}.",
     "switchAccount": "Switch to the invited account",
@@ -276,7 +276,6 @@
     "filterLabel": "Filter",
     "filterAll": "All",
     "filterLeadership": "Leadership",
-    "filterCore": "Core Team",
     "legendLabel": "Availability:",
     "optimalSlotsTitle": "Top Optimal Slots",
     "conflictSlotsTitle": "Limited Availability Slots",
@@ -384,11 +383,13 @@
       "emailSendFailed": "We could not send the recovery email. Please try again later or contact support."
     },
     "connecting": "Connecting...",
-    "connectingHint": "The system is checking, please wait a moment…"
+    "connectingHint": "The system is checking, please wait a moment…",
+    "inviteCreateNote": "This email doesn't have an account yet. Enter your name and create a password to join the group.",
+    "inviteCreatePassword": "Create a password"
   },
   "finalize": {
     "button": "Finalize",
-    "unlock": "Unlock",
+    "unlock": "Cancel finalization",
     "exporting": "Exporting...",
     "exportDone": "Group schedule Excel file downloaded.",
     "modalTitle": "Finalize schedule",
@@ -402,14 +403,19 @@
     "cancel": "Cancel",
     "confirm": "Finalize & send email",
     "submitting": "Finalizing...",
-    "banner": "Finalized: {{when}}",
     "readOnlyHint": "The schedule is locked — view only.",
     "emailResult": "Email sent to {{sent}}/{{total}} members.",
     "emailFailed": "{{count}} emails could not be sent.",
     "pickHint": "Click a slot to pick it; click an adjacent slot to extend the window. Green slots have the most people free.",
     "peopleCount": "{{count}} people",
     "selected": "Finalized window: {{when}}",
-    "nothingSelected": "No time window selected yet"
+    "nothingSelected": "No time window selected yet",
+    "unlockTitle": "Cancel finalization?",
+    "unlockDescription": "The schedule will reopen so everyone can edit their availability. Only team leads can cancel finalization.",
+    "unlockKeep": "Keep it",
+    "leadOnlyHint": "Only team leads can cancel finalization.",
+    "bannerTitle": "Schedule finalized",
+    "bannerNote": "Note"
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"

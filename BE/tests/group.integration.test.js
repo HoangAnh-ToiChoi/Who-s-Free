@@ -72,6 +72,10 @@ async function request(path, { method = "GET", body, token, rawAuth } = {}) {
 }
 
 before(async () => {
+  // Nạp DATABASE_URL từ .env (giống session.integration) để suite chạy trên DB thật thay vì bị bỏ qua
+  const { default: dotenv } = await import("dotenv");
+  dotenv.config();
+
   process.env.NODE_ENV = "test";
   process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.JWT_REFRESH_SECRET = "refresh-secret-min-32-characters-long";

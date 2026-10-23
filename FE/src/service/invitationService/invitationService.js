@@ -20,6 +20,15 @@ export const invitationService = {
   },
 
   /**
+   * Email được mời đã có tài khoản chưa (cần token lời mời hợp lệ)
+   * @returns {Promise<{ email: string, hasAccount: boolean }>}
+   */
+  async getAccountStatus(token, { signal } = {}) {
+    if (!token) throw new Error("Invitation token is required");
+    return backendRequest(`/invitations/${encodeURIComponent(token)}/account`, { signal });
+  },
+
+  /**
    * Chấp nhận lời mời tham gia nhóm (Yêu cầu đã đăng nhập)
    * @param {string} token
    * @returns {Promise<{ member: Object, group: Object }>}

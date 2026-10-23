@@ -211,7 +211,7 @@
     "revokedDesc": "Lời mời này đã bị thu hồi bởi quản trị viên nhóm.",
     "groupFullDesc": "Rất tiếc, nhóm này đã đạt số lượng thành viên tối đa.",
     "dedicatedFor": "Lời mời dành riêng cho:",
-    "loginRequiredNote": "Vui lòng đăng nhập hoặc tạo tài khoản với email trên để chấp nhận lời mời.",
+    "loginRequiredNote": "Vui lòng đăng nhập bằng email trên để chấp nhận lời mời.",
     "emailMismatchTitle": "Tài khoản không khớp",
     "emailMismatchDesc": "Lời mời này được gửi tới email {{invitedEmail}}, nhưng bạn đang đăng nhập với tài khoản {{currentEmail}}.",
     "switchAccount": "Đổi sang tài khoản đúng",
@@ -276,7 +276,6 @@
     "filterLabel": "Bộ lọc",
     "filterAll": "Tất cả",
     "filterLeadership": "Ban lãnh đạo",
-    "filterCore": "Nhóm nòng cốt",
     "legendLabel": "Mức độ rảnh:",
     "optimalSlotsTitle": "Khung giờ tối ưu",
     "conflictSlotsTitle": "Khung giờ hạn chế",
@@ -384,11 +383,13 @@
       "emailSendFailed": "Chưa gửi được email khôi phục. Vui lòng thử lại sau hoặc liên hệ quản trị viên."
     },
     "connecting": "Đang kết nối...",
-    "connectingHint": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
+    "connectingHint": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…",
+    "inviteCreateNote": "Email này chưa có tài khoản. Nhập họ tên và tạo mật khẩu để tham gia nhóm.",
+    "inviteCreatePassword": "Tạo mật khẩu"
   },
   "finalize": {
     "button": "Chốt lịch",
-    "unlock": "Mở khoá",
+    "unlock": "Huỷ chốt",
     "exporting": "Đang xuất...",
     "exportDone": "Đã tải file Excel lịch của nhóm.",
     "modalTitle": "Chốt lịch",
@@ -402,14 +403,19 @@
     "cancel": "Huỷ",
     "confirm": "Chốt & gửi email",
     "submitting": "Đang chốt...",
-    "banner": "Đã chốt: {{when}}",
     "readOnlyHint": "Lịch đã khoá, bạn chỉ có thể xem.",
     "emailResult": "Đã gửi email cho {{sent}}/{{total}} thành viên.",
     "emailFailed": "{{count}} email chưa gửi được.",
     "pickHint": "Bấm một ô để chọn; bấm thêm ô liền kề để kéo dài khung giờ. Ô xanh là giờ nhiều người rảnh nhất.",
     "peopleCount": "{{count}} người",
     "selected": "Khung giờ chốt: {{when}}",
-    "nothingSelected": "Chưa chọn khung giờ nào"
+    "nothingSelected": "Chưa chọn khung giờ nào",
+    "unlockTitle": "Huỷ chốt lịch?",
+    "unlockDescription": "Lịch sẽ được mở lại để mọi người chỉnh sửa giờ rảnh. Chỉ trưởng nhóm mới có quyền huỷ chốt.",
+    "unlockKeep": "Giữ nguyên",
+    "leadOnlyHint": "Chỉ trưởng nhóm mới có thể huỷ chốt.",
+    "bannerTitle": "Lịch đã được chốt",
+    "bannerNote": "Ghi chú"
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"

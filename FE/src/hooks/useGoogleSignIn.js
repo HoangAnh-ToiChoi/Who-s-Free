@@ -7,7 +7,7 @@ import { waitForBackend } from "~/utils/serverWake";
  * Máy chủ gói miễn phí có thể đang "ngủ": kiểm tra sẵn sàng trước, đợi tới khi phản hồi rồi mới
  * chuyển sang Google để người dùng không bị đưa tới trang chờ của nhà cung cấp hosting.
  */
-export function useGoogleSignIn(returnUrl) {
+export function useGoogleSignIn(returnUrl, loginHint) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const startGoogleSignIn = async () => {
@@ -17,6 +17,7 @@ export function useGoogleSignIn(returnUrl) {
     await waitForBackend(backendHealthUrl());
 
     const params = new URLSearchParams({ returnUrl });
+    if (loginHint) params.set("loginHint", loginHint);
     window.location.href = `${backendUrl("/auth/google")}?${params}`;
   };
 

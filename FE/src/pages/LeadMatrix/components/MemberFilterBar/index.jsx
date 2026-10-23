@@ -4,7 +4,7 @@ import MemberChip from "./MemberChip";
 
 /**
  * MemberFilterBar - Thanh lọc thành viên cho LeadMatrix
- * Hỗ trợ: Preset filter (All, Leadership, Core) + Toggle từng member
+ * Hỗ trợ: Preset filter (All, Leadership) + Toggle từng member
  * Tuân thủ SRP: Tách riêng MemberChip ra file độc lập.
  */
 function MemberFilterBar({
@@ -19,7 +19,6 @@ function MemberFilterBar({
   const presetLabels = {
     all: t("leadMatrix.filterAll"),
     leadership: t("leadMatrix.filterLeadership"),
-    core: t("leadMatrix.filterCore"),
   };
 
   return (

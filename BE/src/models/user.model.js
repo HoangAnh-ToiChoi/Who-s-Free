@@ -95,6 +95,15 @@ class UserModel {
     return this.syncAuthUser(authUser, { fullName });
   }
 
+  static async createConfirmedInAuth({ email, password, fullName }) {
+    const authUser = await SupabaseAuthModel.createConfirmedUser({
+      email: email.toLowerCase(),
+      password,
+      fullName,
+    });
+    return this.syncAuthUser(authUser, { fullName });
+  }
+
   static async signInWithPassword({ email, password }) {
     const authUser = await SupabaseAuthModel.signInWithPassword({
       email: email.toLowerCase(),
@@ -103,8 +112,8 @@ class UserModel {
     return this.syncAuthUser(authUser);
   }
 
-  static getGoogleOAuthUrl(redirectTo) {
-    return SupabaseAuthModel.getGoogleOAuthUrl(redirectTo);
+  static getGoogleOAuthUrl(redirectTo, queryParams) {
+    return SupabaseAuthModel.getGoogleOAuthUrl(redirectTo, queryParams);
   }
 
   static async exchangeCodeForSession(code) {

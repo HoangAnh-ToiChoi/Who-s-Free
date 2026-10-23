@@ -82,6 +82,12 @@ export function AuthProvider({ children }) {
     return { ...result, user: currentUser };
   }, [verifyAuthenticatedUser]);
 
+  const registerWithInvitation = useCallback(async ({ token, fullName, password }) => {
+    const result = await authService.registerWithInvitation({ token, fullName, password });
+    const currentUser = await verifyAuthenticatedUser();
+    return { ...result, user: currentUser };
+  }, [verifyAuthenticatedUser]);
+
   const handleGoogleSession = useCallback(async ({ accessToken }) => {
     await authService.syncGoogleSession({ accessToken });
     return await verifyAuthenticatedUser();
@@ -119,6 +125,7 @@ export function AuthProvider({ children }) {
     isLoading,
     login,
     register,
+    registerWithInvitation,
     handleGoogleSession,
     fetchMe,
     logout,

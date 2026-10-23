@@ -112,6 +112,26 @@ class GroupInvitationService {
         };
     }
 
+    /** Lời mời còn dùng được (chưa thu hồi / chấp nhận / hết hạn), nếu không thì ném lỗi. */
+    async requireUsableInvitation(token) {
+        if (!token) throw AppError.notFound("Không tìm thấy thông tin lời mời", "INVITATION_NOT_FOUND");
+
+        const inv = await GroupInvitationModel.findByTokenHash(this.#hashToken(token));
+        if (!inv) throw AppError.notFound("Không tìm thấy thông tin lời mời hoặc liên kết không hợp lệ", "INVITATION_NOT_FOUND");
+        if (inv.status === "revoked" || Boolean(inv.revoked_at)) throw AppError.badRequest("Lời mời này đã bị thu hồi bởi ban quản trị", "INVITATION_REVOKED");
+        if (inv.status === "accepted" || Boolean(inv.accepted_at)) throw AppError.badRequest("Lời mời này đã được chấp nhận trước đó", "INVITATION_ALREADY_ACCEPTED");
+        if (new Date(inv.expires_at) <= new Date()) throw AppError.badRequest("Lời mời đã hết hạn sau 24 giờ. Vui lòng yêu cầu lời mời mới.", "INVITATION_EXPIRED");
+        return inv;
+    }
+
+    /** Email được mời đã có tài khoản chưa (chỉ trả lời khi có token lời mời hợp lệ). */
+    async getAccountStatus(token) {
+        const inv = await this.requireUsableInvitation(token);
+        const email = (inv.email || "").trim().toLowerCase();
+        const existingUser = await UserModel.findByEmail(email);
+        return { email, hasAccount: Boolean(existingUser) };
+    }
+
     async acceptInvitation(token, currentUser) {
         if (!token) throw AppError.notFound("Không tìm thấy thông tin lời mời", "INVITATION_NOT_FOUND");
 
