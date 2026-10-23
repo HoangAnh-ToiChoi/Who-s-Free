@@ -10,3 +10,5 @@ export { default as useSessionResolver } from "~/hooks/useSessionResolver";
 export { default as useCurrentUser } from "~/hooks/useCurrentUser";
 export { default as useAuth } from "~/hooks/useAuth";
 export { default as useUserGroupRole } from "~/hooks/useUserGroupRole";
+export { default as useSessionFinalizeSync } from "~/hooks/useSessionFinalizeSync";
+export { default as useGoogleSignIn } from "~/hooks/useGoogleSignIn";

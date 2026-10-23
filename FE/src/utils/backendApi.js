@@ -100,6 +100,7 @@ export async function backendRequest(
     signal,
     headers: customHeaders = {},
     credentials = "omit",
+    responseType = "json",
     _retried = false,
   } = {}
 ) {
@@ -128,6 +129,14 @@ export async function backendRequest(
         ? body
         : JSON.stringify(body),
   });
+
+  // Tải file nhị phân (vd: xlsx): trả về { blob, fileName } khi thành công
+  if (responseType === "blob" && response.ok) {
+    const disposition = response.headers.get("Content-Disposition") || "";
+    const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] || null;
+    return { blob: await response.blob(), fileName };
+  }
+
   const payload = await readPayload(response);
 
   if (!response.ok || payload?.success === false) {
@@ -150,6 +159,7 @@ export async function backendRequest(
           signal,
           headers: customHeaders,
           credentials,
+          responseType,
           _retried: true,
         });
       } catch (refreshError) {

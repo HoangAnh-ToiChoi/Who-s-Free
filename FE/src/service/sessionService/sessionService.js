@@ -78,6 +78,20 @@ export const sessionService = {
     };
   },
 
+  /** Lead chốt lịch: { date: "YYYY-MM-DD", startMinutes, endMinutes, note } */
+  async finalizeSession(sessionId, payload) {
+    return await http.post(`/sessions/${sessionId}/finalize`, payload);
+  },
+
+  async unfinalizeSession(sessionId) {
+    return await http.post(`/sessions/${sessionId}/unfinalize`, {});
+  },
+
+  /** Tải file Excel lịch của session; trả về { blob, fileName } */
+  async exportScheduleXlsx(sessionId) {
+    return await http.get(`/sessions/${sessionId}/export.xlsx`, { responseType: "blob" });
+  },
+
   async deleteCalendar(id) {
     return await http.del(`/sessions/${id}`);
   },

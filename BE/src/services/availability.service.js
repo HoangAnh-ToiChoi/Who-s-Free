@@ -36,6 +36,9 @@ class AvailabilityService {
     if (!session) throw AppError.notFound("Không tìm thấy phiên", ErrorCodes.SESSION_NOT_FOUND);
     const member = await GroupMemberModel.findMember(session.group_id, userId).catch(() => null);
     if (!member) throw AppError.forbidden("Bạn không phải thành viên của nhóm này", ErrorCodes.FORBIDDEN);
+    if (session.status === "finalized") {
+      throw AppError.conflict("Lịch đã được chốt, không thể chỉnh sửa giờ rảnh", ErrorCodes.SESSION_FINALIZED);
+    }
 
     await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
     const saved = await AvailabilityModel.findBySessionAndUser(sessionId, userId);

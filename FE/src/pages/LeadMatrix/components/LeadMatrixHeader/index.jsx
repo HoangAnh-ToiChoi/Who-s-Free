@@ -10,7 +10,7 @@ import { createCompositeSlug } from "~/utils/slugify";
  * - Tên session + ref code
  * - Nút chuyển sang MemberMatrix (Nhập lịch của tôi)
  */
-function LeadMatrixHeader({ session }) {
+function LeadMatrixHeader({ session, hideSwitch = false }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -49,6 +49,7 @@ function LeadMatrixHeader({ session }) {
       </div>
 
       {/* Nút chuyển sang MemberMatrix */}
+      {!hideSwitch && (
       <Button
         type="button"
         variant="outline"
@@ -61,6 +62,7 @@ function LeadMatrixHeader({ session }) {
         <Calendar size={14} className="text-indigo-600" />
         <span>{t("leadMatrix.enterMySchedule")}</span>
       </Button>
+      )}
     </div>
   );
 }

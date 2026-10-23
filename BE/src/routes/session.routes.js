@@ -10,6 +10,9 @@ const router = Router();
 router.get("/", sessionController.getSessions);
 router.get("/:id", sessionController.getSessionById);
 router.post("/", AuthMiddleware.authenticate, sessionController.createSession);
+router.post("/:id/finalize", AuthMiddleware.authenticate, sessionController.finalizeSession);
+router.post("/:id/unfinalize", AuthMiddleware.authenticate, sessionController.unfinalizeSession);
+router.get("/:id/export.xlsx", AuthMiddleware.authenticate, sessionController.exportSchedule);
 router.delete("/:id", AuthMiddleware.authenticate, sessionController.deleteSession);
 
 // Availability nested under sessions

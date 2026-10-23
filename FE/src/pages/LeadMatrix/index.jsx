@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2 } from "lucide-react";
-import { useSessionResolver, useWeekNavigation } from "~/hooks";
+import { useSessionResolver, useWeekNavigation, useSessionFinalizeSync } from "~/hooks";
 import LeadMatrixHeader from "./components/LeadMatrixHeader";
 import HeatmapGrid from "./components/HeatmapGrid";
 import MemberFilterBar from "./components/MemberFilterBar";
@@ -9,6 +9,9 @@ import OptimalAnalysis from "./components/OptimalAnalysis";
 import { useHeatmapMatrix } from "./hooks/useHeatmapMatrix";
 import { useMemberFilter } from "./hooks/useMemberFilter";
 import { useLeadExport } from "./hooks/useLeadExport";
+import { useFinalizeActions } from "./hooks/useFinalizeActions";
+import FinalizeModal from "./components/FinalizeModal";
+import FinalizedBanner from "./components/FinalizedBanner";
 import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
 
 /**
@@ -22,10 +25,12 @@ import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
  *   + useOptimalAnalysis: Bảng xếp hạng khung giờ vàng & vùng xung đột
  *   + useLeadExport: Xử lý xuất file báo cáo
  * - LeadMatrix đóng vai trò Orchestrator kết nối và điều phối trạng thái hiển thị
+ *
+ * readOnly: chế độ xem của thành viên khi lịch đã chốt (giống góc nhìn Lead nhưng không có nút thao tác).
  */
-function LeadMatrix() {
+function LeadMatrix({ readOnly = false }) {
   const { t } = useTranslation();
-  const { currentSession } = useSessionResolver();
+  const { currentSession, updateCurrentSession, refreshCurrentSession } = useSessionResolver();
   const {
     weekDays,
     weekLabel,
@@ -50,7 +55,14 @@ function LeadMatrix() {
     weekDays
   );
 
-  const { exportNotice, exportToCsv } = useLeadExport();
+  const { exportNotice, exportError, isExporting, exportToXlsx } = useLeadExport();
+  const finalizeActions = useFinalizeActions({
+    sessionId,
+    onChanged: updateCurrentSession,
+  });
+  useSessionFinalizeSync(sessionId, refreshCurrentSession);
+
+  const finalized = currentSession?.status === "finalized" ? currentSession.finalized : null;
 
   // State đồng bộ tương tác khi click vào ô trong bảng xếp hạng hoặc trên lưới
   const [selectedCell, setSelectedCell] = useState(null);
@@ -70,15 +82,8 @@ function LeadMatrix() {
   );
 
   const handleExport = useCallback(() => {
-    exportToCsv({
-      sessionTitle: currentSession?.title,
-      weekLabel,
-      totalMembers,
-      allMembers,
-      weekDays,
-      matrix,
-    });
-  }, [exportToCsv, currentSession?.title, weekLabel, totalMembers, allMembers, weekDays, matrix]);
+    exportToXlsx(sessionId, currentSession?.slug || "lich");
+  }, [exportToXlsx, sessionId, currentSession?.slug]);
 
   const leadStats = {
     selectedCount: selectedMemberIds.length,
@@ -91,12 +96,33 @@ function LeadMatrix() {
       {exportNotice && (
         <div className="absolute top-4 right-8 z-50 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-800 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
           <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-          <span>{t("leadMatrix.exportSuccess")}</span>
+          <span>{t("finalize.exportDone")}</span>
+        </div>
+      )}
+      {exportError && (
+        <div role="alert" className="absolute top-4 right-8 z-50 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700 shadow-lg">
+          {exportError}
+        </div>
+      )}
+      {finalizeActions.emailResult && (
+        <div className="absolute top-16 right-8 z-50 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-800 shadow-lg">
+          {t("finalize.emailResult", {
+            sent: finalizeActions.emailResult.sent,
+            total: finalizeActions.emailResult.total,
+          })}
+          {finalizeActions.emailResult.failed > 0 &&
+            ` ${t("finalize.emailFailed", { count: finalizeActions.emailResult.failed })}`}
         </div>
       )}
 
       {/* Header session */}
-      <LeadMatrixHeader session={currentSession} />
+      <LeadMatrixHeader session={currentSession} hideSwitch={readOnly} />
+
+      {/* Banner lịch đã chốt */}
+      <FinalizedBanner finalized={finalized} readOnly={readOnly} />
+      {finalizeActions.error && !finalizeActions.isModalOpen && (
+        <p role="alert" className="mb-2 text-xs font-semibold text-rose-600">{finalizeActions.error}</p>
+      )}
 
       {/* Member Filter Bar */}
       <MemberFilterBar
@@ -117,6 +143,12 @@ function LeadMatrix() {
           onNextWeek={goToNextWeek}
           onToday={goToToday}
           onExport={handleExport}
+          isExporting={isExporting}
+          readOnly={readOnly}
+          isFinalized={Boolean(finalized)}
+          isBusy={finalizeActions.isSubmitting}
+          onFinalize={finalizeActions.openModal}
+          onUnfinalize={finalizeActions.unfinalize}
         />
       </div>
 
@@ -145,6 +177,16 @@ function LeadMatrix() {
           />
         </div>
       </div>
+
+      <FinalizeModal
+        open={finalizeActions.isModalOpen}
+        onOpenChange={(open) => (open ? finalizeActions.openModal() : finalizeActions.closeModal())}
+        cells={finalizeActions.cells}
+        isLoading={finalizeActions.isLoadingRuns}
+        isSubmitting={finalizeActions.isSubmitting}
+        error={finalizeActions.error}
+        onSubmit={finalizeActions.finalize}
+      />
     </div>
   );
 }

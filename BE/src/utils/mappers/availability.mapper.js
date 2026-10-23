@@ -1,10 +1,9 @@
 // BE/src/utils/mappers/availability.mapper.js
+import { toDateString } from "../date.js";
 
 export function toPublicSlot(row) {
   if (!row) return null;
-  const dateStr = row.date_str instanceof Date
-    ? row.date_str.toISOString().slice(0, 10)
-    : String(row.date_str ?? "");
+  const dateStr = toDateString(row.date_str);
   return {
     id: row.id,
     dayIndex: row.day_index,

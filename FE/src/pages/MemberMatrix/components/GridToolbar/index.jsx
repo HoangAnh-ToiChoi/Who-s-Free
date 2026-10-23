@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, Globe, Trash2, FileSpreadsheet } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe, Trash2, FileSpreadsheet, Lock, LockOpen } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { ConfirmModal } from "~/components/Modals";
 
@@ -19,6 +19,12 @@ function GridToolbar({
   onClearAll,
   mode = "member",
   onExport,
+  isExporting = false,
+  readOnly = false,
+  isFinalized = false,
+  isBusy = false,
+  onFinalize,
+  onUnfinalize,
 }) {
   const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -84,17 +90,47 @@ function GridToolbar({
                 })}
             </span>
 
-            {/* Nút Xuất file cho chế độ Lead */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onExport}
-              className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-indigo-700 border-indigo-200/90 bg-indigo-50/80 hover:bg-indigo-100 hover:text-indigo-800 hover:border-indigo-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
-            >
-              <FileSpreadsheet size={13} className="shrink-0 text-indigo-600" />
-              <span>{t("leadMatrix.exportFile")}</span>
-            </Button>
+            {/* Nút Xuất Excel / Chốt lịch / Mở khoá: chỉ Lead (chế độ xem của thành viên bị ẩn) */}
+            {!readOnly && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isExporting}
+                  onClick={onExport}
+                  className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-indigo-700 border-indigo-200/90 bg-indigo-50/80 hover:bg-indigo-100 hover:text-indigo-800 hover:border-indigo-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                >
+                  <FileSpreadsheet size={13} className="shrink-0 text-indigo-600" />
+                  <span>{isExporting ? t("finalize.exporting") : t("leadMatrix.exportFile")}</span>
+                </Button>
+
+                {isFinalized ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isBusy}
+                    onClick={onUnfinalize}
+                    className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-amber-700 border-amber-200 bg-amber-50/80 hover:bg-amber-100 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                  >
+                    <LockOpen size={13} className="shrink-0" />
+                    <span>{t("finalize.unlock")}</span>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isBusy}
+                    onClick={onFinalize}
+                    className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 bg-indigo-600 text-white hover:bg-indigo-700 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                  >
+                    <Lock size={13} className="shrink-0" />
+                    <span>{t("finalize.button")}</span>
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         ) : stats.count > 0 ? (
           <div className="flex items-center gap-2">
