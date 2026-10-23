@@ -398,7 +398,7 @@
     "pickRun": "Các giờ nhóm đã chọn",
     "note": "Ghi chú cuối bảng Excel (tuỳ chọn)",
     "notePlaceholder": "Ví dụ: Mọi người nhớ mang máy ảnh",
-    "confirmHint": "Sau khi chốt, mọi người không thể sửa lịch và hệ thống sẽ gửi email kèm file Excel cho cả nhóm.",
+    "confirmHint": "Sau khi chốt, mọi người không thể sửa lịch và hệ thống sẽ gửi email thông báo cho cả nhóm.",
     "cancel": "Huỷ",
     "confirm": "Chốt & gửi email",
     "submitting": "Đang chốt...",
