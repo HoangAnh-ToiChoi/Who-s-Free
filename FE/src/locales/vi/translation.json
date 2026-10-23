@@ -104,9 +104,6 @@
       "activeCount": "{{count}} Đang mở",
       "turnout": "Tỷ lệ tham gia trung bình",
       "response": "Thời gian phản hồi",
-      "responseValue": "< 4 giờ",
-      "feeds": "Lịch đã kết nối",
-      "feedsValue": "Google + iCal",
       "systemOperational": "Hệ thống hoạt động ổn định • Đồng bộ thời gian thực",
       "copyright": "© 2026 Who's Free. Điều phối lịch trình chuẩn xác."
     }

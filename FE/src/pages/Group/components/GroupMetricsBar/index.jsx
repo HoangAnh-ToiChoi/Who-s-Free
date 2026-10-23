@@ -1,13 +1,10 @@
 import { useTranslation } from "react-i18next";
-import {
-  Calendar,
-  Activity,
-  Clock,
-  RefreshCw,
-} from "lucide-react";
+import { Calendar, Activity, Clock } from "lucide-react";
+import { formatResponseTime } from "~/utils";
 
-function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0 }) {
-  const { t } = useTranslation();
+function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0, medianResponseHours = null }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith("vi") ? "vi" : "en";
 
   const metrics = [
     {
@@ -34,7 +31,7 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0 }) {
     },
     {
       id: "response",
-      value: t("groupDetail.metrics.responseValue"),
+      value: formatResponseTime(medianResponseHours, locale),
       label: t("groupDetail.metrics.response"),
       icon: Clock,
       iconColor: "text-blue-600 bg-blue-50 border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600",
@@ -43,23 +40,11 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0 }) {
       valueHover: "group-hover:text-blue-600",
       iconTransform: "group-hover:scale-115 group-hover:-rotate-6",
     },
-    {
-      id: "feeds",
-      value: t("groupDetail.metrics.feedsValue"),
-      label: t("groupDetail.metrics.feeds"),
-      icon: RefreshCw,
-      iconColor: "text-emerald-600 bg-emerald-50 border-emerald-200/80 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600",
-      hoverBorder: "hover:border-emerald-300 hover:shadow-emerald-500/10",
-      accentLine: "from-emerald-500 to-teal-500",
-      valueHover: "group-hover:text-emerald-600",
-      iconTransform: "group-hover:rotate-180 duration-700 ease-in-out",
-    },
   ];
 
   return (
     <div className="mt-12 space-y-6">
-      {/* 4 Cards Grid - Thêm hiệu ứng hover nổi bật, vạch accent đổi màu và icon micro-animations */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {metrics.map((item) => {
           const Icon = item.icon;
           return (
@@ -67,19 +52,14 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0 }) {
               key={item.id}
               className={`group relative flex min-h-[76px] items-center gap-3.5 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg ${item.hoverBorder} cursor-pointer`}
             >
-              {/* Top Accent Gradient Line on Hover */}
               <div
                 className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${item.accentLine} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
               />
-
-              {/* Icon Container with interactive transform */}
               <div
                 className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 shadow-2xs ${item.iconColor} ${item.iconTransform}`}
               >
                 <Icon size={19} strokeWidth={2.2} />
               </div>
-
-              {/* Text Information */}
               <div className="min-w-0 flex-1">
                 <div
                   className={`text-sm font-bold text-slate-900 transition-colors duration-200 truncate ${item.valueHover}`}
@@ -95,7 +75,6 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0 }) {
         })}
       </div>
 
-      {/* Subtle status footer */}
       <div className="flex flex-col gap-2 pt-4 border-t border-slate-200/80 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />

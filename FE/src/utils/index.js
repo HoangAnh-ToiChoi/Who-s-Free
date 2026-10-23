@@ -3,5 +3,7 @@ export * from "~/utils/slugify";
 export * from "~/utils/dateUtils";
 export * from "~/utils/timeUtils";
 export * from "~/utils/matrixCalculations";
+export * from "~/utils/groupMetrics";
+export * from "~/utils/formatResponseTime";
 export * from "~/utils/slotCollision";
 export * from "~/utils/authValidation";

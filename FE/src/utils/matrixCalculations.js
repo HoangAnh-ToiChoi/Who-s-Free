@@ -108,35 +108,4 @@ export function calculateSessionMetrics(session, availabilities = [], fallbackTo
   };
 }
 
-/**
- * Tính toán số liệu thống kê cấp nhóm (Group Overview Metrics)
- *
- * @param {Array} sessions - Danh sách các session của nhóm
- * @param {Object} group - Dữ liệu nhóm hiện tại (fallback)
- * @returns {Object} { activeSessionsCount, turnoutRate }
- */
-export function calculateGroupMetrics(sessions = [], group = null) {
-  const activeSessions = (sessions || []).filter(
-    (s) => s.status !== "archived" && s.status !== "cancelled"
-  );
-  const activeSessionsCount = activeSessions.length;
-
-  let turnoutRate = group?.responseRate || 0;
-  if (activeSessions.length > 0) {
-    const sumQuorum = activeSessions.reduce(
-      (acc, s) => acc + (typeof s.quorumPercent === "number" ? s.quorumPercent : 0),
-      0
-    );
-    turnoutRate = Math.round(sumQuorum / activeSessions.length);
-  }
-
-  return {
-    activeSessionsCount,
-    turnoutRate,
-  };
-}
-
-export default {
-  calculateSessionMetrics,
-  calculateGroupMetrics,
-};
+export default { calculateSessionMetrics };

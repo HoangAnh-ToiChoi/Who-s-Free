@@ -161,6 +161,16 @@ class GroupModel {
             gm.joined_at ASC
           LIMIT 3
         ) sub
+      ),
+      response_time AS (
+        SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (
+          ORDER BY EXTRACT(EPOCH FROM (sp.responded_at - s.created_at)) / 3600.0
+        ) AS median_response_hours
+        FROM public.session_participants sp
+        JOIN public.sessions s ON s.id = sp.session_id
+        JOIN target_group tg ON s.group_id = tg.id
+        WHERE sp.responded_at IS NOT NULL
+          AND sp.responded_at > s.created_at
       )
       SELECT
         tg.*,
@@ -168,12 +178,14 @@ class GroupModel {
         COALESCE(um.group_role, 'guest') as user_group_role,
         COALESCE(s.member_count, 0) as member_count,
         COALESCE(l.lead_admin, 'Trưởng nhóm') as lead_admin,
-        p.member_previews
+        p.member_previews,
+        rt.median_response_hours
       FROM target_group tg
       LEFT JOIN user_membership um ON true
       LEFT JOIN stats s ON true
       LEFT JOIN lead l ON true
-      LEFT JOIN previews p ON true;
+      LEFT JOIN previews p ON true
+      LEFT JOIN response_time rt ON true;
     `;
     const { rows } = await query(sql, [identifier, validUserId]);
     return rows && rows[0] ? rows[0] : null;

@@ -27,6 +27,7 @@ export function toPublicGroup(group) {
     })),
     userRole: group.user_role || group.userRole || "member",
     userGroupRole: group.user_group_role || group.userGroupRole || "core",
+    medianResponseHours: group.median_response_hours != null ? parseFloat(group.median_response_hours) : null,
     createdAt: group.created_at || group.createdAt || new Date().toISOString(),
     updatedAt: group.updated_at || group.updatedAt || new Date().toISOString(),
   };

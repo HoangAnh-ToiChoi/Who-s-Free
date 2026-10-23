@@ -117,6 +117,7 @@ function Group() {
                     <GroupMetricsBar
                       activeSessionsCount={activeSessionsCount}
                       turnoutRate={turnoutRate}
+                      medianResponseHours={group?.medianResponseHours ?? null}
                     />
                   </>
                 )}
