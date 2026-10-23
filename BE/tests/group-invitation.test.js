@@ -652,3 +652,124 @@ test("LIST-04: Lấy danh sách lời mời của nhóm không tồn tại trả
   assert.equal(data.error, "GROUP_NOT_FOUND");
 });
 
+
+// ==========================================
+// 7. TẠO TÀI KHOẢN TỪ LỜI MỜI (GET /:token/account, POST /:token/register)
+// ==========================================
+
+async function createInviteToken(email) {
+  EmailService.sendGroupInvitation = async () => ({ id: "ok" });
+  const createRes = await request(`/api/groups/${testGroup.id}/invitations`, {
+    method: "POST",
+    token: getAuthToken(OWNER_USER),
+    body: { email },
+  });
+  assert.equal(createRes.response.status, 201);
+  return createRes.data.data.inviteLink.split("/invite/")[1];
+}
+
+test("ACCOUNT-01: Hỏi trạng thái tài khoản của email được mời (đã có / chưa có)", async () => {
+  const existingToken = await createInviteToken(TARGET_USER.email);
+  const existing = await request(`/api/invitations/${existingToken}/account`);
+  assert.equal(existing.response.status, 200);
+  assert.deepEqual(existing.data.data, { email: TARGET_USER.email, hasAccount: true });
+
+  usersById.delete(NEW_USER.id);
+  const newToken = await createInviteToken(NEW_USER.email);
+  const fresh = await request(`/api/invitations/${newToken}/account`);
+  assert.deepEqual(fresh.data.data, { email: NEW_USER.email, hasAccount: false });
+  usersById.set(NEW_USER.id, NEW_USER);
+});
+
+test("ACCOUNT-02: Token không hợp lệ thì không lộ trạng thái tài khoản (404)", async () => {
+  const { response, data } = await request("/api/invitations/invalid-token/account");
+  assert.equal(response.status, 404);
+  assert.equal(data.error, "INVITATION_NOT_FOUND");
+});
+
+test("ACCOUNT-03: Người chưa có tài khoản tạo tài khoản bằng token lời mời, đăng nhập luôn rồi chấp nhận lời mời", async () => {
+  usersById.delete(NEW_USER.id);
+  const token = await createInviteToken(NEW_USER.email);
+
+  let createdWith;
+  UserModel.createConfirmedInAuth = async ({ email, password, fullName }) => {
+    createdWith = { email, password, fullName };
+    usersById.set(NEW_USER.id, NEW_USER);
+    return { ...NEW_USER, user_metadata: { full_name: fullName } };
+  };
+
+  const { response, data } = await request(`/api/invitations/${token}/register`, {
+    method: "POST",
+    body: { fullName: "Người Mới", password: "matkhau-12345" },
+  });
+
+  assert.equal(response.status, 201);
+  assert.ok(data.data.accessToken);
+  assert.equal(data.data.user.email, NEW_USER.email);
+  // Email lấy từ lời mời, không lấy từ client
+  assert.deepEqual(createdWith, { email: NEW_USER.email, password: "matkhau-12345", fullName: "Người Mới" });
+
+  const acceptRes = await request(`/api/invitations/${token}/accept`, {
+    method: "POST",
+    token: data.data.accessToken,
+  });
+  assert.equal(acceptRes.response.status, 200);
+  assert.equal(acceptRes.data.data.member.userId, NEW_USER.id);
+});
+
+test("ACCOUNT-04: Email đã có tài khoản thì không tạo mới (409 ACCOUNT_EXISTS)", async () => {
+  const token = await createInviteToken(TARGET_USER.email);
+  UserModel.createConfirmedInAuth = async () => {
+    throw new Error("không được gọi");
+  };
+  const { response, data } = await request(`/api/invitations/${token}/register`, {
+    method: "POST",
+    body: { fullName: "Kẻ Mạo Danh", password: "matkhau-12345" },
+  });
+  assert.equal(response.status, 409);
+  assert.equal(data.error, "ACCOUNT_EXISTS");
+});
+
+test("ACCOUNT-05: Token đã dùng / hết hạn / sai thì không tạo được tài khoản", async () => {
+  usersById.delete(NEW_USER.id);
+  UserModel.createConfirmedInAuth = async () => {
+    throw new Error("không được gọi");
+  };
+
+  const bad = await request("/api/invitations/invalid-token/register", {
+    method: "POST",
+    body: { fullName: "A", password: "matkhau-12345" },
+  });
+  assert.equal(bad.response.status, 404);
+
+  const token = await createInviteToken(NEW_USER.email);
+  const inv = Array.from(GroupInvitationModel.store.values()).find((i) => i.email === NEW_USER.email);
+  inv.expires_at = new Date(Date.now() - 1000).toISOString();
+  const expired = await request(`/api/invitations/${token}/register`, {
+    method: "POST",
+    body: { fullName: "A", password: "matkhau-12345" },
+  });
+  assert.equal(expired.response.status, 400);
+  assert.equal(expired.data.error, "INVITATION_EXPIRED");
+  usersById.set(NEW_USER.id, NEW_USER);
+});
+
+test("ACCOUNT-06: Mật khẩu ngắn hoặc thiếu họ tên bị từ chối (400)", async () => {
+  usersById.delete(NEW_USER.id);
+  const token = await createInviteToken(NEW_USER.email);
+  UserModel.createConfirmedInAuth = async () => {
+    throw new Error("không được gọi");
+  };
+  const short = await request(`/api/invitations/${token}/register`, {
+    method: "POST",
+    body: { fullName: "A", password: "123" },
+  });
+  assert.equal(short.response.status, 400);
+
+  const noName = await request(`/api/invitations/${token}/register`, {
+    method: "POST",
+    body: { fullName: "", password: "matkhau-12345" },
+  });
+  assert.equal(noName.response.status, 400);
+  usersById.set(NEW_USER.id, NEW_USER);
+});

@@ -211,7 +211,7 @@
     "revokedDesc": "This invitation was revoked by the group administrator.",
     "groupFullDesc": "Sorry, this group has reached maximum capacity.",
     "dedicatedFor": "Invitation exclusively for:",
-    "loginRequiredNote": "Please sign in or create an account with the above email to accept this invitation.",
+    "loginRequiredNote": "Please sign in with the above email to accept this invitation.",
     "emailMismatchTitle": "Account mismatch",
     "emailMismatchDesc": "This invitation was sent to {{invitedEmail}}, but you are currently signed in as {{currentEmail}}.",
     "switchAccount": "Switch to the invited account",
@@ -383,7 +383,9 @@
       "emailSendFailed": "We could not send the recovery email. Please try again later or contact support."
     },
     "connecting": "Connecting...",
-    "connectingHint": "The system is checking, please wait a moment…"
+    "connectingHint": "The system is checking, please wait a moment…",
+    "inviteCreateNote": "This email doesn't have an account yet. Enter your name and create a password to join the group.",
+    "inviteCreatePassword": "Create a password"
   },
   "finalize": {
     "button": "Finalize",

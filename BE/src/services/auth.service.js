@@ -66,6 +66,22 @@ class AuthService {
   }
 
   /**
+   * Tạo tài khoản đã xác nhận email cho người được mời (email lấy từ lời mời đã kiểm tra) và đăng nhập luôn.
+   * @param {{ email: string, password: string, fullName?: string }} payload
+   */
+  async registerInvitedUser({ email, password, fullName }) {
+    try {
+      const createdUser = await UserModel.createConfirmedInAuth({ email, password, fullName });
+      const publicUser = toPublicUser(createdUser);
+      const { accessToken, refreshToken } = await this.#issueSession(publicUser);
+      return { user: publicUser, accessToken, refreshToken };
+    } catch (err) {
+      if (err.isOperational) throw err;
+      throw AppError.badRequest(err.message || "Tạo tài khoản thất bại", "REGISTER_FAILED");
+    }
+  }
+
+  /**
    * Đăng nhập người dùng bằng email và mật khẩu
    * @param {{ email: string, password: string }} payload
    */
@@ -90,9 +106,9 @@ class AuthService {
   /**
    * Lấy URL đăng nhập Google OAuth
    */
-  async getGoogleOAuthUrl(redirectTo) {
+  async getGoogleOAuthUrl(redirectTo, queryParams) {
     try {
-      const url = await UserModel.getGoogleOAuthUrl(redirectTo);
+      const url = await UserModel.getGoogleOAuthUrl(redirectTo, queryParams);
       return { url };
     } catch (err) {
       throw AppError.badRequest(err.message, "OAUTH_INIT_FAILED");

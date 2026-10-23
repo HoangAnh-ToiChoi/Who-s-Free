@@ -2,26 +2,35 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
-import { validateEmail, validatePassword } from "~/utils";
+import { validateEmail, validatePassword, validateFullName } from "~/utils";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/useAuth";
 import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 import GoogleSignInButton from "~/pages/Auth/components/GoogleSignInButton";
+import InviteFullNameField from "~/pages/Auth/components/InviteFullNameField";
+import { useInviteAccountStatus } from "~/hooks/useInviteAccountStatus";
 
 function Login() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, registerWithInvitation } = useAuth();
   const searchParams = new URLSearchParams(location.search);
   const returnUrl = getSafeReturnUrl(location.search);
 
+  const invite = useInviteAccountStatus(returnUrl);
+  const isInviteFlow = invite.status !== "none";
+  const isCreatingInvitedAccount = invite.status === "ready" && !invite.hasAccount;
+
   const [formData, setFormData] = useState(() => ({
     email: location.state?.email || searchParams.get("email") || "",
+    fullName: "",
     password: "",
   }));
+  // Từ lời mời: email lấy từ lời mời (khoá, không sửa được)
+  const email = invite.status === "ready" ? invite.email : formData.email;
 
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState(() => ({
@@ -31,8 +40,13 @@ function Login() {
 
   const validate = () => {
     const newErrors = {};
-    const emailError = validateEmail(formData.email, t);
+    const emailError = validateEmail(email, t);
     if (emailError) newErrors.email = emailError;
+
+    if (isCreatingInvitedAccount) {
+      const fullNameError = validateFullName(formData.fullName, t);
+      if (fullNameError) newErrors.fullName = fullNameError;
+    }
 
     const passwordError = validatePassword(formData.password, t);
     if (passwordError) newErrors.password = passwordError;
@@ -47,7 +61,11 @@ function Login() {
 
     setIsSubmitting(true);
     try {
-      await login(formData);
+      if (isCreatingInvitedAccount) {
+        await registerWithInvitation({ token: invite.token, fullName: formData.fullName, password: formData.password });
+      } else {
+        await login({ email, password: formData.password });
+      }
       navigate(returnUrl, { replace: true });
     } catch (error) {
       const messageKey =
@@ -108,7 +126,8 @@ function Login() {
             />
             <Input
               type="email"
-              value={formData.email}
+              value={email}
+              readOnly={isInviteFlow}
               autoComplete="off"
               onChange={(e) => {
                 setFormData({ ...formData, email: e.target.value });
@@ -117,6 +136,8 @@ function Login() {
               placeholder={t("auth.emailPlaceholder")}
               aria-invalid={!!errors.email}
               className={`h-11 w-full rounded-xl bg-slate-50/50 pl-10 pr-3.5 text-xs text-slate-800 placeholder:text-slate-500 transition-all focus:bg-white ${
+                isInviteFlow ? "cursor-not-allowed bg-slate-100 text-slate-600" : ""
+              } ${
                 errors.email
                   ? "border-rose-500 bg-rose-50/40 ring-1 ring-rose-500/50 text-rose-900"
                   : "border-slate-200/90 focus:border-indigo-500 focus:ring-indigo-500/20"
@@ -131,10 +152,26 @@ function Login() {
           )}
         </div>
 
+        {isCreatingInvitedAccount && (
+          <>
+            <p role="status" className="rounded-lg bg-indigo-50 px-3 py-2 text-xs text-indigo-800">
+              {t("auth.inviteCreateNote")}
+            </p>
+            <InviteFullNameField
+              value={formData.fullName}
+              error={errors.fullName}
+              onChange={(fullName) => {
+                setFormData({ ...formData, fullName });
+                if (errors.fullName) setErrors({ ...errors, fullName: null });
+              }}
+            />
+          </>
+        )}
+
         {/* Password Field — Tái sử dụng component Input */}
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-slate-700">
-            {t("auth.password")}
+            {isCreatingInvitedAccount ? t("auth.inviteCreatePassword") : t("auth.password")}
           </label>
           <div className="relative">
             <Lock
@@ -144,7 +181,7 @@ function Login() {
             <Input
               type={showPassword ? "text" : "password"}
               value={formData.password}
-              autoComplete="new-password"
+              autoComplete={isCreatingInvitedAccount ? "new-password" : "current-password"}
               onChange={(e) => {
                 setFormData({ ...formData, password: e.target.value });
                 if (errors.password) setErrors({ ...errors, password: null });
@@ -173,7 +210,8 @@ function Login() {
           )}
         </div>
 
-        {/* Forgot Password Link */}
+        {/* Forgot Password Link (ẩn khi đang tạo tài khoản mới từ lời mời) */}
+        {!isCreatingInvitedAccount && (
         <div className="flex items-center justify-end pt-0.5">
           <Link
             to="/auth/forgot-password"
@@ -182,12 +220,13 @@ function Login() {
             {t("auth.forgotPasswordLink")}
           </Link>
         </div>
+        )}
 
         {/* Submit Button — Tái sử dụng component Button */}
         <Button
           type="submit"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isSubmitting || invite.status === "loading"}
           className="mt-2 h-11 w-full gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-xs transition-all hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
         >
           <span>{t("auth.submitLogin")}</span>
@@ -204,18 +243,20 @@ function Login() {
       </div>
 
       {/* Google SSO Button — Nằm ở dưới như các ứng dụng social */}
-      <GoogleSignInButton returnUrl={returnUrl} />
+      <GoogleSignInButton returnUrl={returnUrl} loginHint={invite.status === "ready" ? invite.email : undefined} />
 
-      {/* Switch to Register */}
-      <div className="mt-6 text-center text-xs text-slate-500">
-        <span>{t("auth.noAccount")} </span>
-        <Link
-          to={`/auth/register${location.search}`}
-          className="font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
-        >
-          {t("auth.signUpNow")}
-        </Link>
-      </div>
+      {/* Switch to Register (ẩn khi vào từ lời mời: chỉ có một đường là Đăng nhập) */}
+      {!isInviteFlow && (
+        <div className="mt-6 text-center text-xs text-slate-500">
+          <span>{t("auth.noAccount")} </span>
+          <Link
+            to={`/auth/register${location.search}`}
+            className="font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+          >
+            {t("auth.signUpNow")}
+          </Link>
+        </div>
+      )}
     </Card>
   );
 }

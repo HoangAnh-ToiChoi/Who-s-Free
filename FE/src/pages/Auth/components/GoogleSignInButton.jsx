@@ -6,9 +6,9 @@ import { useGoogleSignIn } from "~/hooks/useGoogleSignIn";
  * GoogleSignInButton - Nút "Tiếp tục với Google" dùng chung cho trang Đăng nhập và Đăng ký.
  * Tự kiểm tra máy chủ sẵn sàng trước khi chuyển sang Google (xem useGoogleSignIn).
  */
-function GoogleSignInButton({ returnUrl }) {
+function GoogleSignInButton({ returnUrl, loginHint }) {
   const { t } = useTranslation();
-  const { isConnecting, startGoogleSignIn } = useGoogleSignIn(returnUrl);
+  const { isConnecting, startGoogleSignIn } = useGoogleSignIn(returnUrl, loginHint);
 
   return (
     <>

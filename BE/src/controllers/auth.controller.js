@@ -71,7 +71,12 @@ class AuthController extends BaseController {
     const callbackUrl = new URL("/auth/callback", clientUrl);
     callbackUrl.searchParams.set("returnUrl", returnUrl);
     const redirectTo = callbackUrl.toString();
-    const { url } = await this.authService.getGoogleOAuthUrl(redirectTo);
+    // Từ lời mời: gợi ý đúng email được mời và luôn hiện bảng chọn tài khoản để không tự dùng nhầm tài khoản Google khác
+    const loginHint = String(req.query.loginHint || "").trim();
+    const queryParams = returnUrl.startsWith("/invite/")
+      ? { prompt: "select_account", ...(loginHint && { login_hint: loginHint }) }
+      : undefined;
+    const { url } = await this.authService.getGoogleOAuthUrl(redirectTo, queryParams);
     return res.redirect(url);
   });
 

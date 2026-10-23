@@ -15,6 +15,13 @@ export const registerSchema = z.object({
   fullName: z.string().trim().optional(),
 });
 
+export const inviteRegisterSchema = z.object({
+  password: z
+    .string({ required_error: "Mật khẩu là bắt buộc" })
+    .min(8, "Mật khẩu phải có tối thiểu 8 ký tự"),
+  fullName: z.string().trim().min(1, "Họ tên là bắt buộc"),
+});
+
 export const loginSchema = z.object({
   email: z
     .string({ required_error: "Email là bắt buộc" })
