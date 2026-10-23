@@ -276,7 +276,6 @@
     "filterLabel": "Filter",
     "filterAll": "All",
     "filterLeadership": "Leadership",
-    "filterCore": "Core Team",
     "legendLabel": "Availability:",
     "optimalSlotsTitle": "Top Optimal Slots",
     "conflictSlotsTitle": "Limited Availability Slots",
@@ -388,7 +387,7 @@
   },
   "finalize": {
     "button": "Finalize",
-    "unlock": "Unlock",
+    "unlock": "Cancel finalization",
     "exporting": "Exporting...",
     "exportDone": "Group schedule Excel file downloaded.",
     "modalTitle": "Finalize schedule",
@@ -402,14 +401,19 @@
     "cancel": "Cancel",
     "confirm": "Finalize & send email",
     "submitting": "Finalizing...",
-    "banner": "Finalized: {{when}}",
     "readOnlyHint": "The schedule is locked — view only.",
     "emailResult": "Email sent to {{sent}}/{{total}} members.",
     "emailFailed": "{{count}} emails could not be sent.",
     "pickHint": "Click a slot to pick it; click an adjacent slot to extend the window. Green slots have the most people free.",
     "peopleCount": "{{count}} people",
     "selected": "Finalized window: {{when}}",
-    "nothingSelected": "No time window selected yet"
+    "nothingSelected": "No time window selected yet",
+    "unlockTitle": "Cancel finalization?",
+    "unlockDescription": "The schedule will reopen so everyone can edit their availability. Only team leads can cancel finalization.",
+    "unlockKeep": "Keep it",
+    "leadOnlyHint": "Only team leads can cancel finalization.",
+    "bannerTitle": "Schedule finalized",
+    "bannerNote": "Note"
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"

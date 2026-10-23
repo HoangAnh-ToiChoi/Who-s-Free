@@ -1,24 +1,45 @@
 import { useTranslation } from "react-i18next";
-import { Lock } from "lucide-react";
+import { CalendarDays, Clock, Info, Lock } from "lucide-react";
 import { formatDateLabel, formatRange } from "~/utils/finalizeCandidates";
 
 /**
- * FinalizedBanner - Dải thông báo lịch đã chốt (khung giờ + ghi chú), dùng cho Lead và thành viên (readOnly)
+ * FinalizedBanner - Nhãn "Lịch đã chốt" gọn, đặt ngay cạnh tên session trên header:
+ * khung giờ đã chốt nổi bật; ghi chú của trưởng nhóm và quy định huỷ chốt nằm trong tooltip (biểu tượng ⓘ).
+ * Dùng cho cả Lead và thành viên (readOnly).
  */
 function FinalizedBanner({ finalized, readOnly = false }) {
   const { t } = useTranslation();
   if (!finalized) return null;
 
+  const details = [
+    finalized.note ? `${t("finalize.bannerNote")}: ${finalized.note}` : null,
+    readOnly ? t("finalize.readOnlyHint") : null,
+    t("finalize.leadOnlyHint"),
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   return (
-    <div className="mb-2 flex shrink-0 flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
-      <Lock size={14} className="shrink-0 text-emerald-600" />
-      <span>
-        {t("finalize.banner", {
-          when: `${formatDateLabel(finalized.date)}, ${formatRange(finalized.startMinutes, finalized.endMinutes)}`,
-        })}
+    <div
+      role="status"
+      title={details}
+      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-linear-to-r from-emerald-50 to-white py-1 pr-3 pl-1 shadow-2xs"
+    >
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm shadow-emerald-500/30">
+        <Lock size={13} />
       </span>
-      {readOnly && <span className="font-normal text-emerald-700">{t("finalize.readOnlyHint")}</span>}
-      {finalized.note && <span className="font-normal text-emerald-700">· {finalized.note}</span>}
+      <span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase">
+        {t("finalize.bannerTitle")}
+      </span>
+      <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-900">
+        <CalendarDays size={13} className="text-emerald-600" />
+        {formatDateLabel(finalized.date)}
+      </span>
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
+        <Clock size={11} />
+        {formatRange(finalized.startMinutes, finalized.endMinutes)}
+      </span>
+      <Info size={14} aria-label={details} className="shrink-0 cursor-help text-emerald-600" />
     </div>
   );
 }

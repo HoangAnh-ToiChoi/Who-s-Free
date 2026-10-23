@@ -276,7 +276,6 @@
     "filterLabel": "Bộ lọc",
     "filterAll": "Tất cả",
     "filterLeadership": "Ban lãnh đạo",
-    "filterCore": "Nhóm nòng cốt",
     "legendLabel": "Mức độ rảnh:",
     "optimalSlotsTitle": "Khung giờ tối ưu",
     "conflictSlotsTitle": "Khung giờ hạn chế",
@@ -388,7 +387,7 @@
   },
   "finalize": {
     "button": "Chốt lịch",
-    "unlock": "Mở khoá",
+    "unlock": "Huỷ chốt",
     "exporting": "Đang xuất...",
     "exportDone": "Đã tải file Excel lịch của nhóm.",
     "modalTitle": "Chốt lịch",
@@ -402,14 +401,19 @@
     "cancel": "Huỷ",
     "confirm": "Chốt & gửi email",
     "submitting": "Đang chốt...",
-    "banner": "Đã chốt: {{when}}",
     "readOnlyHint": "Lịch đã khoá, bạn chỉ có thể xem.",
     "emailResult": "Đã gửi email cho {{sent}}/{{total}} thành viên.",
     "emailFailed": "{{count}} email chưa gửi được.",
     "pickHint": "Bấm một ô để chọn; bấm thêm ô liền kề để kéo dài khung giờ. Ô xanh là giờ nhiều người rảnh nhất.",
     "peopleCount": "{{count}} người",
     "selected": "Khung giờ chốt: {{when}}",
-    "nothingSelected": "Chưa chọn khung giờ nào"
+    "nothingSelected": "Chưa chọn khung giờ nào",
+    "unlockTitle": "Huỷ chốt lịch?",
+    "unlockDescription": "Lịch sẽ được mở lại để mọi người chỉnh sửa giờ rảnh. Chỉ trưởng nhóm mới có quyền huỷ chốt.",
+    "unlockKeep": "Giữ nguyên",
+    "leadOnlyHint": "Chỉ trưởng nhóm mới có thể huỷ chốt.",
+    "bannerTitle": "Lịch đã được chốt",
+    "bannerNote": "Ghi chú"
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
