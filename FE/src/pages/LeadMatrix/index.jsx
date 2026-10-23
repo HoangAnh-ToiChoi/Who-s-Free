@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, LockOpen } from "lucide-react";
 import { useSessionResolver, useWeekNavigation, useSessionFinalizeSync } from "~/hooks";
 import LeadMatrixHeader from "./components/LeadMatrixHeader";
 import HeatmapGrid from "./components/HeatmapGrid";
@@ -11,7 +11,7 @@ import { useMemberFilter } from "./hooks/useMemberFilter";
 import { useLeadExport } from "./hooks/useLeadExport";
 import { useFinalizeActions } from "./hooks/useFinalizeActions";
 import FinalizeModal from "./components/FinalizeModal";
-import FinalizedBanner from "./components/FinalizedBanner";
+import ConfirmModal from "~/components/Modals/ConfirmModal";
 import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
 
 /**
@@ -61,6 +61,8 @@ function LeadMatrix({ readOnly = false }) {
     onChanged: updateCurrentSession,
   });
   useSessionFinalizeSync(sessionId, refreshCurrentSession);
+
+  const [isUnlockConfirmOpen, setIsUnlockConfirmOpen] = useState(false);
 
   const finalized = currentSession?.status === "finalized" ? currentSession.finalized : null;
 
@@ -116,10 +118,13 @@ function LeadMatrix({ readOnly = false }) {
       )}
 
       {/* Header session */}
-      <LeadMatrixHeader session={currentSession} hideSwitch={readOnly} />
+      <LeadMatrixHeader
+        session={currentSession}
+        hideSwitch={readOnly || Boolean(finalized)}
+        finalized={finalized}
+        readOnly={readOnly}
+      />
 
-      {/* Banner lịch đã chốt */}
-      <FinalizedBanner finalized={finalized} readOnly={readOnly} />
       {finalizeActions.error && !finalizeActions.isModalOpen && (
         <p role="alert" className="mb-2 text-xs font-semibold text-rose-600">{finalizeActions.error}</p>
       )}
@@ -148,7 +153,7 @@ function LeadMatrix({ readOnly = false }) {
           isFinalized={Boolean(finalized)}
           isBusy={finalizeActions.isSubmitting}
           onFinalize={finalizeActions.openModal}
-          onUnfinalize={finalizeActions.unfinalize}
+          onUnfinalize={() => setIsUnlockConfirmOpen(true)}
         />
       </div>
 
@@ -177,6 +182,21 @@ function LeadMatrix({ readOnly = false }) {
           />
         </div>
       </div>
+
+      <ConfirmModal
+        open={isUnlockConfirmOpen}
+        onOpenChange={setIsUnlockConfirmOpen}
+        title={t("finalize.unlockTitle")}
+        description={t("finalize.unlockDescription")}
+        confirmText={t("finalize.unlock")}
+        cancelText={t("finalize.unlockKeep")}
+        confirmIcon={LockOpen}
+        isLoading={finalizeActions.isSubmitting}
+        onConfirm={async () => {
+          await finalizeActions.unfinalize();
+          setIsUnlockConfirmOpen(false);
+        }}
+      />
 
       <FinalizeModal
         open={finalizeActions.isModalOpen}

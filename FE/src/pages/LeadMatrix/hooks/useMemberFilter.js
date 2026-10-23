@@ -8,8 +8,7 @@ import { availabilityService as calendarService } from "~/service/availabilitySe
  * Hỗ trợ 3 chế độ lọc:
  * 1. All — Hiển thị tất cả thành viên
  * 2. Leadership — Chỉ hiển thị leadership (Lead Admin, Vice Lead)
- * 3. Core — Chỉ hiển thị thành viên core
- * 4. Custom — Bấm chọn/bỏ chọn từng member riêng lẻ
+ * 3. Custom — Bấm chọn/bỏ chọn từng member riêng lẻ
  */
 export function useMemberFilter(sessionId) {
   const [activePreset, setActivePreset] = useState("all");
@@ -46,10 +45,6 @@ export function useMemberFilter(sessionId) {
       case "leadership":
         return allMembers
           .filter((m) => m.groupRole === "leadership")
-          .map((m) => m.memberId);
-      case "core":
-        return allMembers
-          .filter((m) => m.groupRole === "core" || m.groupRole === "leadership")
           .map((m) => m.memberId);
       case "custom":
         return customSelectedIds;
