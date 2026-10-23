@@ -53,7 +53,7 @@ class SessionFinalizeService {
   }
 
   /**
-   * Lead chốt lịch: chọn 1 khung giờ nằm trong các giờ nhóm đã chọn, khoá chỉnh sửa và gửi mail cho cả nhóm.
+   * Lead chốt lịch: chọn 1 khung giờ nằm trong các giờ nhóm đã chọn, khoá chỉnh sửa và gửi mail thông báo cho cả nhóm.
    * @param {{ date: string, startMinutes: number, endMinutes: number, note?: string }} payload
    */
   async finalizeSession(id, actorId, payload = {}) {
@@ -87,10 +87,6 @@ class SessionFinalizeService {
 
   async #notifyFinalized(session, { date, startMinutes, endMinutes, note }) {
     const contacts = await SessionModel.findGroupContacts(session.group_id);
-    const attachment = {
-      filename: toSafeFileName(session.title, "xlsx", "lich"),
-      content: await this.#buildWorkbook(session),
-    };
     const sessionUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/groups/${session.group_id}/matrix/${session.slug}`;
     const whenLabel = `${formatDateLabel(date)}, ${formatRange(startMinutes, endMinutes)}`;
 
@@ -102,7 +98,6 @@ class SessionFinalizeService {
           whenLabel,
           note,
           sessionUrl,
-          attachment,
         }),
       ),
     );

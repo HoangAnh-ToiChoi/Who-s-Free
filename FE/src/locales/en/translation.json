@@ -398,7 +398,7 @@
     "pickRun": "Hours the group selected",
     "note": "Note at the bottom of the Excel sheet (optional)",
     "notePlaceholder": "e.g. Everyone please bring a camera",
-    "confirmHint": "Once finalized, nobody can edit their schedule and everyone gets an email with the Excel file.",
+    "confirmHint": "Once finalized, nobody can edit their schedule and everyone gets an email notification.",
     "cancel": "Cancel",
     "confirm": "Finalize & send email",
     "submitting": "Finalizing...",
