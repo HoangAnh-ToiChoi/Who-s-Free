@@ -103,6 +103,12 @@ CREATE TABLE IF NOT EXISTS sessions (
     scheduled_time VARCHAR(150) DEFAULT 'Flexible Window',
     location VARCHAR(255) DEFAULT 'Quán Cafe / Trực tuyến',
     status VARCHAR(50) DEFAULT 'active_poll', -- 'active_poll' | 'finalized' | 'closed'
+    finalized_at TIMESTAMPTZ,
+    finalized_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    finalized_date DATE,
+    finalized_start_minutes SMALLINT,
+    finalized_end_minutes SMALLINT,
+    export_note TEXT,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

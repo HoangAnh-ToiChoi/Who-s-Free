@@ -3,6 +3,7 @@ import GroupMemberModel from "../models/group-member.model.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import { toPublicSession } from "../utils/mappers/session.mapper.js";
+import { isLeadOrOwner } from "../utils/permissions.js";
 
 class SessionService {
   async getSessions(filters = {}) {
@@ -37,8 +38,7 @@ class SessionService {
       const groupId = session.group_id;
       if (groupId) {
         const member = await GroupMemberModel.findMember(groupId, actorId).catch(() => null);
-        const isLeadOrOwner = member?.role === "owner" || member?.role === "lead";
-        if (!isLeadOrOwner) throw AppError.forbidden("Bạn không có quyền xóa phiên này", ErrorCodes.FORBIDDEN);
+        if (!isLeadOrOwner(member)) throw AppError.forbidden("Bạn không có quyền xóa phiên này", ErrorCodes.FORBIDDEN);
       } else {
         throw AppError.forbidden("Bạn không có quyền xóa phiên này", ErrorCodes.FORBIDDEN);
       }

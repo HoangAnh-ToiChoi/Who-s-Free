@@ -19,7 +19,7 @@ class SessionModel {
     }
 
     const sql = `
-      SELECT s.*,
+      SELECT s.*, s.finalized_date::text AS finalized_date,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
         (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
@@ -35,7 +35,7 @@ class SessionModel {
     // Use the correct column to avoid 22P02 when id is a slug (non-UUID)
     const whereClause = isUuid(id) ? "s.id = $1" : "s.slug = $1";
     const sql = `
-      SELECT s.*,
+      SELECT s.*, s.finalized_date::text AS finalized_date,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
         (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
@@ -69,6 +69,45 @@ class SessionModel {
       createdBy || null,
     ]);
     return rows?.[0] ?? null;
+  }
+
+  /** Đánh dấu session đã chốt với khung giờ được chọn (chỉ khi chưa chốt). */
+  static async finalize(id, { date, startMinutes, endMinutes, note, finalizedBy }) {
+    const { rows } = await query(
+      `UPDATE public.sessions
+       SET status = 'finalized', finalized_at = NOW(), finalized_by = $2,
+           finalized_date = $3, finalized_start_minutes = $4, finalized_end_minutes = $5,
+           export_note = $6, updated_at = NOW()
+       WHERE id = $1 AND status <> 'finalized'
+       RETURNING id;`,
+      [id, finalizedBy, date, startMinutes, endMinutes, note || null],
+    );
+    return (rows?.length ?? 0) > 0;
+  }
+
+  static async unfinalize(id) {
+    const { rows } = await query(
+      `UPDATE public.sessions
+       SET status = 'active_poll', finalized_at = NULL, finalized_by = NULL,
+           finalized_date = NULL, finalized_start_minutes = NULL, finalized_end_minutes = NULL,
+           updated_at = NOW()
+       WHERE id = $1 AND status = 'finalized'
+       RETURNING id;`,
+      [id],
+    );
+    return (rows?.length ?? 0) > 0;
+  }
+
+  /** Tên + email của toàn bộ thành viên nhóm (để gửi thông báo chốt lịch). */
+  static async findGroupContacts(groupId) {
+    const { rows } = await query(
+      `SELECT u.id, u.email, u.full_name
+       FROM public.group_members gm
+       JOIN public.users u ON u.id = gm.user_id
+       WHERE gm.group_id = $1 AND u.email IS NOT NULL;`,
+      [groupId],
+    );
+    return rows || [];
   }
 
   static async delete(id) {

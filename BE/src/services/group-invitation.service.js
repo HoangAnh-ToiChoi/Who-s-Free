@@ -6,6 +6,7 @@ import UserModel from "../models/user.model.js";
 import EmailService from "./email.service.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
+import { isLeadOrOwner } from "../utils/permissions.js";
 import { toPublicInvitation } from "../utils/mappers/invitation.mapper.js";
 import { toPublicGroup } from "../utils/mappers/group.mapper.js";
 import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
@@ -16,8 +17,7 @@ class GroupInvitationService {
         const group = await GroupModel.findByIdOrSlug(groupId);
         if (!group) throw AppError.notFound("Không tìm thấy thông tin nhóm", "GROUP_NOT_FOUND");
         const callerMember = await GroupMemberModel.findMember(group.id, callerId);
-        const isLeadOrOwner = callerMember?.role === "owner" || callerMember?.role === "lead";
-        return { group, callerMember, isLeadOrOwner };
+        return { group, callerMember, isLeadOrOwner: isLeadOrOwner(callerMember) };
     }
 
     // Dùng ở getInvitationPreview và acceptInvitation

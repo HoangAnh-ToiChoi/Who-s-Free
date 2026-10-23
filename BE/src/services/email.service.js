@@ -36,7 +36,7 @@ function getEmailConfig() {
 }
 
 /** Gọi API của provider; trả về JSON phản hồi hoặc ném AppError. */
-async function deliver(config, { to, subject, text, html, label }) {
+async function deliver(config, { to, subject, text, html, label, attachments = [] }) {
   const isBrevo = config.provider === "brevo";
   const url = isBrevo ? "https://api.brevo.com/v3/smtp/email" : "https://api.resend.com/emails";
   const headers = isBrevo
@@ -49,8 +49,20 @@ async function deliver(config, { to, subject, text, html, label }) {
         subject,
         textContent: text,
         htmlContent: html,
+        ...(attachments.length && {
+          attachment: attachments.map((a) => ({ name: a.filename, content: a.content.toString("base64") })),
+        }),
       }
-    : { from: config.from, to: [to], subject, text, html };
+    : {
+        from: config.from,
+        to: [to],
+        subject,
+        text,
+        html,
+        ...(attachments.length && {
+          attachments: attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })),
+        }),
+      };
 
   let response;
   try {
@@ -147,6 +159,43 @@ class EmailService {
 
     console.log(`\n📨 [INVITATION SENT SUCCESSFULLY]: Email gửi tới ${email}\n🔗 [INVITE LINK]: ${inviteUrl}\n`);
     return result;
+  }
+
+  /**
+   * Gửi thông báo lịch đã chốt (kèm file Excel) cho một thành viên.
+   */
+  static async sendSessionFinalized({ email, sessionTitle, whenLabel, note, sessionUrl, attachment }) {
+    const config = getEmailConfig();
+
+    if (process.env.NODE_ENV === "test") {
+      console.log(`[EmailService] Session finalized for ${email}: ${whenLabel}`);
+      return { id: "test-mock-email-id" };
+    }
+    if (!config) {
+      throw new AppError("Dịch vụ email chưa được cấu hình đầy đủ.", 503, "EMAIL_NOT_CONFIGURED");
+    }
+
+    const safeTitle = escapeHtml(sessionTitle);
+    const safeWhen = escapeHtml(whenLabel);
+    const safeUrl = escapeHtml(sessionUrl);
+    const noteText = note ? `
+
+Ghi chú: ${note}` : "";
+    const noteHtml = note
+      ? `<p style="font-size:14px;color:#b91c1c;margin:0 0 16px"><strong>Lưu ý:</strong> ${escapeHtml(note)}</p>`
+      : "";
+
+    return deliver(config, {
+      to: email,
+      label: "finalized email",
+      subject: `[Who's Free] Đã chốt lịch: ${sessionTitle}`,
+      text: `Lịch "${sessionTitle}" đã được chốt vào ${whenLabel}.${noteText}
+
+Xem chi tiết: ${sessionUrl}
+File Excel lịch của nhóm được đính kèm email này.`,
+      html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a;border:1px solid #e2e8f0;border-radius:16px"><h2 style="margin:0 0 16px;color:#4f46e5">Who's Free</h2><h1 style="font-size:20px;margin:0 0 12px">Lịch đã được chốt</h1><p style="font-size:15px;line-height:1.6;color:#334155;margin:0 0 12px">Phiên <strong>${safeTitle}</strong> đã được chốt vào:</p><p style="font-size:18px;font-weight:700;color:#166534;background:#dcfce7;padding:12px 16px;border-radius:12px;margin:0 0 16px">${safeWhen}</p>${noteHtml}<div style="margin:24px 0;text-align:center"><a href="${safeUrl}" style="background:#4f46e5;color:#fff;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block">Xem lịch đã chốt</a></div><p style="font-size:13px;color:#64748b;margin:0">File Excel lịch của nhóm được đính kèm email này.</p></div>`,
+      attachments: attachment ? [attachment] : [],
+    });
   }
 }
 

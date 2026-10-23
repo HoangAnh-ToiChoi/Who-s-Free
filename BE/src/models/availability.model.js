@@ -66,6 +66,23 @@ class AvailabilityModel {
   }
 
   /**
+   * Dữ liệu tối giản cho xuất Excel / kiểm tra khung giờ chốt (date_str trả về dạng YYYY-MM-DD).
+   */
+  static async findForSchedule(sessionId) {
+    if (!sessionId) return [];
+    const { rows } = await query(
+      `SELECT avs.user_id, u.full_name AS member_name, avs.date_str::text AS date,
+              avs.start_minutes, avs.end_minutes
+       FROM public.availability_slots avs
+       JOIN public.users u ON u.id = avs.user_id
+       WHERE avs.session_id = $1
+       ORDER BY avs.date_str, avs.start_minutes;`,
+      [sessionId],
+    );
+    return rows || [];
+  }
+
+  /**
    * Lấy toàn bộ slots của tất cả thành viên trong session,
    * JOIN với users và group_members để lấy tên, role, avatar.
    * Service sẽ group lại theo user_id.

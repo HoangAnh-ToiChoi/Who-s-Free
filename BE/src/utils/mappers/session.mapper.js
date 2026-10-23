@@ -1,4 +1,5 @@
 // BE/src/utils/mappers/session.mapper.js
+import { toDateString } from "../date.js";
 
 export function toPublicSession(s) {
   if (!s) return null;
@@ -22,6 +23,15 @@ export function toPublicSession(s) {
     respondedCount,
     quorumPercent,
     status: s.status || "active_poll",
+    finalized: s.status === "finalized" && s.finalized_date
+      ? {
+          date: toDateString(s.finalized_date),
+          startMinutes: s.finalized_start_minutes,
+          endMinutes: s.finalized_end_minutes,
+          finalizedAt: s.finalized_at,
+          note: s.export_note || "",
+        }
+      : null,
     createdAt: s.created_at || s.createdAt || new Date().toISOString(),
     updatedAt: s.updated_at || s.updatedAt || new Date().toISOString(),
   };
