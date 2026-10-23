@@ -1,5 +1,9 @@
 import BaseController from "./BaseController.js";
 import GroupInvitationService from "../services/group-invitation.service.js";
+import AuthService from "../services/auth.service.js";
+import TokenService from "../services/token.service.js";
+import UserModel from "../models/user.model.js";
+import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 /**
@@ -15,7 +19,33 @@ class GroupInvitationController extends BaseController {
   constructor() {
     super();
     this.invitationService = new GroupInvitationService();
+    this.authService = new AuthService();
   }
+
+  /**
+   * GET /api/invitations/:token/account - Email được mời đã có tài khoản chưa (Public, cần token hợp lệ)
+   */
+  getAccountStatus = asyncHandler(async (req, res) => {
+    const result = await this.invitationService.getAccountStatus(req.params.token);
+    return this.sendSuccess(res, result, "Lấy trạng thái tài khoản thành công");
+  });
+
+  /**
+   * POST /api/invitations/:token/register - Tạo tài khoản cho email được mời rồi đăng nhập luôn.
+   * Link lời mời chỉ được gửi tới email đó nên token đủ để xác nhận email.
+   */
+  registerViaInvitation = asyncHandler(async (req, res) => {
+    const inv = await this.invitationService.requireUsableInvitation(req.params.token);
+    const email = (inv.email || "").trim().toLowerCase();
+    if (await UserModel.findByEmail(email)) {
+      throw AppError.conflict("Email này đã có tài khoản. Vui lòng đăng nhập.", "ACCOUNT_EXISTS");
+    }
+
+    const { password, fullName } = req.body;
+    const result = await this.authService.registerInvitedUser({ email, password, fullName });
+    TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    return this.sendCreated(res, { user: result.user, accessToken: result.accessToken }, "Tạo tài khoản thành công");
+  });
 
   /**
    * POST /api/groups/:id/invitations - Tạo lời mời mới và gửi email

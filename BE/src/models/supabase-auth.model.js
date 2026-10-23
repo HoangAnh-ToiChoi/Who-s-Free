@@ -20,16 +20,34 @@ class SupabaseAuthModel {
     return data?.user || null;
   }
 
+  /**
+   * Tạo tài khoản đã xác nhận email (dùng khi người dùng đi vào từ link lời mời gửi tới chính email đó).
+   * Cần SUPABASE_SERVICE_ROLE_KEY hợp lệ.
+   */
+  static async createConfirmedUser({ email, password, fullName }) {
+    if (!this.hasValidAdminRoleKey()) {
+      throw new Error("Thiếu SUPABASE_SERVICE_ROLE_KEY hợp lệ để tạo tài khoản từ lời mời");
+    }
+    const { data, error } = await this.getAdminClient().auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName || "" },
+    });
+    if (error) throw error;
+    return data?.user || null;
+  }
+
   static async signInWithPassword({ email, password }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data?.user || null;
   }
 
-  static async getGoogleOAuthUrl(redirectTo) {
+  static async getGoogleOAuthUrl(redirectTo, queryParams) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: { redirectTo, ...(queryParams && { queryParams }) },
     });
     if (error) throw error;
     return data?.url;

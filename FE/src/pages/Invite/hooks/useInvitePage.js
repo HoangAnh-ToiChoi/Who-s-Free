@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "~/hooks";
@@ -116,7 +116,8 @@ export function useInvitePage() {
 
   const handleLogoutAndSwitch = async () => {
     await logout();
-    navigate(`/auth/login?returnUrl=${encodeURIComponent(`/invite/${token}`)}`, {
+    const emailParam = preview?.email ? `email=${encodeURIComponent(preview.email)}&` : "";
+    navigate(`/auth/login?${emailParam}returnUrl=${encodeURIComponent(`/invite/${token}`)}`, {
       replace: true,
     });
   };
@@ -131,6 +132,17 @@ export function useInvitePage() {
     preview?.isAccepted ||
     preview?.isGroupFull ||
     isAlreadyMember;
+
+  // Đăng nhập đúng email được mời xong thì tự chấp nhận lời mời (chỉ thử một lần)
+  const hasAutoAccepted = useRef(false);
+  const canAutoAccept = isEmailMatching && !isInvalid && !acceptSuccess && !isLoading && !isAuthLoading;
+  useEffect(() => {
+    if (!canAutoAccept || hasAutoAccepted.current) return;
+    hasAutoAccepted.current = true;
+    handleAccept();
+    // handleAccept đọc state mới nhất; chỉ cần chạy khi đủ điều kiện
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canAutoAccept]);
 
   return {
     token,
