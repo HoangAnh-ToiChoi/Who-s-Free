@@ -27,18 +27,18 @@ function GroupSelector({ workspaces = [], activeWorkspace, onChange, onCreateGro
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => setOpen((p) => !p)}
-          className="gap-2 px-3 text-slate-700 font-medium min-w-[160px] justify-between cursor-pointer"
+          className="gap-2 px-3 text-slate-700 font-medium min-w-0 sm:min-w-[160px] justify-between cursor-pointer"
         >
-          <div className="flex items-center gap-2 truncate">
+          <div className="flex items-center gap-2 min-w-0">
             {isHome ? (
               <Home size={16} className="text-indigo-600 shrink-0" />
             ) : (
               <Users size={16} className="text-indigo-600 shrink-0" />
             )}
             {activeWorkspace?.isLoading ? (
-              <span className="inline-block h-4 w-24 animate-pulse rounded bg-slate-200" />
+              <span className="hidden sm:inline-block h-4 w-24 animate-pulse rounded bg-slate-200" />
             ) : (
-              <span className="max-w-[130px] truncate">
+              <span className="hidden sm:inline-block max-w-[130px] truncate">
                 {isHome ? t("topbar.home") : activeWorkspace.name}
               </span>
             )}

@@ -38,7 +38,7 @@ function Group() {
   const [isCreateCalendarOpen, setIsCreateCalendarOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-12">
       {/* --- Case 1: Đang tải dữ liệu lần đầu (Skeleton) --- */}
       {isLoading ? (
         <div className="space-y-8 animate-pulse">

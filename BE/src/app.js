@@ -9,6 +9,9 @@ import { pool } from "./configs/db.config.js";
 
 const app = express();
 
+// Render/Vercel đứng sau reverse proxy: cần để rate limit và req.ip lấy đúng IP client
+app.set("trust proxy", 1);
+
 // ─── Allowed Origins (comma-separated CLIENT_ORIGINS or fallback to CLIENT_ORIGIN) ─
 const allowedOrigins = (process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")

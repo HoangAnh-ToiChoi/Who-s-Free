@@ -27,7 +27,7 @@ function Home() {
   } = useGroups();
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-12">
       {/* Header component: Nhận dữ liệu và handler từ custom hook */}
       <HomeHeader
         totalCount={groups.length}

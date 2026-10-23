@@ -153,7 +153,8 @@ class TokenService {
     return {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      // FE (Vercel) và BE (Render) khác site khi chạy production nên cần "none"
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: maxAgeMs,
       path: "/",
     };
@@ -187,7 +188,7 @@ class TokenService {
     const clearOpts = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     };
     res.clearCookie("access_token", clearOpts);
