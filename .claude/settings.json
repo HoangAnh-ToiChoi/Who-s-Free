@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"\nconst fs = require('fs');\nlet input = '';\nprocess.stdin.on('data', d => input += d);\nprocess.stdin.on('end', () => {\n  try {\n    const data = JSON.parse(input);\n    const fp = data.tool_input?.file_path || data.tool_input?.new_file_path;\n    if (!fp || !fp.match(/\\.(js|jsx|ts|tsx)$/)) process.exit(0);\n    if (!fs.existsSync(fp)) process.exit(0);\n    const lines = fs.readFileSync(fp, 'utf8').split('\\n').length;\n    const budgets = { controller: 100, hook: 150, service: 200, component: 200, model: 250 };\n    let type = 'component';\n    if (fp.includes('controller')) type = 'controller';\n    else if (fp.includes('/hooks/') || fp.match(/use[A-Z]/)) type = 'hook';\n    else if (fp.includes('service')) type = 'service';\n    else if (fp.includes('model')) type = 'model';\n    const budget = budgets[type];\n    if (lines > budget) {\n      process.stderr.write('FILE BUDGET EXCEEDED: ' + fp.split('/').pop() + ' = ' + lines + 'L (budget: ' + budget + 'L for ' + type + '). Split before committing.\\n');\n      process.exit(0);\n    }\n  } catch(e) { process.exit(0); }\n});\n\"",
+            "shell": "bash",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '=== BE Tests ===' && (cd BE && NODE_ENV=test JWT_SECRET=test-secret-at-least-32-characters-long CLIENT_ORIGIN=http://localhost:5173 node --test tests/*.test.js 2>&1 | grep -E 'pass|fail|✔|✘' | tail -5) && echo '=== FE Lint ===' && (cd FE && npm run lint 2>&1 | grep -E 'error|warning|problem' | tail -8) && echo '=== Done ==='",
+            "shell": "bash",
+            "timeout": 90,
+            "statusMessage": "Checking BE tests + FE lint..."
+          }
+        ]
+      }
+    ]
+  }
+}

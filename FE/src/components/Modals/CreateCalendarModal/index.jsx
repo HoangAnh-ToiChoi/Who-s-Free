@@ -1,0 +1,416 @@
+import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  CalendarPlus,
+  ChevronDown,
+  Check,
+  Loader2,
+  Zap,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
+import { cn } from "~/lib/utils";
+import { useClickOutside } from "~/hooks";
+
+import BaseModal from "~/components/Modals/BaseModal";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+
+const DATE_RANGE_OPTIONS = [
+  { id: "week-1", label: "Oct 20 – Oct 26, 2026 (Current Week)", viLabel: "20 Th10 – 26 Th10, 2026 (Tuần hiện tại)" },
+  { id: "week-2", label: "Oct 27 – Nov 02, 2026 (Next Week)", viLabel: "27 Th10 – 02 Th11, 2026 (Tuần tới)" },
+  { id: "week-3", label: "Nov 03 – Nov 09, 2026 (Sprint Cycle 3)", viLabel: "03 Th11 – 09 Th11, 2026 (Chu kỳ 3)" },
+];
+
+const QUORUM_GOALS = [
+  { value: 70, label: "70% Quorum" },
+  { value: 80, label: "80% High Quorum" },
+  { value: 100, label: "100% Full Attendance" },
+];
+
+function validateCalendarForm(data, t) {
+  if (!data.title?.trim()) {
+    return {
+      isValid: false,
+      error: t("createCalendarModal.errorTitleRequired"),
+    };
+  }
+  if (!data.dateRange) {
+    return {
+      isValid: false,
+      error: t("createCalendarModal.errorDateRequired"),
+    };
+  }
+  return { isValid: true, error: "" };
+}
+
+function formatCalendarPayload(formState, sessionTypes) {
+  const selectedType =
+    sessionTypes.find((t) => t.id === formState.selectedTypeId) ||
+    sessionTypes[0];
+
+  return {
+    title: formState.title.trim(),
+    tag: selectedType.tag,
+    tagColor: selectedType.tagColor,
+    dateRange: formState.dateRange,
+    quorumPercent: formState.quorumPercent,
+    location: formState.location.trim() || "Quán Cafe / Trực tuyến",
+    description: formState.description?.trim() || "",
+  };
+}
+
+function CreateCalendarFormBody({ onOpenChange, onSubmit, isSubmitting: externalIsSubmitting }) {
+  const { t, i18n } = useTranslation();
+  const isVietnamese = i18n.language?.startsWith("vi");
+
+  const SESSION_TYPES = [
+    {
+      id: "work",
+      tag: isVietnamese ? "CÔNG VIỆC & HỌC TẬP" : "WORK & STUDY",
+      tagColor: "primary",
+      label: t("createCalendarModal.workStudy"),
+      desc: t("createCalendarModal.workStudyDesc"),
+      badgeStyle: "bg-indigo-50 text-indigo-700 border-indigo-200/80",
+    },
+    {
+      id: "hangout",
+      tag: isVietnamese ? "ĐI CHƠI & TỤ TẬP" : "HANGOUT & CHILL",
+      tagColor: "secondary",
+      label: t("createCalendarModal.hangoutChill"),
+      desc: t("createCalendarModal.hangoutChillDesc"),
+      badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
+    },
+    {
+      id: "other",
+      tag: isVietnamese ? "HOẠT ĐỘNG KHÁC" : "OTHER",
+      tagColor: "tertiary",
+      label: t("createCalendarModal.otherActivity"),
+      desc: t("createCalendarModal.otherActivityDesc"),
+      badgeStyle: "bg-amber-50 text-amber-700 border-amber-200/80",
+    },
+  ];
+
+  const [title, setTitle] = useState("");
+  const [selectedTypeId, setSelectedTypeId] = useState("work");
+  const [dateRange, setDateRange] = useState(
+    isVietnamese ? DATE_RANGE_OPTIONS[1].viLabel : DATE_RANGE_OPTIONS[1].label
+  );
+  const [quorumPercent, setQuorumPercent] = useState(70);
+  const [location, setLocation] = useState(
+    isVietnamese ? "Quán Cafe / Trực tuyến" : "Coffee Shop / Online"
+  );
+  const [errorMessage, setErrorMessage] = useState("");
+  const [internalSubmitting, setInternalSubmitting] = useState(false);
+
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const dateDropdownRef = useRef(null);
+  useClickOutside(dateDropdownRef, () => setDatePickerOpen(false));
+
+  const isSubmitting = externalIsSubmitting || internalSubmitting;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const validation = validateCalendarForm({ title, dateRange }, t);
+    if (!validation.isValid) {
+      setErrorMessage(validation.error);
+      return;
+    }
+    setErrorMessage("");
+
+    const payload = formatCalendarPayload(
+      {
+        title,
+        selectedTypeId,
+        dateRange,
+        quorumPercent,
+        location,
+      },
+      SESSION_TYPES
+    );
+
+    if (onSubmit) {
+      try {
+        setInternalSubmitting(true);
+        const result = await onSubmit(payload);
+        if (result && result.success === false) {
+          if (result.error) {
+            setErrorMessage(
+              result.error === "Network Error"
+                ? t("createCalendarModal.errorNetwork")
+                : result.error
+            );
+          }
+          return;
+        }
+        onOpenChange?.(false);
+      } catch (err) {
+        setErrorMessage(
+          err?.message === "Network Error"
+            ? t("createCalendarModal.errorNetwork")
+            : err?.message || "Failed to create calendar session."
+        );
+      } finally {
+        setInternalSubmitting(false);
+      }
+    } else {
+      onOpenChange?.(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Field: Session Title */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+            {t("createCalendarModal.sessionTitle")}
+          </label>
+          <Input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t("createCalendarModal.sessionTitlePlaceholder")}
+            className="h-10 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-sm text-slate-800 placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-indigo-600 focus:bg-white"
+            autoFocus
+          />
+        </div>
+
+        {/* Field: Session Type / Quorum Category */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+            {t("createCalendarModal.category")}
+          </label>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+            {SESSION_TYPES.map((type) => {
+              const isSelected = selectedTypeId === type.id;
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setSelectedTypeId(type.id)}
+                  className={cn(
+                    "flex min-h-[82px] flex-col items-start justify-between rounded-xl border p-2.5 text-left transition-all cursor-pointer select-none",
+                    isSelected
+                      ? "border-indigo-600 bg-indigo-50/60 ring-1 ring-indigo-500/20 shadow-2xs"
+                      : "border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "rounded-md border px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase whitespace-nowrap",
+                      type.badgeStyle
+                    )}
+                  >
+                    {type.tag}
+                  </span>
+                  <div className="mt-1">
+                    <span className="block text-xs font-bold text-slate-800">
+                      {type.label}
+                    </span>
+                    <span className="block text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                      {type.desc}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Field: Date Range Selector */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+            {t("createCalendarModal.pollingWindow")}
+          </label>
+          <div ref={dateDropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setDatePickerOpen((prev) => !prev)}
+              className={cn(
+                "flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border px-3.5 text-sm transition-all outline-none select-none",
+                datePickerOpen
+                  ? "border-indigo-600 bg-white ring-2 ring-indigo-500/20"
+                  : "border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white"
+              )}
+            >
+              <div className="flex items-center gap-2 text-slate-800 text-xs">
+                <Clock size={14} className="text-slate-400 shrink-0" />
+                <span className="truncate">{dateRange}</span>
+              </div>
+              <ChevronDown
+                size={14}
+                className={cn(
+                  "text-slate-400 transition-transform duration-200 shrink-0",
+                  datePickerOpen && "rotate-180"
+                )}
+              />
+            </button>
+
+            {datePickerOpen && (
+              <div className="absolute top-full left-0 z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1 duration-150">
+                {DATE_RANGE_OPTIONS.map((opt) => {
+                  const label = isVietnamese ? opt.viLabel : opt.label;
+                  const isSelected = label === dateRange;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setDateRange(label);
+                        setDatePickerOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition-colors",
+                        isSelected
+                          ? "bg-indigo-50 font-medium text-indigo-700"
+                          : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                      )}
+                    >
+                      <span className="truncate">{label}</span>
+                      {isSelected && (
+                        <Check size={14} className="text-indigo-600 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Field: Quorum Goal & Location */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+              {t("createCalendarModal.quorumGoal")}
+            </label>
+            <div className="flex items-center gap-1.5">
+              {QUORUM_GOALS.map((q) => (
+                <button
+                  key={q.value}
+                  type="button"
+                  onClick={() => setQuorumPercent(q.value)}
+                  className={cn(
+                    "flex-1 rounded-lg py-1.5 text-center text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+                    quorumPercent === q.value
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "border border-slate-200 bg-slate-50/70 text-slate-600 hover:bg-slate-100"
+                  )}
+                >
+                  {q.value}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+              {t("createCalendarModal.locationMode")}
+            </label>
+            <Input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder={t("createCalendarModal.locationPlaceholder")}
+              className="h-9 rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs text-slate-800 hover:border-slate-300 hover:bg-white"
+            />
+          </div>
+        </div>
+
+        {/* Sync callout */}
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs">
+              <Zap size={14} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-slate-800">
+                {t("createCalendarModal.calDavActive")}
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {t("createCalendarModal.calDavDesc")}
+              </span>
+            </div>
+          </div>
+          <span className="rounded-md bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+            {t("common.live")}
+          </span>
+        </div>
+
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50/80 px-3.5 py-2.5 text-xs font-medium text-rose-600 animate-in fade-in flex items-center gap-2">
+            <AlertCircle size={15} className="text-rose-500 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-2.5 pt-1">
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isSubmitting}
+            onClick={() => onOpenChange?.(false)}
+            className="h-9 min-w-[70px] cursor-pointer px-3.5 text-xs font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50 justify-center"
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-9 min-w-[140px] cursor-pointer gap-2 bg-indigo-600 px-4 text-xs font-medium text-white shadow-xs hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed justify-center whitespace-nowrap"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>{t("createCalendarModal.creatingSession")}</span>
+              </>
+            ) : (
+              <>
+                <Check size={14} strokeWidth={2.5} />
+                <span>{t("createCalendarModal.createSession")}</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+  );
+}
+
+function CreateCalendarModal({
+  open,
+  onOpenChange,
+  onSubmit,
+  isSubmitting: externalIsSubmitting = false,
+}) {
+  const { t } = useTranslation();
+  const [formKey, setFormKey] = useState(0);
+
+  const handleOpenChange = (newOpen) => {
+    if (newOpen) setFormKey((k) => k + 1);
+    onOpenChange?.(newOpen);
+  };
+
+  return (
+    <BaseModal
+      open={open}
+      onOpenChange={handleOpenChange}
+      title={t("createCalendarModal.title")}
+      subtitle={t("createCalendarModal.subtitle")}
+      icon={<CalendarPlus size={18} strokeWidth={2.2} />}
+      maxWidth="sm:max-w-[500px]"
+      className="gap-5"
+    >
+      <CreateCalendarFormBody
+        key={formKey}
+        onOpenChange={handleOpenChange}
+        onSubmit={onSubmit}
+        isSubmitting={externalIsSubmitting}
+      />
+    </BaseModal>
+  );
+}
+
+export default CreateCalendarModal;

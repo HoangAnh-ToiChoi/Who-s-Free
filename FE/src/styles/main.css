@@ -1,0 +1,173 @@
+@import "tailwindcss";
+@import "./reset.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ─── Light Theme (default per DESIGN.md: Precision Scheduler) ─── */
+:root {
+    --background: #f8fafc;
+    --foreground: #0b1c30;
+    --card: #ffffff;
+    --card-foreground: #0b1c30;
+    --popover: #ffffff;
+    --popover-foreground: #0b1c30;
+    --primary: #4f46e5;                   /* Primary Indigo per DESIGN.md */
+    --primary-foreground: #ffffff;
+    --secondary: #eff4ff;
+    --secondary-foreground: #006a61;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #eef2ff;
+    --accent-foreground: #312e81;
+    --destructive: #ba1a1a;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #4f46e5;
+    --radius: 0.5rem;                     /* 8px radius per DESIGN.md */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0b1c30;
+    --sidebar-primary: #4f46e5;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eef2ff;
+    --sidebar-accent-foreground: #312e81;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #4f46e5;
+}
+
+body {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: 'Geist Variable', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+    html {
+        @apply font-sans;
+    }
+}
+
+
+/* ─── Group Theme Color Tokens (CSS Custom Properties) ─── */
+.group-theme-indigo {
+    --theme-bg: #eef2ff;
+    --theme-text: #4338ca;
+    --theme-border: #c7d2fe;
+    --theme-badge: #e0e7ff;
+    --theme-badge-text: #3730a3;
+    --theme-progress: #4f46e5;
+}
+.group-theme-teal {
+    --theme-bg: #f0fdfa;
+    --theme-text: #0f766e;
+    --theme-border: #99f6e4;
+    --theme-badge: #ccfbf1;
+    --theme-badge-text: #115e59;
+    --theme-progress: #0d9488;
+}
+.group-theme-emerald {
+    --theme-bg: #ecfdf5;
+    --theme-text: #047857;
+    --theme-border: #a7f3d0;
+    --theme-badge: #d1fae5;
+    --theme-badge-text: #065f46;
+    --theme-progress: #059669;
+}
+.group-theme-amber {
+    --theme-bg: #fffbeb;
+    --theme-text: #b45309;
+    --theme-border: #fde68a;
+    --theme-badge: #fef3c7;
+    --theme-badge-text: #92400e;
+    --theme-progress: #d97706;
+}
+.group-theme-purple {
+    --theme-bg: #faf5ff;
+    --theme-text: #7e22ce;
+    --theme-border: #e9d5ff;
+    --theme-badge: #f3e8ff;
+    --theme-badge-text: #6b21a8;
+    --theme-progress: #9333ea;
+}
+.group-theme-blue {
+    --theme-bg: #eff6ff;
+    --theme-text: #1d4ed8;
+    --theme-border: #bfdbfe;
+    --theme-badge: #dbeafe;
+    --theme-badge-text: #1e40af;
+    --theme-progress: #2563eb;
+}
+.group-theme-sky {
+    --theme-bg: #f0f9ff;
+    --theme-text: #0369a1;
+    --theme-border: #bae6fd;
+    --theme-badge: #e0f2fe;
+    --theme-badge-text: #075985;
+    --theme-progress: #0284c7;
+}
+.group-theme-rose {
+    --theme-bg: #fff1f2;
+    --theme-text: #be123c;
+    --theme-border: #fecdd3;
+    --theme-badge: #ffe4e6;
+    --theme-badge-text: #9f1239;
+    --theme-progress: #e11d48;
+}
+.group-theme-orange {
+    --theme-bg: #fff7ed;
+    --theme-text: #c2410c;
+    --theme-border: #fed7aa;
+    --theme-badge: #ffedd5;
+    --theme-badge-text: #9a3412;
+    --theme-progress: #ea580c;
+}
+
+
+

@@ -1,0 +1,143 @@
+import { useState, useEffect, useCallback } from "react";
+import { groupService } from "~/service/groupService/groupService";
+import { sessionService as calendarService } from "~/service/sessionService/sessionService";
+import { useSessionsRealtime } from "~/hooks/useSessionsRealtime";
+
+/**
+ * Custom hook quản lý dữ liệu chi tiết nhóm, danh sách lịch khảo sát và thao tác tạo lịch.
+ *
+ * @param {string} groupId - ID của nhóm hiện tại
+ */
+export function useGroupDetail(groupId = "ws-1") {
+  const [group, setGroup] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingCalendar, setIsCreatingCalendar] = useState(false);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("calendars");
+
+  /**
+   * Tải đồng thời thông tin group và các sessions
+   */
+  const loadGroupData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const groupRes = await groupService.getGroupById(groupId).catch(() => null);
+      if (!groupRes) {
+        throw new Error("Group not found");
+      }
+
+      const actualGroupId = groupRes.id;
+      const actualGroupSlug = groupRes.slug || groupRes.id;
+
+      const sessionsRes = await calendarService.getGroupCalendars(
+        actualGroupId,
+        actualGroupSlug
+      );
+
+      setGroup(groupRes);
+      setSessions(sessionsRes);
+    } catch (err) {
+      console.error("Failed to load group details:", err);
+      setError(err?.message || "Failed to load group calendar sessions.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [groupId]);
+
+  /**
+   * Tự động nạp lại khi groupId thay đổi
+   */
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadGroupData();
+  }, [loadGroupData]);
+
+  /**
+   * Chỉ fetch lại sessions (không fetch lại group info) — dùng cho background polling
+   */
+  const reloadSessions = useCallback(async () => {
+    if (!group) return;
+    try {
+      const sessionsRes = await calendarService.getGroupCalendars(group.id);
+      setSessions(sessionsRes);
+    } catch {
+      // silent fail — không hiện lỗi khi background poll thất bại
+    }
+  }, [group]);
+
+  /**
+   * Realtime: cập nhật respondedCount ngay khi thành viên lưu slot
+   */
+  useSessionsRealtime(sessions, (updated) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s))
+    );
+  });
+
+  /**
+   * Polling 25s: tự fetch lại sessions khi tab đang active
+   */
+  useEffect(() => {
+    const POLL_INTERVAL = 25_000;
+    const tick = () => {
+      if (document.visibilityState === "visible") {
+        reloadSessions();
+      }
+    };
+    const id = setInterval(tick, POLL_INTERVAL);
+    return () => clearInterval(id);
+  }, [reloadSessions]);
+
+  /**
+   * Tạo lịch trình khảo sát mới
+   * @param {Object} calendarPayload
+   */
+  const createCalendar = async (calendarPayload) => {
+    try {
+      setIsCreatingCalendar(true);
+      const actualGroupId = group?.id || groupId;
+      const actualGroupSlug = group?.slug || groupId;
+
+      const createdSession = await calendarService.createCalendar(
+        actualGroupId,
+        calendarPayload,
+        actualGroupSlug
+      );
+      setSessions((prev) => [createdSession, ...prev]);
+      setGroup((prev) =>
+        prev
+          ? {
+              ...prev,
+              activeSessionsCount: (prev.activeSessionsCount || 0) + 1,
+            }
+          : prev
+      );
+      return { success: true, data: createdSession };
+    } catch (err) {
+      console.error("Failed to create calendar:", err);
+      return {
+        success: false,
+        error: err?.message || "Unable to create calendar session.",
+      };
+    } finally {
+      setIsCreatingCalendar(false);
+    }
+  };
+
+  return {
+    group,
+    sessions,
+    isLoading,
+    isCreatingCalendar,
+    error,
+    activeTab,
+    setActiveTab,
+    loadGroupData,
+    createCalendar,
+  };
+}
+
+export default useGroupDetail;
