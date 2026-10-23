@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/useAuth";
 import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
+import { backendUrl } from "~/utils/backendApi";
 
 function Login() {
   const { t } = useTranslation();
@@ -64,7 +65,7 @@ function Login() {
 
   const handleGoogleLogin = () => {
     const params = new URLSearchParams({ returnUrl });
-    window.location.href = `/api/auth/google?${params}`;
+    window.location.href = `${backendUrl("/auth/google")}?${params}`;
   };
 
   return (

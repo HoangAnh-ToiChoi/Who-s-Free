@@ -19,6 +19,11 @@ const NO_REFRESH_AUTH_PATHS = [
 
 let refreshInFlight = null;
 
+/** Absolute backend URL for browser navigations (e.g. OAuth redirects) that bypass fetch. */
+export function backendUrl(path) {
+  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export class BackendApiError extends Error {
   constructor(message, { status, code, details, response } = {}) {
     super(message || "Backend request failed");
