@@ -1,20 +1,6 @@
 import { useState } from "react";
-import { backendUrl } from "~/utils/backendApi";
-
-const POLL_INTERVAL_MS = 2500;
-const MAX_WAIT_MS = 90000;
-
-async function isBackendReady() {
-  try {
-    const response = await fetch(backendUrl("/health"), {
-      cache: "no-store",
-      signal: AbortSignal.timeout(4000),
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
+import { backendUrl, backendHealthUrl } from "~/utils/backendApi";
+import { waitForBackend } from "~/utils/serverWake";
 
 /**
  * useGoogleSignIn - Đăng nhập Google qua Backend.
@@ -28,10 +14,7 @@ export function useGoogleSignIn(returnUrl) {
     if (isConnecting) return;
     setIsConnecting(true);
 
-    const deadline = Date.now() + MAX_WAIT_MS;
-    while (Date.now() < deadline && !(await isBackendReady())) {
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    }
+    await waitForBackend(backendHealthUrl());
 
     const params = new URLSearchParams({ returnUrl });
     window.location.href = `${backendUrl("/auth/google")}?${params}`;

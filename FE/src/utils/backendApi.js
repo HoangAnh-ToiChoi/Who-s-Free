@@ -1,4 +1,5 @@
 import tokenManager from "./tokenManager";
+import { fetchWithWake } from "./serverWake";
 
 const API_BASE_URL = (
   import.meta.env.VITE_BACKEND_API_BASE_URL ||
@@ -17,7 +18,15 @@ const NO_REFRESH_AUTH_PATHS = [
   "/auth/reset-password",
 ];
 
+const HEALTH_URL = `${API_BASE_URL}/health`;
+
+/** fetch có xử lý máy chủ ngủ (báo chờ + tự thử lại), dùng cho mọi lệnh gọi Backend. */
+const apiFetch = (url, init) => fetchWithWake(url, init, { healthUrl: HEALTH_URL });
+
 let refreshInFlight = null;
+
+/** Địa chỉ kiểm tra máy chủ đã sẵn sàng (dùng để đánh thức / chờ). */
+export const backendHealthUrl = () => HEALTH_URL;
 
 /** Absolute backend URL for browser navigations (e.g. OAuth redirects) that bypass fetch. */
 export function backendUrl(path) {
@@ -59,7 +68,7 @@ export function requestTokenRefresh() {
 
   refreshInFlight = (async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      const response = await apiFetch(`${API_BASE_URL}/auth/refresh`, {
         method: "POST",
         headers: { Accept: "application/json" },
         credentials: "include",
@@ -119,7 +128,7 @@ export async function backendRequest(
   }
 
   const normalizedPath = normalizePath(path);
-  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
+  const response = await apiFetch(`${API_BASE_URL}${normalizedPath}`, {
     method,
     headers,
     credentials,

@@ -384,7 +384,7 @@
       "emailSendFailed": "We could not send the recovery email. Please try again later or contact support."
     },
     "connecting": "Connecting...",
-    "connectingHint": "We're getting things ready, please wait a moment."
+    "connectingHint": "The system is checking, please wait a moment…"
   },
   "finalize": {
     "button": "Finalize",
@@ -410,5 +410,8 @@
     "peopleCount": "{{count}} people",
     "selected": "Finalized window: {{when}}",
     "nothingSelected": "No time window selected yet"
+  },
+  "system": {
+    "waking": "The system is checking, please wait a moment…"
   }
 }
