@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Card } from "~/components/ui/card";
 import { useAuth } from "~/hooks/useAuth";
 import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
+import { backendUrl } from "~/utils/backendApi";
 
 /**
  * AuthCallback - Trang tiếp nhận OAuth Callback từ Google / Supabase
@@ -54,7 +55,7 @@ function AuthCallback() {
 
         if (queryCode) {
           // Let the backend exchange Authorization Codes when this flow is configured.
-          window.location.assign(`/api/auth/google/callback?code=${encodeURIComponent(queryCode)}`);
+          window.location.assign(`${backendUrl("/auth/google/callback")}?code=${encodeURIComponent(queryCode)}`);
           return;
         }
 

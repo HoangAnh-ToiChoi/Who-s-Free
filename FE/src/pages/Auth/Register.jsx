@@ -25,6 +25,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/useAuth";
 import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
+import { backendUrl } from "~/utils/backendApi";
 
 function Register() {
   const { t } = useTranslation();
@@ -423,7 +424,7 @@ function Register() {
         size="lg"
         onClick={() => {
           const params = new URLSearchParams({ returnUrl });
-          window.location.href = `/api/auth/google?${params}`;
+          window.location.href = `${backendUrl("/auth/google")}?${params}`;
         }}
         className="h-11 w-full gap-3 rounded-xl border-slate-200/90 bg-white text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all cursor-pointer"
       >
