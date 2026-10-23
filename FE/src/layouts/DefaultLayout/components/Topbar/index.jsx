@@ -24,33 +24,36 @@ function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center border-b border-slate-200 bg-white px-8 sm:px-12 lg:px-16 py-4 shadow-xs">
-      {/* Left section — Logo */}
+    <header className="sticky top-0 z-40 flex items-center border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-10 py-3.5 shadow-xs">
+      {/* Left — Logo */}
       <div className="flex items-center shrink-0">
         <AppLogo />
       </div>
 
-      {/* Center — SearchBar (Dịch nhẹ sang phải translate-x để cân bằng thị giác với cụm điều khiển bên phải) */}
-      <div className="flex flex-1 items-center justify-center translate-x-6 sm:translate-x-12">
+      {/* Center — SearchBar (ẩn trên mobile) */}
+      <div className="hidden md:flex flex-1 items-center justify-center">
         <SearchBar
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      {/* Right section — Workspace Selector, Quick Language Toggle, Bell, Avatar */}
-      <div className="flex shrink-0 items-center gap-2.5 sm:gap-3.5">
+      {/* Spacer trên mobile để đẩy right section sang phải */}
+      <div className="flex-1 md:hidden" />
+
+      {/* Right — Workspace Selector, Language Toggle, Bell, Avatar */}
+      <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
         <GroupSelector
           workspaces={groups}
           activeWorkspace={activeWorkspace}
           onCreateGroup={createGroup}
         />
 
-        {/* Quick Language Toggle Button — Cố định kích thước min-w và h chống giật */}
+        {/* Language Toggle — ẩn trên mobile */}
         <button
           type="button"
           onClick={toggleLanguage}
-          className="flex h-9 min-w-[62px] items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer whitespace-nowrap select-none"
+          className="hidden sm:flex h-9 min-w-[62px] items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer whitespace-nowrap select-none"
           title={t("common.switchLanguage")}
           aria-label={t("common.switchLanguage")}
         >
