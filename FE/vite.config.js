@@ -5,7 +5,8 @@ import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ command }) => ({
-  base: command === "build" ? "/Who-s-Free/" : "/",
+  // GitHub Pages cần sub-path; Vercel (process.env.VERCEL) phục vụ ở root
+  base: command === "build" && !process.env.VERCEL ? "/Who-s-Free/" : "/",
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] }),
