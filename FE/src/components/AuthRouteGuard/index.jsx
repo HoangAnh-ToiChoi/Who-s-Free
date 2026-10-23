@@ -13,9 +13,15 @@ function AuthRouteLoading() {
 
 export function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) return <AuthRouteLoading />;
-  if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
+  if (!isAuthenticated) {
+    // Giữ lại trang đang muốn vào (vd: link trong email chốt lịch) để đăng nhập/đăng ký xong quay lại đúng đó
+    const target = `${location.pathname}${location.search}`;
+    const loginPath = target === "/" ? "/auth/login" : `/auth/login?returnUrl=${encodeURIComponent(target)}`;
+    return <Navigate to={loginPath} replace />;
+  }
 
   return <Outlet />;
 }
