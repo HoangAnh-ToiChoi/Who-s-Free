@@ -384,7 +384,7 @@
       "emailSendFailed": "Chưa gửi được email khôi phục. Vui lòng thử lại sau hoặc liên hệ quản trị viên."
     },
     "connecting": "Đang kết nối...",
-    "connectingHint": "Hệ thống đang được chuẩn bị, vui lòng chờ trong giây lát."
+    "connectingHint": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
   },
   "finalize": {
     "button": "Chốt lịch",
@@ -410,5 +410,8 @@
     "peopleCount": "{{count}} người",
     "selected": "Khung giờ chốt: {{when}}",
     "nothingSelected": "Chưa chọn khung giờ nào"
+  },
+  "system": {
+    "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
   }
 }
