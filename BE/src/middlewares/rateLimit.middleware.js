@@ -21,3 +21,13 @@ export const forgotPasswordRateLimit = rateLimit({
   message: rateLimitMessage("TOO_MANY_REQUESTS", "Quá nhiều yêu cầu gửi OTP. Vui lòng thử lại sau 1 giờ."),
   skip: () => process.env.NODE_ENV === "test",
 });
+
+export const availabilityWriteRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?.id || req.ip,
+  message: rateLimitMessage("TOO_MANY_REQUESTS", "Quá nhiều yêu cầu cập nhật lịch. Vui lòng thử lại sau."),
+  skip: () => process.env.NODE_ENV === "test",
+});

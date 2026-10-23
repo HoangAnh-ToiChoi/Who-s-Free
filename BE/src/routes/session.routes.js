@@ -2,6 +2,7 @@ import { Router } from "express";
 import sessionController from "../controllers/session.controller.js";
 import availabilityController from "../controllers/availability.controller.js";
 import AuthMiddleware from "../middlewares/auth.middleware.js";
+import { availabilityWriteRateLimit } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.delete("/:id", AuthMiddleware.authenticate, sessionController.deleteSessi
 
 // Availability nested under sessions
 router.get("/:id/my-availability", AuthMiddleware.authenticate, availabilityController.getMyAvailability);
-router.put("/:id/my-availability", AuthMiddleware.authenticate, availabilityController.saveMyAvailability);
-router.get("/:id/availabilities", availabilityController.getSessionAvailabilities);
+router.put("/:id/my-availability", AuthMiddleware.authenticate, availabilityWriteRateLimit, availabilityController.saveMyAvailability);
+router.get("/:id/availabilities", AuthMiddleware.authenticate, availabilityController.getSessionAvailabilities);
 
 export default router;

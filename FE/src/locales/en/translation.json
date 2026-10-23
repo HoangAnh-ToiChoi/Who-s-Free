@@ -104,9 +104,6 @@
       "activeCount": "{{count}} Active",
       "turnout": "Average club turnout",
       "response": "Median response time",
-      "responseValue": "< 4 hrs",
-      "feeds": "Connected calendar feeds",
-      "feedsValue": "Google + iCal",
       "systemOperational": "All systems operational • Realtime Sync Active",
       "copyright": "© 2026 Who's Free. Precision group coordination."
     }

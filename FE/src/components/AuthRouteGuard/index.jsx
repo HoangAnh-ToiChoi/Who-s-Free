@@ -1,5 +1,6 @@
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation, useParams } from "react-router";
 import { useAuth } from "~/hooks/useAuth";
+import { useUserGroupRole } from "~/hooks/useUserGroupRole";
 import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 
 function AuthRouteLoading() {
@@ -16,6 +17,15 @@ export function RequireAuth() {
   if (isLoading) return <AuthRouteLoading />;
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
 
+  return <Outlet />;
+}
+
+export function RequireLeadRole() {
+  const { groupId } = useParams();
+  const { role, isLoading } = useUserGroupRole(groupId);
+
+  if (isLoading) return <AuthRouteLoading />;
+  if (role !== "owner" && role !== "lead") return <Navigate to={groupId ? `/groups/${groupId}` : "/"} replace />;
   return <Outlet />;
 }
 

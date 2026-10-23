@@ -10,7 +10,8 @@ class AvailabilityModel {
   static async findBySessionAndUser(sessionId, userId) {
     if (!sessionId || !userId) return [];
     const sql = `
-      SELECT * FROM public.availability_slots
+      SELECT id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at
+      FROM public.availability_slots
       WHERE session_id = $1 AND user_id = $2
       ORDER BY day_index, start_minutes;
     `;

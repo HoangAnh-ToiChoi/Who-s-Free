@@ -42,8 +42,8 @@ app.use(
   }),
 );
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "256kb" }));
+app.use(express.urlencoded({ extended: true, limit: "256kb" }));
 app.use(cookieParser());
 
 // ─── Healthcheck Route ───────────────────────────────────────────────────────

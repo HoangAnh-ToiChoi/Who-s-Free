@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router";
-import { GuestOnly, RequireAuth } from "~/components/AuthRouteGuard";
+import { GuestOnly, RequireAuth, RequireLeadRole } from "~/components/AuthRouteGuard";
 
 const DefaultLayout = lazy(() => import("~/layouts/DefaultLayout"));
 const AuthLayout = lazy(() => import("~/layouts/AuthLayout"));
@@ -79,8 +79,10 @@ function AppRoutes() {
               {/* Matrix pages — Gắn dưới /groups/:groupId để Topbar luôn biết group hiện tại */}
               <Route path="/groups/:groupId/matrix/:sessionSlug" element={<MemberMatrix />} />
               <Route path="/groups/:groupId/matrix" element={<MemberMatrix />} />
-              <Route path="/groups/:groupId/lead-matrix/:sessionSlug" element={<LeadMatrix />} />
-              <Route path="/groups/:groupId/lead-matrix" element={<LeadMatrix />} />
+              <Route element={<RequireLeadRole />}>
+                <Route path="/groups/:groupId/lead-matrix/:sessionSlug" element={<LeadMatrix />} />
+                <Route path="/groups/:groupId/lead-matrix" element={<LeadMatrix />} />
+              </Route>
               <Route
                 path="/settings"
                 element={<Placeholder pageName="Settings" />}

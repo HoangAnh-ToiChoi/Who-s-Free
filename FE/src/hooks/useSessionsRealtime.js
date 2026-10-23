@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { supabase } from "~/configs/supabase";
 import { sessionService } from "~/service/sessionService/sessionService";
 
@@ -12,7 +12,9 @@ import { sessionService } from "~/service/sessionService/sessionService";
  */
 export function useSessionsRealtime(sessions, onSessionUpdate) {
   const onUpdateRef = useRef(onSessionUpdate);
-  onUpdateRef.current = onSessionUpdate;
+  useLayoutEffect(() => {
+    onUpdateRef.current = onSessionUpdate;
+  });
 
   // Serialize session IDs thành string để làm dependency ổn định
   const sessionIdsKey = sessions.map((s) => s.id).join(",");
