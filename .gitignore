@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# Source assets (không commit file gốc ở root)
+logo .png
+
 # Environment variables
 .env
 .env.local
