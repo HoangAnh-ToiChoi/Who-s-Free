@@ -76,13 +76,19 @@ class UserModel {
     if (!authUser) return null;
 
     const metadata = authUser.user_metadata || {};
-    await this.upsertToDatabase({
+    const record = await this.upsertToDatabase({
       id: authUser.id,
       email: authUser.email,
       fullName:
         fullName || metadata.full_name || metadata.name || authUser.full_name || authUser.name,
       avatarUrl: avatarUrl || metadata.avatar_url || metadata.picture || authUser.avatar_url,
     });
+
+    // Cùng email nhưng Supabase Auth tạo định danh khác (vd: đăng ký bằng email rồi đăng nhập Google):
+    // dùng id của dòng public.users đã có để giữ nguyên nhóm, lịch và lời mời của tài khoản đó.
+    if (record?.id && record.id !== authUser.id) {
+      return { ...authUser, id: record.id };
+    }
     return authUser;
   }
 
