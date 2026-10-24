@@ -39,7 +39,8 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error("Not allowed by CORS"));
+      // Origin lạ: không gắn header CORS nên trình duyệt tự chặn (không ném lỗi 500)
+      callback(null, false);
     },
     credentials: true,
   }),

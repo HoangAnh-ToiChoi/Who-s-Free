@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { useGroupDetail } from "~/hooks";
 import { Button } from "~/components/ui/button";
+import SlideIn from "~/components/SlideIn";
 import { InviteMembersModal, CreateCalendarModal } from "~/components/Modals";
 import { calculateGroupMetrics } from "~/utils";
 
@@ -96,29 +97,35 @@ function Group() {
             return (
               <>
                 {/* Group Overview Header + Modal Trigger */}
-                <GroupHeader
-                  group={group}
-                  sessionsCount={activeSessionsCount}
-                  onCreateCalendar={createCalendar}
-                  isCreatingCalendar={isCreatingCalendar}
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                  onOpenInvite={() => setIsInviteModalOpen(true)}
-                  onOpenCreateCalendar={() => setIsCreateCalendarOpen(true)}
-                />
+                <SlideIn direction="up">
+                  <GroupHeader
+                    group={group}
+                    sessionsCount={activeSessionsCount}
+                    onCreateCalendar={createCalendar}
+                    isCreatingCalendar={isCreatingCalendar}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    onOpenInvite={() => setIsInviteModalOpen(true)}
+                    onOpenCreateCalendar={() => setIsCreateCalendarOpen(true)}
+                  />
+                </SlideIn>
 
                 {/* Subpage 1: Calendars / Planning Sessions */}
                 {activeTab === "calendars" && (
                   <>
-                    <GroupSessions
-                      sessions={sessions}
-                      onOpenCreateModal={() => setIsCreateCalendarOpen(true)}
-                    />
-                    <GroupMetricsBar
-                      activeSessionsCount={activeSessionsCount}
-                      turnoutRate={turnoutRate}
-                      medianResponseHours={group?.medianResponseHours ?? null}
-                    />
+                    <SlideIn key="calendars" index={1} direction="up">
+                      <GroupSessions
+                        sessions={sessions}
+                        onOpenCreateModal={() => setIsCreateCalendarOpen(true)}
+                      />
+                    </SlideIn>
+                    <SlideIn index={2} direction="up">
+                      <GroupMetricsBar
+                        activeSessionsCount={activeSessionsCount}
+                        turnoutRate={turnoutRate}
+                        medianResponseHours={group?.medianResponseHours ?? null}
+                      />
+                    </SlideIn>
                   </>
                 )}
               </>
@@ -127,15 +134,19 @@ function Group() {
 
           {/* Subpage 2: Members */}
           {activeTab === "members" && (
-            <GroupMembers
-              group={group}
-              onOpenInvite={() => setIsInviteModalOpen(true)}
-            />
+            <SlideIn key="members" index={1} direction="up">
+              <GroupMembers
+                group={group}
+                onOpenInvite={() => setIsInviteModalOpen(true)}
+              />
+            </SlideIn>
           )}
 
           {/* Subpage 3: Settings */}
           {activeTab === "settings" && (
-            <GroupSettings group={group} />
+            <SlideIn key="settings" index={1} direction="up">
+              <GroupSettings group={group} />
+            </SlideIn>
           )}
 
           {/* Modal Mời Thành Viên - Dùng chung cấp Group */}

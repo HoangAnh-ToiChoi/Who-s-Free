@@ -11,6 +11,7 @@ import { useMemberFilter } from "./hooks/useMemberFilter";
 import { useLeadExport } from "./hooks/useLeadExport";
 import { useFinalizeActions } from "./hooks/useFinalizeActions";
 import FinalizeModal from "./components/FinalizeModal";
+import MatrixGate from "~/components/MatrixGate";
 import ConfirmModal from "~/components/Modals/ConfirmModal";
 import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
 
@@ -28,7 +29,7 @@ import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
  *
  * readOnly: chế độ xem của thành viên khi lịch đã chốt (giống góc nhìn Lead nhưng không có nút thao tác).
  */
-function LeadMatrix({ readOnly = false }) {
+export function LeadMatrixContent({ readOnly = false }) {
   const { t } = useTranslation();
   const { currentSession, updateCurrentSession, refreshCurrentSession } = useSessionResolver();
   const {
@@ -208,6 +209,15 @@ function LeadMatrix({ readOnly = false }) {
         onSubmit={finalizeActions.finalize}
       />
     </div>
+  );
+}
+
+/** Bản có cổng tải dữ liệu: chỉ hiện sau khi tải xong, báo lỗi + thử lại khi mất mạng. */
+function LeadMatrix(props) {
+  return (
+    <MatrixGate>
+      <LeadMatrixContent {...props} />
+    </MatrixGate>
   );
 }
 

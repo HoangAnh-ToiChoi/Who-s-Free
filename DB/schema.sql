@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url TEXT,
     refresh_token TEXT,
     refresh_token_created_at TIMESTAMPTZ,
+    notifications_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -419,5 +419,18 @@
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "empty": "Chưa có thông báo nào",
+    "invite": "Bạn được mời vào nhóm {{group}}",
+    "inviteHint": "Mở link trong email để tham gia",
+    "finalized": "Lịch \"{{session}}\" của nhóm {{group}} đã được chốt"
+  },
+  "matrixGate": {
+    "errorTitle": "Không tải được lịch",
+    "errorDesc": "Có lỗi khi tải dữ liệu. Vui lòng thử lại.",
+    "offlineTitle": "Mất kết nối mạng",
+    "offlineDesc": "Kiểm tra kết nối Internet, trang sẽ tự tải lại khi có mạng."
   }
 }
