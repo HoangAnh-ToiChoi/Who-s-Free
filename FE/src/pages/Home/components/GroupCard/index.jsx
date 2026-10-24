@@ -12,6 +12,9 @@ import { calcPercentage } from "~/utils";
 import { getGroupThemeColor } from "~/data/groupPalettes";
 import MemberAvatarStack from "./MemberAvatarStack";
 
+// Tải sẵn trang nhóm khi người dùng rê chuột / focus vào thẻ để lúc bấm chuyển trang không bị khựng
+const preloadGroupPage = () => import("~/pages/Group");
+
 function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
   const { t } = useTranslation();
   const isOwner = group.role === "Owner";
@@ -24,6 +27,9 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
     <Link
       to={to}
       onClick={onClick}
+      onMouseEnter={preloadGroupPage}
+      onFocus={preloadGroupPage}
+      onTouchStart={preloadGroupPage}
       className={`group group-theme-${themeColor} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
     >
       <div>

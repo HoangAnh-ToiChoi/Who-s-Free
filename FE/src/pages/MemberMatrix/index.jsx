@@ -2,14 +2,15 @@ import { useParams } from "react-router";
 import { useSessionResolver, useCurrentUser, useUserGroupRole } from "~/hooks";
 import MatrixHeader from "./components/MatrixHeader";
 import AvailabilityGrid from "./components/AvailabilityGrid";
-import LeadMatrix from "~/pages/LeadMatrix";
+import { LeadMatrixContent } from "~/pages/LeadMatrix";
+import MatrixGate from "~/components/MatrixGate";
 import { useSessionFinalizeSync } from "~/hooks";
 
 /**
  * Trang Ma trận / Nhập thời gian rảnh của thành viên (Member Availability Input)
  * Chứa Lưới Kéo Thả thời gian cốt lõi (Core Feature) của dự án và chế độ Lead Matrix.
  */
-function Matrix() {
+function MatrixContent() {
   const { currentSession, refreshCurrentSession } = useSessionResolver();
   const { currentUser } = useCurrentUser();
   const { groupId } = useParams();
@@ -20,7 +21,7 @@ function Matrix() {
   // Lịch đã chốt: khoá kéo thả, mọi người xem như chế độ Lead (ai chọn gì, chọn như nào).
   // Chỉ trưởng nhóm (lead/owner) có thêm nút Xuất Excel và Huỷ chốt.
   if (currentSession?.status === "finalized") {
-    return <LeadMatrix readOnly={!isLead} />;
+    return <LeadMatrixContent readOnly={!isLead} />;
   }
 
   return (
@@ -37,6 +38,14 @@ function Matrix() {
         />
       </div>
     </div>
+  );
+}
+
+function Matrix() {
+  return (
+    <MatrixGate withMyAvailability>
+      <MatrixContent />
+    </MatrixGate>
   );
 }
 

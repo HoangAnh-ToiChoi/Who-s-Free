@@ -1,6 +1,31 @@
 import http from "~/utils/http";
 import { extractIdFromSlug } from "~/utils/slugify";
 import { calculateSessionMetrics } from "~/utils/matrixCalculations";
+import { cachedFetch, peekCached } from "~/utils/prefetchCache";
+import { availabilityService } from "~/service/availabilityService/availabilityService";
+
+const calendarKey = (id) => `session:${id}`;
+
+async function fetchCalendar(identifier, actualId, fresh) {
+  let session = await http.get(`/sessions/${actualId}`).catch(() => null);
+  if (!session && actualId !== identifier) {
+    session = await http.get(`/sessions/${identifier}`).catch(() => null);
+  }
+  if (!session) {
+    const list = await http.get(`/sessions?slug=${identifier}`).catch(() => []);
+    session = list?.[0];
+  }
+  if (!session) throw new Error("Calendar session not found");
+
+  const safeAvails = await availabilityService.getSessionAvailabilities(session.id, { fresh });
+  const metrics = calculateSessionMetrics(session, safeAvails);
+  return {
+    ...session,
+    ...metrics,
+    respondedCount: session.respondedCount ?? metrics.respondedCount,
+    quorumPercent: session.quorumPercent ?? metrics.quorumPercent,
+  };
+}
 
 export const sessionService = {
   async getGroupCalendars(groupId) {
@@ -28,28 +53,20 @@ export const sessionService = {
     }
   },
 
-  async getCalendarById(identifier) {
-    if (!identifier) throw new Error("Calendar identifier is required");
+  /**
+   * Lấy session (kèm số liệu phản hồi). Ném lỗi nếu không tải được.
+   * Kết quả được giữ ngắn hạn để trang tải trước rồi hiển thị ngay; { fresh: true } luôn hỏi lại Backend.
+   */
+  getCalendarById(identifier, { fresh = false } = {}) {
+    if (!identifier) return Promise.reject(new Error("Calendar identifier is required"));
     const actualId = extractIdFromSlug(identifier);
-    let session = await http.get(`/sessions/${actualId}`).catch(() => null);
-    if (!session && actualId !== identifier) {
-      session = await http.get(`/sessions/${identifier}`).catch(() => null);
-    }
-    if (!session) {
-      const list = await http.get(`/sessions?slug=${identifier}`).catch(() => []);
-      session = list?.[0];
-    }
-    if (!session) throw new Error("Calendar session not found");
+    return cachedFetch(calendarKey(actualId), () => fetchCalendar(identifier, actualId, fresh), { fresh });
+  },
 
-    const avails = await http.get(`/sessions/${session.id}/availabilities`).catch(() => []);
-    const safeAvails = Array.isArray(avails) ? avails : [];
-    const metrics = calculateSessionMetrics(session, safeAvails);
-    return {
-      ...session,
-      ...metrics,
-      respondedCount: session.respondedCount ?? metrics.respondedCount,
-      quorumPercent: session.quorumPercent ?? metrics.quorumPercent,
-    };
+  /** Session đã tải sẵn (đồng bộ) để hiển thị ngay frame đầu, hoặc undefined. */
+  peekCalendar(identifier) {
+    if (!identifier) return undefined;
+    return peekCached(calendarKey(extractIdFromSlug(identifier)));
   },
 
   async createCalendar(groupId, payload) {

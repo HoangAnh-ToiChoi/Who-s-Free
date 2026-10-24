@@ -15,7 +15,9 @@ export function useHeatmapMatrix(
   sessionId,
   weekDays = []
 ) {
-  const [sessionMembers, setSessionMembers] = useState([]);
+  const [sessionMembers, setSessionMembers] = useState(
+    () => calendarService.peekSessionAvailabilities(sessionId) ?? []
+  );
 
   useEffect(() => {
     let isMounted = true;

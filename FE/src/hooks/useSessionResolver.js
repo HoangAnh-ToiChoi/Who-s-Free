@@ -18,7 +18,9 @@ export function useSessionResolver() {
 
   const activeSlug = routeSessionSlug || searchParams.get("session");
 
-  const passedSession = location.state?.session || null;
+  // Ưu tiên session truyền qua router, sau đó tới session đã được tải sẵn (frame đầu có dữ liệu ngay)
+  const passedSession =
+    location.state?.session || (activeSlug ? calendarService.peekCalendar(activeSlug) : null) || null;
   const [sessions, setSessions] = useState(passedSession ? [passedSession] : []);
   const [currentSession, setCurrentSession] = useState(passedSession);
 
@@ -108,7 +110,9 @@ export function useSessionResolver() {
   /** Tải lại session từ Backend (vd: khi nhận realtime chốt / mở khoá từ Lead). */
   const refreshCurrentSession = async () => {
     if (!currentSession?.id) return;
-    const fresh = await calendarService.getCalendarById(currentSession.id).catch(() => null);
+    const fresh = await calendarService
+      .getCalendarById(currentSession.id, { fresh: true })
+      .catch(() => null);
     if (fresh) setCurrentSession((prev) => (prev ? { ...prev, ...fresh } : fresh));
   };
 

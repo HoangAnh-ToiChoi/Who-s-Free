@@ -7,12 +7,15 @@ import SearchBar from "~/layouts/DefaultLayout/components/Topbar/components/Sear
 import NotificationBell from "~/layouts/DefaultLayout/components/Topbar/components/NotificationBell";
 import UserAvatar from "~/layouts/DefaultLayout/components/Topbar/components/UserAvatar";
 
-import { useActiveWorkspace, useGroups, useCurrentUser } from "~/hooks";
+import { useActiveWorkspace, useGroups, useCurrentUser, useAuth } from "~/hooks";
+import { useNotifications } from "~/hooks/useNotifications";
 
 function Topbar() {
   const { t, i18n } = useTranslation();
   const { groups, isLoading, createGroup, searchQuery, setSearchQuery } = useGroups();
   const { currentUser } = useCurrentUser();
+  const { isAuthenticated } = useAuth();
+  const { items, unreadCount, markAllRead } = useNotifications({ enabled: isAuthenticated });
 
   // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
   const { activeWorkspace } = useActiveWorkspace(groups, isLoading);
@@ -63,7 +66,7 @@ function Topbar() {
           </span>
         </button>
 
-        <NotificationBell count={3} />
+        <NotificationBell items={items} unreadCount={unreadCount} onOpen={markAllRead} />
         <UserAvatar user={currentUser} />
       </div>
     </header>

@@ -22,7 +22,7 @@ export function useFinalizeActions({ sessionId, onChanged }) {
     setIsModalOpen(true);
     setIsLoadingRuns(true);
     try {
-      const members = await availabilityService.getSessionAvailabilities(sessionId);
+      const members = await availabilityService.getSessionAvailabilities(sessionId, { fresh: true });
       setCells(buildSelectedCells(members));
     } finally {
       setIsLoadingRuns(false);

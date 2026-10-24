@@ -12,8 +12,12 @@ import { availabilityService as calendarService } from "~/service/availabilitySe
  */
 export function useMemberFilter(sessionId) {
   const [activePreset, setActivePreset] = useState("all");
-  const [allMembers, setAllMembers] = useState([]);
-  const [customSelectedIds, setCustomSelectedIds] = useState([]);
+  const [allMembers, setAllMembers] = useState(
+    () => calendarService.peekSessionAvailabilities(sessionId) ?? []
+  );
+  const [customSelectedIds, setCustomSelectedIds] = useState(() =>
+    (calendarService.peekSessionAvailabilities(sessionId) ?? []).map((m) => m.memberId)
+  );
 
   useEffect(() => {
     let isMounted = true;

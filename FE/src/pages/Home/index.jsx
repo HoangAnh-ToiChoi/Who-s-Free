@@ -4,6 +4,7 @@ import { Users, AlertCircle, RefreshCw } from "lucide-react";
 
 import { useGroups } from "~/hooks";
 import { Button } from "~/components/ui/button";
+import SlideIn from "~/components/SlideIn";
 import { CreateGroupModal } from "~/components/Modals";
 import HomeHeader from "~/pages/Home/components/HomeHeader";
 import GroupCard from "~/pages/Home/components/GroupCard";
@@ -81,13 +82,14 @@ function Home() {
         </div>
       ) : filteredGroups.length > 0 ? (
         /* --- Case 3: Hiển thị danh sách Cards thành công --- */
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredGroups.map((group) => (
-            <GroupCard
-              key={group.id}
-              group={group}
-              to={`/groups/${group.id}`}
-            />
+        <div
+          key={activeFilter}
+          className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        >
+          {filteredGroups.map((group, index) => (
+            <SlideIn key={group.id} index={index}>
+              <GroupCard group={group} to={`/groups/${group.id}`} />
+            </SlideIn>
           ))}
         </div>
       ) : (

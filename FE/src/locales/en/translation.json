@@ -419,5 +419,18 @@
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "invite": "You were invited to the group {{group}}",
+    "inviteHint": "Open the link in your email to join",
+    "finalized": "The schedule \"{{session}}\" in {{group}} has been finalized"
+  },
+  "matrixGate": {
+    "errorTitle": "Couldn't load the schedule",
+    "errorDesc": "Something went wrong while loading. Please try again.",
+    "offlineTitle": "You're offline",
+    "offlineDesc": "Check your Internet connection. The page reloads automatically once you're back online."
   }
 }
