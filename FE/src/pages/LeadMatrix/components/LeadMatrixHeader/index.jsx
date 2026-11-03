@@ -28,19 +28,22 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
       <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
         <Link
           to={backUrl}
-          className="group flex shrink-0 items-center gap-1.5 font-semibold text-slate-500 transition-colors hover:text-red-600"
+          aria-label={t("groupDetail.backToGroup")}
+          className="group flex shrink-0 items-center gap-1.5 font-semibold text-slate-500 transition-colors hover:text-red-600 max-sm:h-10 max-sm:rounded-xl max-sm:border max-sm:border-slate-200 max-sm:bg-white max-sm:px-3 max-sm:text-sm max-sm:text-slate-700 max-sm:shadow-2xs"
         >
+          {/* Mobile: nút quay lại cao 40px, có chữ cho dễ bấm; desktop giữ breadcrumb gọn */}
           <ArrowLeft
-            size={14}
-            className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600"
+            size={18}
+            className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600 sm:size-3.5"
           />
+          <span className="sm:hidden">{t("common.back")}</span>
           <span className="hidden sm:inline">
             {t("groupDetail.backToGroup")}
           </span>
         </Link>
-        <span className="shrink-0 text-slate-300">/</span>
+        <span className="hidden shrink-0 text-slate-300 sm:inline">/</span>
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="truncate font-bold text-slate-900">
+          <span className="truncate font-bold text-slate-900 max-sm:text-sm">
             {session?.title || ""}
           </span>
 
