@@ -4,6 +4,7 @@ import {
   Users,
   Calendar,
   ArrowRight,
+  ChevronRight,
   ShieldCheck,
   UserCheck,
 } from "lucide-react";
@@ -30,14 +31,15 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
       onMouseEnter={preloadGroupPage}
       onFocus={preloadGroupPage}
       onTouchStart={preloadGroupPage}
-      className={`group group-theme-${themeColor} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
+      className={`group group-theme-${themeColor} relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3 md:p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
     >
       <div>
         {/* Card Header: Avatar, Info & Role Badge */}
-        <div className="flex items-start justify-between gap-4">
+        {/* Mobile: thẻ thu thành 1 dòng (avatar · tên · trạng thái · mũi tên), cả dòng bấm được */}
+        <div className="flex items-center gap-3 md:items-start md:justify-between md:gap-4">
           {/* Avatar Icon dùng biến CSS token từ main.css */}
           <div
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border text-lg font-bold transition-transform duration-200 group-hover:scale-105"
+            className="flex h-11 w-11 md:h-12 md:w-12 shrink-0 items-center justify-center rounded-xl border text-lg font-bold transition-transform duration-200 group-hover:scale-105"
             style={{
               backgroundColor: "var(--theme-bg)",
               color: "var(--theme-text)",
@@ -47,24 +49,34 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
             {group.name.charAt(0)}
           </div>
 
+          <div className="min-w-0 flex-1 md:hidden">
+            <h3 className="truncate text-[15px] font-bold text-slate-900">{group.name}</h3>
+            <p className="truncate text-xs text-slate-500">
+              {group.memberCount}/{group.capacity} {t("groupCard.members")}
+              {Number.isFinite(Number(group.activeSessionsCount)) &&
+                ` · ${t("groupCard.sessionsCount", { count: group.activeSessionsCount })}`}
+            </p>
+          </div>
+
           {/* Role Badge - Cố định min-width để chống giật chữ khi đổi ngôn ngữ */}
           <div className="flex items-center gap-1.5 shrink-0">
             {isOwner ? (
-              <span className="inline-flex min-w-[76px] items-center justify-center gap-1 rounded-full border border-indigo-200/80 bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 whitespace-nowrap">
+              <span className="inline-flex md:min-w-[76px] items-center justify-center gap-1 rounded-full border border-indigo-200/80 bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 whitespace-nowrap">
                 <ShieldCheck size={12} className="shrink-0" />
                 <span>{t("groupCard.owner")}</span>
               </span>
             ) : (
-              <span className="inline-flex min-w-[90px] items-center justify-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 whitespace-nowrap">
+              <span className="inline-flex md:min-w-[90px] items-center justify-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 whitespace-nowrap">
                 <UserCheck size={12} className="shrink-0" />
                 <span>{t("groupCard.joined")}</span>
               </span>
             )}
           </div>
+          <ChevronRight size={18} className="shrink-0 text-slate-400 md:hidden" aria-hidden="true" />
         </div>
 
         {/* Group Name & Cohort */}
-        <div className="mt-4">
+        <div className="mt-4 hidden md:block">
           <h3 className="text-lg font-bold text-slate-900 transition-colors group-hover:text-indigo-600 line-clamp-1">
             {group.name}
           </h3>
@@ -76,12 +88,12 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
         </div>
 
         {/* Description */}
-        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">
+        <p className="mt-2 hidden md:line-clamp-2 text-xs leading-relaxed text-slate-500">
           {group.description}
         </p>
 
         {/* Capacity / Member Progress Bar */}
-        <div className="mt-6">
+        <div className="mt-6 hidden md:block">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span className="flex items-center gap-1.5">
               <Users size={14} className="text-slate-400" />
@@ -103,7 +115,7 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
       </div>
 
       {/* Card Footer: Active Planning Sessions, Avatars & Open Button */}
-      <div className="mt-6 pt-4 border-t border-slate-100">
+      <div className="mt-6 hidden pt-4 border-t border-slate-100 md:block">
         <div className="flex items-center justify-between text-xs text-slate-500">
           {/* Member avatar stack */}
           <MemberAvatarStack

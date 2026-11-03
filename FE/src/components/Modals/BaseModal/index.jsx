@@ -36,7 +36,10 @@ function BaseModal({
       <DialogContent
         showCloseButton={false}
         className={cn(
-          "w-full min-w-0 rounded-2xl border border-slate-100 bg-white p-7 sm:p-8 shadow-2xl",
+          "w-full min-w-0 rounded-2xl border border-slate-100 bg-white p-5 sm:p-8 shadow-2xl",
+          "max-h-[calc(100dvh-1.5rem)] overflow-y-auto",
+          // Mobile: neo đáy màn hình như bottom sheet, chừa lề 12px hai bên và đáy
+          "max-sm:top-auto max-sm:bottom-3 max-sm:max-w-[calc(100%-1.5rem)] max-sm:translate-y-0 max-sm:rounded-3xl",
           maxWidth,
           className
         )}
@@ -79,7 +82,7 @@ function BaseModal({
             type="button"
             onClick={() => onOpenChange?.(false)}
             className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 cursor-pointer",
+              "flex h-11 w-11 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 cursor-pointer",
               closeButtonClassName
             )}
             aria-label="Close"

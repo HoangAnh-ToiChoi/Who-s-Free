@@ -43,20 +43,20 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0, medianRespo
   ];
 
   return (
-    <div className="mt-12 space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="mt-4 space-y-6 sm:mt-12">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {metrics.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.id}
-              className={`group relative flex min-h-[76px] items-center gap-3.5 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg ${item.hoverBorder} cursor-pointer`}
+              className={`group relative flex min-h-[64px] items-center gap-3.5 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-2xs sm:min-h-[76px] sm:p-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg ${item.hoverBorder} cursor-pointer`}
             >
               <div
                 className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${item.accentLine} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
               />
               <div
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 shadow-2xs ${item.iconColor} ${item.iconTransform}`}
+                className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border sm:flex transition-all duration-300 shadow-2xs ${item.iconColor} ${item.iconTransform}`}
               >
                 <Icon size={19} strokeWidth={2.2} />
               </div>
@@ -66,7 +66,7 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0, medianRespo
                 >
                   {item.value}
                 </div>
-                <div className="text-xs text-slate-500 truncate mt-0.5 font-medium transition-colors group-hover:text-slate-700">
+                <div className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5 font-medium transition-colors group-hover:text-slate-700">
                   {item.label}
                 </div>
               </div>
@@ -75,7 +75,7 @@ function GroupMetricsBar({ activeSessionsCount = 0, turnoutRate = 0, medianRespo
         })}
       </div>
 
-      <div className="flex flex-col gap-2 pt-4 border-t border-slate-200/80 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+      <div className="hidden flex-col gap-2 pt-4 border-t border-slate-200/80 text-xs text-slate-400 sm:flex sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <span className="font-medium text-slate-600 truncate">
