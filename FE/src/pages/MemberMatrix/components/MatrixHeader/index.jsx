@@ -30,19 +30,22 @@ function MatrixHeader({ session }) {
       <div className="flex min-w-0 items-center gap-2.5 text-xs">
         <Link
           to={backUrl}
-          className="group flex shrink-0 items-center gap-1.5 font-semibold text-slate-500 transition-colors hover:text-red-600"
+          aria-label={t("groupDetail.backToGroup")}
+          className="group flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-9"
         >
+          {/* Nút quay lại có viền, cao 40px (mobile) / 36px (desktop) — ngang tầm nút "Chế độ Lead" */}
           <ArrowLeft
-            size={14}
-            className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600"
+            size={18}
+            className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600 sm:size-4"
           />
+          <span className="sm:hidden">{t("common.back")}</span>
           <span className="hidden sm:inline">
             {t("groupDetail.backToGroup")}
           </span>
         </Link>
-        <span className="shrink-0 text-slate-300">/</span>
+        <span className="hidden shrink-0 text-slate-300 sm:inline">/</span>
         <div className="flex min-w-0 items-center gap-1.5 truncate">
-          <span className="truncate font-bold text-slate-900">
+          <span className="truncate text-sm font-bold text-slate-900">
             {session?.title || ""}
           </span>
         </div>

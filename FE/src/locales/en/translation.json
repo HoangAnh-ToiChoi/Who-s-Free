@@ -13,7 +13,8 @@
     "english": "English",
     "switchLanguage": "Switch Language",
     "backToHome": "Back to Home",
-    "moreOptions": "More options"
+    "moreOptions": "More options",
+    "back": "Back"
   },
   "topbar": {
     "home": "Home",
