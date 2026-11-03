@@ -23,7 +23,7 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
     : session?.slug || session?.id || "";
 
   return (
-    <div className="mb-2.5 grid min-h-9 shrink-0 items-center gap-x-3 gap-y-2 select-none md:grid-cols-[1fr_auto_1fr]">
+    <div className="mb-1 sm:mb-2.5 grid min-h-9 shrink-0 items-center gap-x-3 gap-y-2 select-none md:grid-cols-[1fr_auto_1fr]">
       {/* Breadcrumb: Back to group → Session title */}
       <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
         <Link

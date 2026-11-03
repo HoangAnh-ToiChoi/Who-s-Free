@@ -4,7 +4,6 @@ import HeatmapTimeColumn from "./HeatmapTimeColumn";
 import HeatmapCell from "./HeatmapCell";
 import CellDetailPopover from "./CellDetailPopover";
 import HeatmapLegend from "./HeatmapLegend";
-import MobileDayStrip from "~/components/MobileDayStrip";
 import { useScrollRestoration, useDayPager } from "~/hooks";
 import { useCellDetailPopover } from "../../hooks/useCellDetailPopover";
 
@@ -28,7 +27,7 @@ function HeatmapGrid({
 }) {
   const gridContainerRef = useRef(null);
   const scrollBodyRef = useRef(null);
-  const { firstVisible, scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
+  const { scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
   useEffect(() => {
     const todayIndex = weekDays.findIndex((d) => d.isToday);
     scrollToDay(Math.min(Math.max(todayIndex, 0), 4), "auto");
@@ -69,16 +68,6 @@ function HeatmapGrid({
     return result;
   }, []);
 
-  const markedDates = useMemo(
-    () =>
-      new Set(
-        weekDays
-          .filter((day) => blocks.some((b) => getCell(day.dayIndex, b).count > 0))
-          .map((day) => day.dateStr)
-      ),
-    [weekDays, blocks, getCell]
-  );
-
   const handleCellClick = (dayIndex, blockStart, dayName) => {
     const cell = getCell(dayIndex, blockStart);
     setSelectedCell({
@@ -107,15 +96,6 @@ function HeatmapGrid({
           onClose={() => setSelectedCell(null)}
         />
       )}
-
-      <div className="border-b border-slate-100 p-2 md:hidden">
-        <MobileDayStrip
-          weekDays={weekDays}
-          firstVisible={firstVisible}
-          markedDates={markedDates}
-          onSelectDay={scrollToDay}
-        />
-      </div>
 
       <div
         ref={scrollBodyRef}

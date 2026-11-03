@@ -30,9 +30,9 @@ function GridToolbar({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 py-2 px-1 text-xs select-none">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-1 sm:py-2 px-1 text-xs select-none">
       {/* Cụm điều hướng tuần: < Today > + Tiêu đề khoảng ngày */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <div className="flex items-center gap-1 bg-white border border-slate-200/90 rounded-xl p-1 shadow-2xs">
           <Button
             type="button"
@@ -66,15 +66,15 @@ function GridToolbar({
           </Button>
         </div>
 
-        <span className="text-sm font-bold text-slate-900">
+        <span className="text-[13px] sm:text-sm font-bold text-slate-900 whitespace-nowrap">
           {weekLabel}
         </span>
       </div>
 
       {/* Cụm thống kê & Thao tác nhanh */}
-      <div className="flex items-center gap-3">
-        {/* Múi giờ */}
-        <div className="flex items-center gap-1.5 text-slate-500">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Múi giờ: mobile ẩn để nhường chỗ cho lưới (góc lưới đã có biểu tượng giờ) */}
+        <div className="hidden sm:flex items-center gap-1.5 text-slate-500">
           <Globe size={13} className="text-slate-400" />
           <span className="text-[11px] font-medium">{t("gridToolbar.timezone")}</span>
         </div>
@@ -82,7 +82,10 @@ function GridToolbar({
         {/* Badge & Nút thao tác theo chế độ */}
         {mode === "lead" ? (
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+            <span className="sm:hidden rounded-full bg-indigo-50 border border-indigo-200/80 px-2 py-1 text-xs font-semibold text-indigo-700 whitespace-nowrap">
+              {stats?.selectedCount ?? stats?.count ?? 0}/{stats?.totalMembers ?? stats?.count ?? 0}
+            </span>
+            <span className="hidden sm:inline rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
               {stats?.label ||
                 t("leadMatrix.membersCountFiltered", {
                   selected: stats?.selectedCount ?? stats?.count ?? 0,
@@ -102,7 +105,7 @@ function GridToolbar({
                   className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-indigo-700 border-indigo-200/90 bg-indigo-50/80 hover:bg-indigo-100 hover:text-indigo-800 hover:border-indigo-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
                 >
                   <FileSpreadsheet size={13} className="shrink-0 text-indigo-600" />
-                  <span>{isExporting ? t("finalize.exporting") : t("leadMatrix.exportFile")}</span>
+                  <span className="hidden sm:inline">{isExporting ? t("finalize.exporting") : t("leadMatrix.exportFile")}</span>
                 </Button>
 
                 {isFinalized ? (
@@ -134,11 +137,14 @@ function GridToolbar({
           </div>
         ) : stats.count > 0 ? (
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+            <span className="hidden sm:inline rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
               {t("gridToolbar.slotsSelected", {
                 count: stats.count,
                 hours: stats.totalHours,
               })}
+            </span>
+            <span className="sm:hidden rounded-full bg-indigo-50 border border-indigo-200/80 px-2 py-1 text-xs font-semibold text-indigo-700 whitespace-nowrap">
+              {stats.count} · {stats.totalHours}h
             </span>
 
             {/* Nút Clear lựa chọn cho MemberMatrix */}
@@ -147,10 +153,11 @@ function GridToolbar({
               variant="outline"
               size="sm"
               onClick={() => setIsConfirmOpen(true)}
-              className="h-7 px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-rose-600 border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+              aria-label={t("gridToolbar.clearSelections")}
+              className="h-7 px-2 sm:px-2.5 rounded-lg text-xs font-semibold gap-1.5 text-rose-600 border-rose-200 bg-rose-50/70 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
             >
               <Trash2 size={13} className="shrink-0" />
-              <span>{t("gridToolbar.clearSelections")}</span>
+              <span className="hidden sm:inline">{t("gridToolbar.clearSelections")}</span>
             </Button>
           </div>
         ) : (

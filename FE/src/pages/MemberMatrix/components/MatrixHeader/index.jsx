@@ -25,7 +25,7 @@ function MatrixHeader({ session }) {
     : session?.slug || session?.id || "";
 
   return (
-    <div className="mb-2.5 flex min-h-[36px] shrink-0 items-center justify-between gap-3 select-none">
+    <div className="mb-1 sm:mb-2.5 flex min-h-[36px] shrink-0 items-center justify-between gap-3 select-none">
       {/* Cụm link quay lại nhóm & tên session */}
       <div className="flex min-w-0 items-center gap-2.5 text-xs">
         <Link
