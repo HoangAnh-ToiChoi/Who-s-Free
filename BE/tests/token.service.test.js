@@ -89,3 +89,15 @@ test("TokenService.cookieOptions and clearAuthCookies configure secure cookies",
   assert.equal(refreshOpts.path, "/");
   assert.equal(refreshOpts.maxAge, 5 * 24 * 60 * 60 * 1000); // 5 ngày
 });
+
+test("TokenService.cookieOptions giữ sameSite lax ở production (cookie first-party qua Vercel rewrite)", () => {
+  const previous = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+  try {
+    const opts = TokenService.cookieOptions(TokenService.REFRESH_TOKEN_MAX_AGE);
+    assert.equal(opts.sameSite, "lax");
+    assert.equal(opts.secure, true);
+  } finally {
+    process.env.NODE_ENV = previous;
+  }
+});

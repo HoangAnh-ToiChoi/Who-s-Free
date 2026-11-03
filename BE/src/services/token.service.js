@@ -153,8 +153,9 @@ class TokenService {
     return {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      // FE (Vercel) và BE (Render) khác site khi chạy production nên cần "none"
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      // FE gọi BE qua rewrite /api/* của Vercel nên cookie là first-party; "none" (cross-site)
+      // bị Safari/iOS chặn và làm mất refresh token.
+      sameSite: "lax",
       maxAge: maxAgeMs,
       path: "/",
     };
@@ -188,7 +189,7 @@ class TokenService {
     const clearOpts = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "lax",
       path: "/",
     };
     res.clearCookie("access_token", clearOpts);
