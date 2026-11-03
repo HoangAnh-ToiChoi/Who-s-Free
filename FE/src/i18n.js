@@ -23,4 +23,11 @@ i18n
     },
   });
 
+// Thuộc tính lang của trang luôn khớp ngôn ngữ đang hiển thị (trình duyệt/trình đọc màn hình dựa vào đây)
+const syncDocumentLang = (lng) => {
+  if (typeof document !== "undefined") document.documentElement.lang = (lng || "vi").split("-")[0];
+};
+syncDocumentLang(i18n.resolvedLanguage || i18n.language);
+i18n.on("languageChanged", syncDocumentLang);
+
 export default i18n;
