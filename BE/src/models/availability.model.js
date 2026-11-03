@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
 import { isUuid } from "../utils/uuid.js";
 
+const SLOT_COLUMNS =
+  "id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at";
+
 class AvailabilityModel {
   /**
    * Lấy tất cả slots của một user trong một session.
@@ -10,7 +13,7 @@ class AvailabilityModel {
   static async findBySessionAndUser(sessionId, userId) {
     if (!sessionId || !userId) return [];
     const sql = `
-      SELECT id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at
+      SELECT ${SLOT_COLUMNS}
       FROM public.availability_slots
       WHERE session_id = $1 AND user_id = $2
       ORDER BY day_index, start_minutes;
@@ -20,11 +23,22 @@ class AvailabilityModel {
   }
 
   /**
-   * Atomic replace: xóa slot cũ của user trong session, chèn mảng slots mới.
-   * Dùng transaction để đảm bảo tính nguyên tử.
+   * Atomic replace: xóa slot cũ của user trong session rồi chèn toàn bộ slots mới bằng MỘT câu INSERT.
+   * - pg_advisory_xact_lock theo (session, user): 2 lần lưu sát nhau của cùng một người chạy lần lượt,
+   *   tránh DELETE/INSERT xen kẽ gây nhân đôi slot. Người khác nhau vẫn chạy song song.
+   * - Khoá dòng session (FOR SHARE) và kiểm tra trạng thái ngay trong transaction để không ghi đè lên
+   *   phiên vừa được chốt. Trả về null nếu phiên đã chốt.
    */
   static async replaceUserSlots(sessionId, userId, slots = []) {
     return withTransaction(async (client) => {
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2));", [sessionId, userId]);
+
+      const { rows: sessionRows } = await client.query(
+        "SELECT status FROM public.sessions WHERE id = $1 FOR SHARE;",
+        [sessionId]
+      );
+      if (sessionRows[0]?.status === "finalized") return null;
+
       await client.query(
         "DELETE FROM public.availability_slots WHERE session_id = $1 AND user_id = $2;",
         [sessionId, userId]
@@ -43,25 +57,26 @@ class AvailabilityModel {
 
       if (slots.length === 0) return [];
 
-      const inserted = [];
-      for (const slot of slots) {
-        const id = (slot.id && isUuid(slot.id)) ? slot.id : randomUUID();
-        const { rows } = await client.query(
-          `INSERT INTO public.availability_slots
-             (id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-           RETURNING *;`,
-          [
-            id, sessionId, userId,
-            slot.dayIndex, slot.dateStr,
-            slot.startMinutes, slot.endMinutes,
-            slot.label || "Available",
-            slot.note || "",
-          ]
-        );
-        inserted.push(rows[0]);
-      }
-      return inserted;
+      const { rows } = await client.query(
+        `INSERT INTO public.availability_slots
+           (id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at)
+         SELECT s.id, $1, $2, s.day_index, s.date_str, s.start_minutes, s.end_minutes, s.label, s.note, NOW(), NOW()
+         FROM unnest($3::uuid[], $4::smallint[], $5::date[], $6::smallint[], $7::smallint[], $8::varchar[], $9::text[])
+           AS s(id, day_index, date_str, start_minutes, end_minutes, label, note)
+         RETURNING ${SLOT_COLUMNS};`,
+        [
+          sessionId,
+          userId,
+          slots.map((slot) => (slot.id && isUuid(slot.id) ? slot.id : randomUUID())),
+          slots.map((slot) => slot.dayIndex),
+          slots.map((slot) => slot.dateStr),
+          slots.map((slot) => slot.startMinutes),
+          slots.map((slot) => slot.endMinutes),
+          slots.map((slot) => slot.label || "Available"),
+          slots.map((slot) => slot.note || ""),
+        ]
+      );
+      return rows.sort((x, y) => x.day_index - y.day_index || x.start_minutes - y.start_minutes);
     });
   }
 

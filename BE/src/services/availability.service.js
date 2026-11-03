@@ -1,6 +1,7 @@
 import AvailabilityModel from "../models/availability.model.js";
 import SessionModel from "../models/session.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
+import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import {
@@ -40,8 +41,14 @@ class AvailabilityService {
       throw AppError.conflict("Lịch đã được chốt, không thể chỉnh sửa giờ rảnh", ErrorCodes.SESSION_FINALIZED);
     }
 
-    await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
-    const saved = await AvailabilityModel.findBySessionAndUser(sessionId, userId);
+    const saved = await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
+    // Phiên có thể vừa được chốt giữa lúc kiểm tra ở trên và lúc ghi (transaction trả về null)
+    if (saved === null) {
+      throw AppError.conflict("Lịch đã được chốt, không thể chỉnh sửa giờ rảnh", ErrorCodes.SESSION_FINALIZED);
+    }
+
+    // Một thông báo cho cả lần lưu (thay cho mỗi dòng thay đổi một sự kiện postgres_changes)
+    RealtimeService.broadcastSlotUpdate(sessionId, { sessionId });
     return toPublicUserAvailability({ sessionId, userId, slots: saved });
   }
 

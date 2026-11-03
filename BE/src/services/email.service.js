@@ -1,101 +1,5 @@
 import AppError from "../utils/AppError.js";
-
-const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-})[character]);
-
-const SEND_FAILED_MESSAGE = "Không thể gửi email lúc này. Vui lòng thử lại sau.";
-
-/**
- * Chọn provider qua EMAIL_PROVIDER ("resend" mặc định hoặc "brevo").
- * Trả về null nếu provider được chọn chưa đủ cấu hình.
- */
-function getEmailConfig() {
-  const provider = (process.env.EMAIL_PROVIDER || "resend").toLowerCase();
-
-  if (provider === "brevo") {
-    const apiKey = process.env.BREVO_API_KEY;
-    const senderEmail = process.env.BREVO_SENDER_EMAIL;
-    if (!apiKey || !senderEmail) return null;
-    return {
-      provider,
-      apiKey,
-      senderEmail,
-      senderName: process.env.BREVO_SENDER_NAME || "Who's Free",
-    };
-  }
-
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
-  if (!apiKey || !from) return null;
-  return { provider: "resend", apiKey, from };
-}
-
-/** Gọi API của provider; trả về JSON phản hồi hoặc ném AppError. */
-async function deliver(config, { to, subject, text, html, label, attachments = [] }) {
-  const isBrevo = config.provider === "brevo";
-  const url = isBrevo ? "https://api.brevo.com/v3/smtp/email" : "https://api.resend.com/emails";
-  const headers = isBrevo
-    ? { "api-key": config.apiKey, "Content-Type": "application/json", accept: "application/json" }
-    : { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" };
-  const body = isBrevo
-    ? {
-        sender: { name: config.senderName, email: config.senderEmail },
-        to: [{ email: to }],
-        subject,
-        textContent: text,
-        htmlContent: html,
-        ...(attachments.length && {
-          attachment: attachments.map((a) => ({ name: a.filename, content: a.content.toString("base64") })),
-        }),
-      }
-    : {
-        from: config.from,
-        to: [to],
-        subject,
-        text,
-        html,
-        ...(attachments.length && {
-          attachments: attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })),
-        }),
-      };
-
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(10000),
-    });
-  } catch (error) {
-    console.error(`${config.provider} ${label} request failed:`, error.message);
-    throw new AppError(SEND_FAILED_MESSAGE, 502, "EMAIL_SEND_FAILED");
-  }
-
-  if (!response.ok) {
-    const providerError = await response.json().catch(() => null);
-    console.error(`${config.provider} rejected ${label}:`, response.status, providerError?.message || "unknown error");
-    if (
-      !isBrevo &&
-      providerError?.message?.includes("You can only send testing emails to your own email address")
-    ) {
-      const allowedEmail = providerError.message.match(/\((.*?)\)/)?.[1] || "hoanganh281205@gmail.com";
-      throw new AppError(
-        `Tài khoản Resend thử nghiệm (onboarding@resend.dev) chỉ cho phép gửi email tới địa chỉ đăng ký (${allowedEmail}). Để gửi cho người khác, bạn cần xác thực domain tại resend.com/domains.`,
-        400,
-        "RESEND_SANDBOX_RESTRICTION"
-      );
-    }
-    throw new AppError(SEND_FAILED_MESSAGE, 502, "EMAIL_SEND_FAILED");
-  }
-
-  return response.json();
-}
+import { escapeHtml, getEmailConfig, deliver, deliverBatch } from "./email-delivery.service.js";
 
 /**
  * EmailService - Gửi email thông báo và mã xác thực
@@ -162,14 +66,15 @@ class EmailService {
   }
 
   /**
-   * Gửi thông báo lịch đã chốt cho một thành viên (chỉ thông báo + link, không đính kèm file).
+   * Gửi thông báo lịch đã chốt cho cả nhóm trong một lần gọi batch (chỉ thông báo + link, không đính kèm file).
+   * Trả về { total, sent, failed }.
    */
-  static async sendSessionFinalized({ email, sessionTitle, whenLabel, note, sessionUrl }) {
+  static async sendSessionFinalized({ emails, sessionTitle, whenLabel, note, sessionUrl }) {
     const config = getEmailConfig();
 
     if (process.env.NODE_ENV === "test") {
-      console.log(`[EmailService] Session finalized for ${email}: ${whenLabel}`);
-      return { id: "test-mock-email-id" };
+      console.log(`[EmailService] Session finalized for ${emails.length} recipients: ${whenLabel}`);
+      return { total: emails.length, sent: emails.length, failed: 0 };
     }
     if (!config) {
       throw new AppError("Dịch vụ email chưa được cấu hình đầy đủ.", 503, "EMAIL_NOT_CONFIGURED");
@@ -185,8 +90,8 @@ Ghi chú: ${note}` : "";
       ? `<p style="font-size:14px;color:#b91c1c;margin:0 0 16px"><strong>Lưu ý:</strong> ${escapeHtml(note)}</p>`
       : "";
 
-    return deliver(config, {
-      to: email,
+    return deliverBatch(config, {
+      recipients: emails,
       label: "finalized email",
       subject: `[Who's Free] Đã chốt lịch: ${sessionTitle}`,
       text: `Lịch "${sessionTitle}" đã được chốt vào ${whenLabel}.${noteText}

@@ -90,19 +90,11 @@ class SessionFinalizeService {
     const sessionUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/groups/${session.group_id}/matrix/${session.slug}`;
     const whenLabel = `${formatDateLabel(date)}, ${formatRange(startMinutes, endMinutes)}`;
 
-    const results = await Promise.allSettled(
-      contacts.map((c) =>
-        EmailService.sendSessionFinalized({
-          email: c.email,
-          sessionTitle: session.title,
-          whenLabel,
-          note,
-          sessionUrl,
-        }),
-      ),
-    );
-    const failed = results.filter((r) => r.status === "rejected").length;
-    return { total: contacts.length, sent: contacts.length - failed, failed };
+    const emails = contacts.map((c) => c.email).filter(Boolean);
+    if (emails.length === 0) return { total: 0, sent: 0, failed: 0 };
+    // Một request batch cho cả nhóm thay vì mỗi thành viên một request song song (dễ dính rate limit của provider)
+    return EmailService.sendSessionFinalized({ emails, sessionTitle: session.title, whenLabel, note, sessionUrl })
+      .catch(() => ({ total: emails.length, sent: 0, failed: emails.length }));
   }
 
   /** Mở khoá để thành viên chỉnh sửa lại (không gửi mail). */
