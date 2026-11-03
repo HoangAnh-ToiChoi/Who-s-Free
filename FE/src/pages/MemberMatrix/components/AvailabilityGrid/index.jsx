@@ -3,6 +3,7 @@ import GridToolbar from "../GridToolbar";
 import GridScrollArea from "./GridScrollArea";
 import DragRangeIndicator from "./DragRangeIndicator";
 import SlotPopover from "../SlotPopover";
+import SaveStatusIndicator from "../SaveStatusIndicator";
 import { buildDraftSlots, promoteDrafts } from "./draftSlots";
 
 import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
@@ -23,7 +24,7 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_
  * AvailabilityGrid - Lưới nhập lịch rảnh của thành viên: điều hướng tuần, kéo chọn khung 30 phút,
  * popover chỉnh slot. Mobile hiện 3 ngày/màn với cột giờ cố định (xem GridScrollArea).
  */
-function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
+function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocked }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -56,7 +57,9 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
     saveSlot,
     deleteSlot,
     clearAllSlots,
-  } = useAvailabilitySlots({ sessionId, cacheKey: sessionCacheKey, memberId });
+    saveStatus,
+    retrySave,
+  } = useAvailabilitySlots({ sessionId, cacheKey: sessionCacheKey, memberId, onLocked: onSessionLocked });
 
   const { currentWeekSlots, weekStats } = useWeekSlots(slots, weekDays);
 
@@ -137,6 +140,8 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
         onToday={goToToday}
         onClearAll={clearAllSlots}
       />
+
+      <SaveStatusIndicator status={saveStatus} onRetry={retrySave} />
 
       {/* 2. Khung lưới lịch (Viewport Container): Khối vật thể nổi 3D đa tầng đổ bóng chân thực */}
       <div

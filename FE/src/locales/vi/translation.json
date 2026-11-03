@@ -432,5 +432,13 @@
     "errorDesc": "Có lỗi khi tải dữ liệu. Vui lòng thử lại.",
     "offlineTitle": "Mất kết nối mạng",
     "offlineDesc": "Kiểm tra kết nối Internet, trang sẽ tự tải lại khi có mạng."
+  },
+  "saveStatus": {
+    "saving": "Đang lưu…",
+    "saved": "Đã lưu",
+    "retrying": "Mất kết nối, đang thử lưu lại…",
+    "failed": "Chưa lưu được thay đổi của bạn.",
+    "locked": "Lịch vừa được trưởng nhóm chốt — thay đổi cuối của bạn chưa được lưu.",
+    "retry": "Thử lại"
   }
 }

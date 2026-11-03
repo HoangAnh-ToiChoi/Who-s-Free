@@ -432,5 +432,13 @@
     "errorDesc": "Something went wrong while loading. Please try again.",
     "offlineTitle": "You're offline",
     "offlineDesc": "Check your Internet connection. The page reloads automatically once you're back online."
+  },
+  "saveStatus": {
+    "saving": "Saving…",
+    "saved": "Saved",
+    "retrying": "Connection lost, retrying…",
+    "failed": "Your changes were not saved.",
+    "locked": "The lead just finalized this schedule — your last change was not saved.",
+    "retry": "Retry"
   }
 }
