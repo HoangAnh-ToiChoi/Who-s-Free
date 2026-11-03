@@ -268,7 +268,9 @@
   "matrix": {
     "switchToLeadMode": "Lead Mode",
     "leadModeActive": "Viewing: Lead",
-    "available": "Free time"
+    "available": "Free time",
+    "touchDragHint": "Hold & drag to pick",
+    "touchDragHintDismiss": "Hide tip"
   },
   "leadMatrix": {
     "leaderView": "Leader View",
