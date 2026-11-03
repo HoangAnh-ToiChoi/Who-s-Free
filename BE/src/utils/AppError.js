@@ -30,9 +30,10 @@ class AppError extends Error {
     return new AppError(message, 404, errorCode);
   }
 
-  static conflict(message = "Dữ liệu đã tồn tại trong hệ thống", errorCode = "CONFLICT") {
-    return new AppError(message, 409, errorCode);
+  static conflict(message = "Dữ liệu đã tồn tại trong hệ thống", errorCode = "CONFLICT", details = null) {
+    return new AppError(message, 409, errorCode, details);
   }
+
 
   static internal(message = "Lỗi máy chủ nội bộ", errorCode = "INTERNAL_SERVER_ERROR") {
     return new AppError(message, 500, errorCode);

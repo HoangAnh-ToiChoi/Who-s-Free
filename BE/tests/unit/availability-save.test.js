@@ -52,10 +52,26 @@ describe("AvailabilityService.saveMyAvailability", () => {
     stub(SessionModel, "findById", async () => ({ id: "s1", group_id: "g1", status: "active_poll" }));
     stub(GroupMemberModel, "findMember", async () => ({ user_id: "u1" }));
     stub(AvailabilityModel, "replaceUserSlots", async () => null);
+    stub(AvailabilityModel, "findBySessionAndUser", async () => [row]);
     stub(RealtimeService, "broadcastSlotUpdate", async () => { broadcasted = true; });
 
-    await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), { statusCode: 409 });
+    await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), (err) => {
+      assert.equal(err.statusCode, 409);
+      assert.equal(err.errorCode, "SESSION_FINALIZED");
+      // Trả kèm slot THẬT trên server để client khớp lại, bỏ slot chưa được lưu
+      assert.equal(err.details.status, "finalized");
+      assert.deepEqual(err.details.slots.map((s) => s.id), ["r1"]);
+      return true;
+    });
     assert.equal(broadcasted, false);
+  });
+
+  test("phiên đã chốt từ trước → 409 kèm slot server, không ghi", async () => {
+    stub(SessionModel, "findById", async () => ({ id: "s1", group_id: "g1", status: "finalized" }));
+    stub(GroupMemberModel, "findMember", async () => ({ user_id: "u1" }));
+    stub(AvailabilityModel, "replaceUserSlots", async () => assert.fail("không được ghi"));
+    stub(AvailabilityModel, "findBySessionAndUser", async () => []);
+    await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), (err) => err.statusCode === 409 && Array.isArray(err.details.slots));
   });
 
   test("không tìm thấy phiên → 404", async () => {
