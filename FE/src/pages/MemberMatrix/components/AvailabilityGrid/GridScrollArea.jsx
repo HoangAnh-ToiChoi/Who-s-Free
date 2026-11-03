@@ -21,6 +21,7 @@ function GridScrollArea({
   dragPreview,
   activeSlotId,
   onStartDrag,
+  touch,
   onSlotClick,
 }) {
   return (
@@ -46,6 +47,11 @@ function GridScrollArea({
                 dragPreview={dragPreview}
                 activeSlotId={activeSlotId}
                 onMouseDown={(e) => onStartDrag(idx, e)}
+                touchHandlers={{
+                  onTouchStart: (e) => touch.onTouchStart(idx, e),
+                  onTouchMove: touch.onTouchMove,
+                  onTouchEnd: touch.onTouchEnd,
+                }}
                 onSlotClick={onSlotClick}
                 onResizeStart={() => {}}
               />

@@ -3,13 +3,14 @@ import GridToolbar from "../GridToolbar";
 import GridScrollArea from "./GridScrollArea";
 import DragRangeIndicator from "./DragRangeIndicator";
 import SlotPopover from "../SlotPopover";
-import MobileDayStrip from "~/components/MobileDayStrip";
+import SaveStatusIndicator from "../SaveStatusIndicator";
 import { buildDraftSlots, promoteDrafts } from "./draftSlots";
 
 import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
 import { useAvailabilitySlots } from "../../hooks/useAvailabilitySlots";
 import { useGridDrag } from "../../hooks/useGridDrag";
 import { useWeekSlots } from "../../hooks/useWeekSlots";
+import { useTouchDragStart } from "../../hooks/useTouchDragStart";
 import { useSlotPopover } from "../../hooks/useSlotPopover";
 import {
   useWeekNavigation,
@@ -23,7 +24,7 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_
  * AvailabilityGrid - Lưới nhập lịch rảnh của thành viên: điều hướng tuần, kéo chọn khung 30 phút,
  * popover chỉnh slot. Mobile hiện 3 ngày/màn với cột giờ cố định (xem GridScrollArea).
  */
-function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
+function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocked }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -43,8 +44,8 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
     goToToday,
   } = useWeekNavigation();
 
-  // Mobile: lưới hiện 3/7 ngày, dải ngày phía trên tô đúng ngày đang xem và nhảy tới ngày được chạm
-  const { firstVisible, scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
+  // Mobile: lưới hiện 3/7 ngày → mở trang thì cuộn ngang tới hôm nay
+  const { scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
   useEffect(() => {
     const todayIndex = weekDays.findIndex((d) => d.isToday);
     scrollToDay(Math.min(Math.max(todayIndex, 0), 4), "auto");
@@ -56,9 +57,11 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
     saveSlot,
     deleteSlot,
     clearAllSlots,
-  } = useAvailabilitySlots({ sessionId, cacheKey: sessionCacheKey, memberId });
+    saveStatus,
+    retrySave,
+  } = useAvailabilitySlots({ sessionId, cacheKey: sessionCacheKey, memberId, onLocked: onSessionLocked });
 
-  const { currentWeekSlots, markedDates, weekStats } = useWeekSlots(slots, weekDays);
+  const { currentWeekSlots, weekStats } = useWeekSlots(slots, weekDays);
 
   // 3. State quản lý các slot tạm thời (draft) khi người dùng vừa kéo chuột xong nhưng chưa bấm Áp dụng
   const [draftSlots, setDraftSlots] = useState([]);
@@ -104,6 +107,9 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
     },
   });
 
+  // Cảm ứng: nhấn giữ rồi kéo (vuốt ngay = cuộn lưới)
+  const touchDrag = useTouchDragStart(startDrag);
+
   // Khi click vào một slot đã có để mở popover chỉnh sửa
   const handleSlotClick = (slot, e) => {
     e.stopPropagation();
@@ -124,7 +130,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
   };
 
   return (
-    <div className="flex flex-col h-full gap-2.5 flex-1 min-h-0">
+    <div className="flex flex-col h-full gap-1.5 sm:gap-2.5 flex-1 min-h-0">
       {/* 1. Thanh công cụ tuần (Google Calendar Navigation Toolbar) */}
       <GridToolbar
         weekLabel={weekLabel}
@@ -135,12 +141,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
         onClearAll={clearAllSlots}
       />
 
-      <MobileDayStrip
-        weekDays={weekDays}
-        firstVisible={firstVisible}
-        markedDates={markedDates}
-        onSelectDay={scrollToDay}
-      />
+      <SaveStatusIndicator status={saveStatus} onRetry={retrySave} />
 
       {/* 2. Khung lưới lịch (Viewport Container): Khối vật thể nổi 3D đa tầng đổ bóng chân thực */}
       <div
@@ -188,6 +189,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
           dragPreview={dragPreview}
           activeSlotId={popover.isOpen ? popover.slotData?.id : null}
           onStartDrag={startDrag}
+          touch={touchDrag}
           onSlotClick={handleSlotClick}
         />
       </div>

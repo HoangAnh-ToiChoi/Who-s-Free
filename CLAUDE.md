@@ -159,7 +159,7 @@ Who'sFree/
 
 **Ghi chú kiến trúc:**
 - `FE/src/configs/supabase.js`: export `null` nếu env vars chưa điền — tránh crash local.
-- `useSessionsRealtime`: subscribe `postgres_changes` trên `availability_slots` + polling 25s fallback.
+- `useSessionsRealtime`: nghe broadcast `AVAILABILITY_UPDATED` trên kênh `session:<id>` (BE phát 1 lần mỗi lần lưu lịch, FE debounce 1s) + polling 25s fallback.
 - `responded_count`: `COUNT(DISTINCT user_id) FROM availability_slots` — không dùng `session_participants` (RLS issues).
 
 ---

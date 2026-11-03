@@ -2,10 +2,13 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { supabase } from "~/configs/supabase";
 import { sessionService } from "~/service/sessionService/sessionService";
 
+// Gom các thông báo đến sát nhau của cùng một phiên thành MỘT lần gọi lại BE
+const REFETCH_DEBOUNCE_MS = 1000;
+
 /**
- * Subscribe Supabase Realtime trên bảng availability_slots.
- * Khi bất kỳ thành viên nào kéo thả slot, callback onSessionUpdate được gọi
- * với dữ liệu session mới nhất (respondedCount đã cập nhật).
+ * Nghe broadcast "AVAILABILITY_UPDATED" mà Backend phát MỘT lần sau mỗi lần thành viên lưu lịch,
+ * chỉ trên kênh `session:<id>` của các phiên đang hiển thị (không nghe postgres_changes của cả bảng),
+ * rồi lấy lại session (respondedCount mới) và gọi onSessionUpdate.
  *
  * @param {Array<{id: string}>} sessions - Danh sách session đang hiển thị
  * @param {(updatedSession: object) => void} onSessionUpdate
@@ -20,27 +23,34 @@ export function useSessionsRealtime(sessions, onSessionUpdate) {
   const sessionIdsKey = sessions.map((s) => s.id).join(",");
 
   useEffect(() => {
-    if (!sessionIdsKey || !supabase) return;
-    const ids = sessionIdsKey.split(",").filter(Boolean);
+    if (!sessionIdsKey || !supabase) return undefined;
+    const timers = new Map();
 
-    const channel = supabase
-      .channel("sessions-responded-count")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "availability_slots" },
-        async (payload) => {
-          const changedSessionId =
-            payload.new?.session_id ?? payload.old?.session_id;
-          if (!changedSessionId || !ids.includes(changedSessionId)) return;
-
-          const updated = await sessionService.getSessionById(changedSessionId);
+    const scheduleRefetch = (sessionId) => {
+      clearTimeout(timers.get(sessionId));
+      timers.set(
+        sessionId,
+        setTimeout(async () => {
+          timers.delete(sessionId);
+          const updated = await sessionService.getSessionById(sessionId).catch(() => null);
           if (updated) onUpdateRef.current(updated);
-        }
-      )
-      .subscribe();
+        }, REFETCH_DEBOUNCE_MS)
+      );
+    };
+
+    const channels = sessionIdsKey
+      .split(",")
+      .filter(Boolean)
+      .map((sessionId) =>
+        supabase
+          .channel(`session:${sessionId}`)
+          .on("broadcast", { event: "AVAILABILITY_UPDATED" }, () => scheduleRefetch(sessionId))
+          .subscribe()
+      );
 
     return () => {
-      supabase.removeChannel(channel);
+      timers.forEach(clearTimeout);
+      channels.forEach((channel) => supabase.removeChannel(channel));
     };
   }, [sessionIdsKey]);
 }

@@ -94,7 +94,7 @@ export function LeadMatrixContent({ readOnly = false }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6 lg:px-8 h-[calc(100vh-72px)] flex flex-col overflow-hidden relative">
+    <div className="mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 h-[calc(100dvh-72px)] flex flex-col overflow-hidden relative">
       {/* Toast thông báo xuất file */}
       {exportNotice && (
         <div className="absolute top-4 right-8 z-50 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-800 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
