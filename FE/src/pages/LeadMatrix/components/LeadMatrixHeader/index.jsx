@@ -30,13 +30,15 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
         <Link
           to={backUrl}
           aria-label={t("groupDetail.backToGroup")}
-          className="group flex h-10 w-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-9 sm:w-auto sm:px-3"
+          className="group flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-9"
         >
           {/* Nút quay lại có viền, cao 40px (mobile) / 36px (desktop) — ngang tầm nút "Chế độ Lead" */}
           <ArrowLeft
             size={18}
             className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600 sm:size-4"
           />
+          {/* Cùng kích thước/nội dung với nút quay lại ở chế độ thường (MatrixHeader) */}
+          <span className="sm:hidden">{t("common.back")}</span>
           <span className="hidden sm:inline">
             {t("groupDetail.backToGroup")}
           </span>
