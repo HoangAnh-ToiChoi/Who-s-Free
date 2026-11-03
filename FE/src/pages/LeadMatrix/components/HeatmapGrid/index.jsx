@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import HeatmapHeader from "./HeatmapHeader";
 import HeatmapTimeColumn from "./HeatmapTimeColumn";
 import HeatmapCell from "./HeatmapCell";
@@ -6,6 +6,10 @@ import CellDetailPopover from "./CellDetailPopover";
 import HeatmapLegend from "./HeatmapLegend";
 import { useScrollRestoration, useDayPager } from "~/hooks";
 import { useCellDetailPopover } from "../../hooks/useCellDetailPopover";
+import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
+
+// Cùng khung giờ với lưới nhập lịch của thành viên (timeUtils), để slot sáng sớm/đêm muộn không bị giấu khỏi Lead.
+const BLOCKS = Array.from({ length: (END_HOUR - START_HOUR + 1) * 2 }, (_, i) => START_HOUR * 60 + i * 30);
 
 /**
  * HeatmapGrid - Lưới Heatmap mật độ rảnh của cả nhóm
@@ -33,9 +37,10 @@ function HeatmapGrid({
     scrollToDay(Math.min(Math.max(todayIndex, 0), 4), "auto");
   }, [weekDays, scrollToDay]);
 
-  useScrollRestoration("leadmatrix_heatmap_grid", {
+  // Key mới: vị trí cuộn đã lưu theo khung 06:00–22:00 cũ sẽ lệch 6 tiếng nếu dùng lại
+  useScrollRestoration("leadmatrix_heatmap_grid_v2", {
     ref: scrollBodyRef,
-    defaultScrollTop: 8 * 64, // Mặc định cuộn tới 08:00
+    defaultScrollTop: (8 - START_HOUR) * HOUR_HEIGHT, // Mặc định cuộn tới 08:00 (mỗi ô 30 phút cao 32px)
   });
 
   // State cho cell detail popover (hỗ trợ cả controlled & uncontrolled)
@@ -54,19 +59,7 @@ function HeatmapGrid({
     onClose: () => setSelectedCell(null),
   });
 
-  // Tạo danh sách block 30 phút (chỉ hiện 06:00 - 22:00 cho gọn)
-  const visibleStartHour = 6;
-  const visibleEndHour = 22;
-  const blocks = useMemo(() => {
-    const result = [];
-    for (let h = visibleStartHour; h <= visibleEndHour; h++) {
-      result.push(h * 60);
-      if (h < visibleEndHour) {
-        result.push(h * 60 + 30);
-      }
-    }
-    return result;
-  }, []);
+  const blocks = BLOCKS;
 
   const handleCellClick = (dayIndex, blockStart, dayName) => {
     const cell = getCell(dayIndex, blockStart);
