@@ -1,6 +1,7 @@
 import AvailabilityModel from "../models/availability.model.js";
 import SessionModel from "../models/session.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
+import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import {
@@ -21,6 +22,18 @@ function validateSlots(slots) {
   if (slots.length > MAX_SLOTS) throw AppError.badRequest(`Tối đa ${MAX_SLOTS} slots mỗi lần lưu`, ErrorCodes.VALIDATION_ERROR);
 }
 
+/**
+ * 409 khi phiên đã chốt, kèm trạng thái THẬT trên server để client khớp lại ngay
+ * (bỏ slot vẽ lạc quan chưa được lưu, chuyển sang màn đã chốt) thay vì chỉ báo lỗi.
+ */
+async function finalizedConflict(sessionId, userId) {
+  const rows = await AvailabilityModel.findBySessionAndUser(sessionId, userId);
+  return AppError.conflict("Lịch đã được chốt, không thể chỉnh sửa giờ rảnh", ErrorCodes.SESSION_FINALIZED, {
+    status: "finalized",
+    slots: toPublicUserAvailability({ sessionId, userId, slots: rows }).slots,
+  });
+}
+
 class AvailabilityService {
   async getMyAvailability(sessionId, userId) {
     requireSessionAndUser(sessionId, userId);
@@ -36,12 +49,14 @@ class AvailabilityService {
     if (!session) throw AppError.notFound("Không tìm thấy phiên", ErrorCodes.SESSION_NOT_FOUND);
     const member = await GroupMemberModel.findMember(session.group_id, userId).catch(() => null);
     if (!member) throw AppError.forbidden("Bạn không phải thành viên của nhóm này", ErrorCodes.FORBIDDEN);
-    if (session.status === "finalized") {
-      throw AppError.conflict("Lịch đã được chốt, không thể chỉnh sửa giờ rảnh", ErrorCodes.SESSION_FINALIZED);
-    }
+    if (session.status === "finalized") throw await finalizedConflict(sessionId, userId);
 
-    await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
-    const saved = await AvailabilityModel.findBySessionAndUser(sessionId, userId);
+    const saved = await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
+    // Phiên có thể vừa được chốt giữa lúc kiểm tra ở trên và lúc ghi (transaction trả về null)
+    if (saved === null) throw await finalizedConflict(sessionId, userId);
+
+    // Một thông báo cho cả lần lưu (thay cho mỗi dòng thay đổi một sự kiện postgres_changes)
+    RealtimeService.broadcastSlotUpdate(sessionId, { sessionId });
     return toPublicUserAvailability({ sessionId, userId, slots: saved });
   }
 

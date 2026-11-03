@@ -22,14 +22,13 @@ class RealtimeService {
       const client = supabaseAdmin || supabase;
       const channel = client.channel(channelName);
 
-      await channel.send({
-        type: "broadcast",
-        event,
-        payload: {
-          ...payload,
-          timestamp: new Date().toISOString(),
-        },
-      });
+      // Gửi qua REST (không mở websocket) rồi gỡ channel: client.channel() giữ lại mọi channel đã tạo,
+      // không gỡ thì mỗi lần broadcast lại rò thêm một object trong bộ nhớ server.
+      try {
+        await channel.httpSend(event, { ...payload, timestamp: new Date().toISOString() });
+      } finally {
+        client.removeChannel(channel);
+      }
     } catch (err) {
       // Ghi log cảnh báo nhưng không làm gián đoạn request người dùng
       console.warn(`[RealtimeService] Không thể phát sự kiện ${event} tới ${channelName}:`, err?.message || err);
