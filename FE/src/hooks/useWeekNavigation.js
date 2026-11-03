@@ -41,6 +41,12 @@ export function useWeekNavigation(initialDate = new Date()) {
   }, []);
 
   // Trở về tuần hiện tại (Today)
+  // Số tuần so với tuần hiện tại: 0 = tuần này, >0 = các tuần sau, <0 = các tuần trước
+  const weekOffset = useMemo(
+    () => Math.round((currentMonday - getMondayOfWeek(new Date())) / (7 * 24 * 60 * 60 * 1000)),
+    [currentMonday]
+  );
+
   const goToToday = useCallback(() => {
     setCurrentMonday(getMondayOfWeek(new Date()));
   }, []);
@@ -49,6 +55,7 @@ export function useWeekNavigation(initialDate = new Date()) {
     currentMonday,
     weekDays,
     weekLabel,
+    weekOffset,
     goToPrevWeek,
     goToNextWeek,
     goToToday,

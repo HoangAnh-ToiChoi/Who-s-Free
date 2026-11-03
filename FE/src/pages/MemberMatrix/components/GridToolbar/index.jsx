@@ -28,6 +28,7 @@ function GridToolbar({
   onFinalize,
   onUnfinalize,
   weekNavOnMobile = true,
+  weekOffset = 0,
 }) {
   const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -41,6 +42,7 @@ function GridToolbar({
           onPrevWeek={onPrevWeek}
           onNextWeek={onNextWeek}
           onToday={onToday}
+          weekOffset={weekOffset}
           className={weekNavOnMobile ? undefined : "max-sm:hidden"}
         />
 

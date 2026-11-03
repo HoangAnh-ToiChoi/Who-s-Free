@@ -38,6 +38,7 @@ export function LeadMatrixContent({ readOnly = false }) {
     goToPrevWeek,
     goToNextWeek,
     goToToday,
+    weekOffset,
   } = useWeekNavigation();
 
   const sessionId = currentSession?.id;
@@ -124,7 +125,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         hideSwitch={readOnly || Boolean(finalized)}
         finalized={finalized}
         readOnly={readOnly}
-        weekNav={{ onPrevWeek: goToPrevWeek, onNextWeek: goToNextWeek, onToday: goToToday }}
+        weekNav={{ onPrevWeek: goToPrevWeek, onNextWeek: goToNextWeek, onToday: goToToday, weekOffset }}
       />
 
       {finalizeActions.error && !finalizeActions.isModalOpen && (
@@ -151,6 +152,7 @@ export function LeadMatrixContent({ readOnly = false }) {
           onPrevWeek={goToPrevWeek}
           onNextWeek={goToNextWeek}
           onToday={goToToday}
+          weekOffset={weekOffset}
           onExport={handleExport}
           isExporting={isExporting}
           readOnly={readOnly}
