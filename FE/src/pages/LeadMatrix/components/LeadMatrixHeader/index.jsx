@@ -23,9 +23,9 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
     : session?.slug || session?.id || "";
 
   return (
-    <div className="mb-1 sm:mb-2.5 grid min-h-9 shrink-0 items-center gap-x-3 gap-y-2 select-none md:grid-cols-[1fr_auto_1fr]">
+    <div className="mb-1 sm:mb-2.5 flex flex-wrap min-h-9 shrink-0 items-center gap-x-3 gap-y-2 select-none md:grid md:grid-cols-[1fr_auto_1fr]">
       {/* Breadcrumb: Back to group → Session title */}
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs md:flex-none">
         <Link
           to={backUrl}
           aria-label={t("groupDetail.backToGroup")}
@@ -48,7 +48,7 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
           </span>
 
           {isLeadRoute && (
-            <span className="ml-1 shrink-0 rounded-md border border-emerald-200/80 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-700 uppercase">
+            <span className="ml-1 shrink-0 rounded-md border max-sm:hidden border-emerald-200/80 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-700 uppercase">
               {t("leadMatrix.leaderView")}
             </span>
           )}
@@ -56,12 +56,12 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
       </div>
 
       {/* Nhãn lịch đã chốt: căn giữa header (màn hình hẹp thì xuống dòng riêng) */}
-      <div className="flex md:justify-center">
+      <div className="flex md:justify-center max-md:order-last max-md:w-full">
         <FinalizedBanner finalized={finalized} readOnly={readOnly} />
       </div>
 
       {/* Nút chuyển sang MemberMatrix */}
-      <div className="flex md:justify-end">
+      <div className="flex md:justify-end max-md:ml-auto">
       {!hideSwitch && (
       <Button
         type="button"
@@ -70,10 +70,11 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
         onClick={() =>
           navigate(`/groups/${groupId}/matrix/${sessionSlug}`, { state: { session } })
         }
-        className="h-8 cursor-pointer gap-1.5 rounded-xl border-indigo-200/90 bg-white px-3 text-xs font-semibold text-indigo-700 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.98]"
+        aria-label={t("leadMatrix.enterMySchedule")}
+        className="h-10 sm:h-8 cursor-pointer gap-1.5 rounded-xl border-indigo-200/90 bg-white px-3 text-xs font-semibold text-indigo-700 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 active:scale-[0.98]"
       >
-        <Calendar size={14} className="text-indigo-600" />
-        <span>{t("leadMatrix.enterMySchedule")}</span>
+        <Calendar size={14} className="text-indigo-600 max-sm:size-5" />
+        <span className="max-sm:hidden">{t("leadMatrix.enterMySchedule")}</span>
       </Button>
       )}
       </div>

@@ -35,6 +35,8 @@ function MemberFilterBar({
             onClick={() => onPresetChange(key)}
             className={cn(
               "h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border",
+              // Mobile: chỉ giữ "Tất cả" để nhường chỗ cho lưới; lọc ban lãnh đạo dùng trên desktop
+              key === "leadership" && "max-sm:hidden",
               activePreset === key
                 ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
