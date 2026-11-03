@@ -53,6 +53,7 @@ export function useGridDrag({
         currentMinutes: originMinutes + 30,
         cursorX: e.clientX,
         cursorY: e.clientY,
+        isTouch: e.pointerType === "touch",
         isDragging: true,
       });
     },
@@ -240,6 +241,7 @@ export function useGridDrag({
         endMinutes: Math.max(dragState.originMinutes, dragState.currentMinutes),
         cursorX: dragState.cursorX,
         cursorY: dragState.cursorY,
+        isTouch: dragState.isTouch,
       }
     : null;
 
