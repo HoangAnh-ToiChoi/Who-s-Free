@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, CalendarPlus } from "lucide-react";
 
 import { useGroupDetail } from "~/hooks";
 import { Button } from "~/components/ui/button";
@@ -158,6 +158,16 @@ function Group() {
             onOpenChange={setIsInviteModalOpen}
             group={group}
           />
+
+          {/* Mobile: nút Tạo lịch trình ghim đáy. Phải nằm NGOÀI SlideIn: transform của hiệu ứng làm
+              position:fixed neo theo khối đang trượt nên nút hiện ở trên rồi mới nhảy xuống đáy. */}
+          <Button
+            onClick={() => setIsCreateCalendarOpen(true)}
+            className="fixed inset-x-4 bottom-4 z-40 h-12 justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 sm:hidden"
+          >
+            <CalendarPlus size={16} className="shrink-0" />
+            <span>{t("groupDetail.createCalendar")}</span>
+          </Button>
 
           {/* Modal Tạo Lịch Trình - Dùng chung cấp Group & Empty State */}
           <CreateCalendarModal
