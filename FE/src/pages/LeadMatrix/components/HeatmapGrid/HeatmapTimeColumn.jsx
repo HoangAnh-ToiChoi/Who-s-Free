@@ -3,11 +3,11 @@ import { cn } from "~/lib/utils";
 
 /**
  * HeatmapTimeColumn - Cột mốc giờ bên trái cho lưới Heatmap
- * Hiển thị nhãn giờ theo block 30 phút (chỉ hiện giờ chẵn)
+ * Hiển thị nhãn giờ theo block 30 phút (chỉ hiện giờ chẵn). Sticky left, nền đặc vì các cột ngày trượt bên dưới.
  */
 function HeatmapTimeColumn({ blocks }) {
   return (
-    <div className="flex flex-col shrink-0 w-[60px] border-r border-slate-200/60">
+    <div className="sticky left-0 z-30 flex w-12 shrink-0 flex-col border-r border-slate-200/60 bg-white shadow-[4px_0_6px_-4px_rgba(15,23,42,0.12)] md:w-[60px]">
       {blocks.map((blockStart) => {
         const isFullHour = blockStart % 60 === 0;
         return (
