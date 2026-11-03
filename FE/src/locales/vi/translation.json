@@ -270,7 +270,9 @@
     "clearConfirmDesc": "Bạn có chắc chắn muốn xóa tất cả các khung giờ rảnh đã chọn trong tuần này không? Thao tác này sẽ làm trống lịch của bạn.",
     "clearConfirmDelete": "Xóa lựa chọn",
     "clearConfirmKeep": "Giữ lại lịch",
-    "noSlotsSelected": "Chưa có khung giờ nào được chọn"
+    "noSlotsSelected": "Chưa có khung giờ nào được chọn",
+    "thisWeek": "Tuần này",
+    "backToThisWeek": "Về tuần này"
   },
   "matrix": {
     "switchToLeadMode": "Chế độ Lead",
