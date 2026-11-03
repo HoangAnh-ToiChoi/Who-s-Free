@@ -9,6 +9,7 @@ import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
 import { useAvailabilitySlots } from "../../hooks/useAvailabilitySlots";
 import { useGridDrag } from "../../hooks/useGridDrag";
 import { useWeekSlots } from "../../hooks/useWeekSlots";
+import { useTouchDragStart } from "../../hooks/useTouchDragStart";
 import { useSlotPopover } from "../../hooks/useSlotPopover";
 import {
   useWeekNavigation,
@@ -103,6 +104,9 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
     },
   });
 
+  // Cảm ứng: nhấn giữ rồi kéo (vuốt ngay = cuộn lưới)
+  const touchDrag = useTouchDragStart(startDrag);
+
   // Khi click vào một slot đã có để mở popover chỉnh sửa
   const handleSlotClick = (slot, e) => {
     e.stopPropagation();
@@ -180,6 +184,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId }) {
           dragPreview={dragPreview}
           activeSlotId={popover.isOpen ? popover.slotData?.id : null}
           onStartDrag={startDrag}
+          touch={touchDrag}
           onSlotClick={handleSlotClick}
         />
       </div>

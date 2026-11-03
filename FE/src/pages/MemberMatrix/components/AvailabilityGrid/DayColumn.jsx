@@ -22,6 +22,7 @@ const DayColumn = forwardRef(function DayColumn(
     dragPreview,
     activeSlotId,
     onMouseDown,
+    touchHandlers,
     onSlotClick,
     onResizeStart,
   },
@@ -51,8 +52,9 @@ const DayColumn = forwardRef(function DayColumn(
     <div
       ref={ref}
       onMouseDown={onMouseDown}
+      {...touchHandlers}
       className={cn(
-        "relative border-r border-slate-200/90 last:border-r-0 cursor-crosshair select-none transition-colors",
+        "relative border-r border-slate-200/90 last:border-r-0 cursor-crosshair select-none transition-colors [-webkit-touch-callout:none]",
         isWeekend && "bg-slate-50/40",
         day.isToday && "bg-indigo-50/15"
       )}
