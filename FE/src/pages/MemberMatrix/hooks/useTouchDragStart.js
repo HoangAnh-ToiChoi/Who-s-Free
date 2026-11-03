@@ -22,7 +22,7 @@ export function useTouchDragStart(startDrag) {
     holdRef.current = createTouchHold({
       onHold: (point) => {
         navigator.vibrate?.(10);
-        startDragRef.current(dayIndex, { button: 0, ...point });
+        startDragRef.current(dayIndex, { button: 0, pointerType: "touch", ...point });
       },
     });
     holdRef.current.start(touch);
