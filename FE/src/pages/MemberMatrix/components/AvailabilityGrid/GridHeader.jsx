@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 
 /**
@@ -6,6 +7,7 @@ import { cn } from "~/lib/utils";
  * Ô góc sticky cả 2 chiều để luôn che lên cột giờ khi vuốt ngang trên mobile.
  */
 function GridHeader({ weekDays }) {
+  const { t } = useTranslation();
   return (
     <div className="sticky top-0 z-40 flex border-b border-slate-200/90 bg-white text-center shadow-xs select-none">
       <div className="sticky left-0 z-50 flex w-12 shrink-0 items-center justify-center border-r border-slate-200/90 bg-slate-50 py-3 text-slate-400 md:w-[70px]">
@@ -34,7 +36,7 @@ function GridHeader({ weekDays }) {
                     {day.dateNum}
                   </span>
                   <span className="mt-0.5 rounded-full bg-indigo-600 px-2 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider shadow-3xs">
-                    Today
+                    {t("gridToolbar.today")}
                   </span>
                 </div>
               ) : (

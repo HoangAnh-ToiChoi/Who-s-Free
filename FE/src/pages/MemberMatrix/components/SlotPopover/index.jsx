@@ -100,12 +100,15 @@ function SlotPopover({
             {durationText}
           </span>
         </div>
+        {/* Mobile: nút đóng to, có chữ để dễ bấm bằng ngón tay; desktop giữ icon nhỏ */}
         <button
           type="button"
           onClick={onClose}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-colors"
+          aria-label={t("common.close")}
+          className="flex h-11 shrink-0 items-center justify-center gap-1 rounded-xl bg-slate-100 px-3 text-sm font-semibold text-slate-600 sm:h-7 sm:w-7 sm:bg-transparent sm:px-0 sm:text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-colors"
         >
-          <X size={16} />
+          <X size={18} className="sm:size-4" />
+          <span className="sm:hidden">{t("common.close")}</span>
         </button>
       </div>
 
@@ -157,7 +160,7 @@ function SlotPopover({
             <button
               type="button"
               onClick={() => onDelete(slotData.id)}
-              className="flex h-8 items-center gap-1.5 px-2.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors active:scale-[0.98]"
+              className="flex h-11 sm:h-8 items-center gap-1.5 px-3 sm:px-2.5 rounded-lg text-sm sm:text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors active:scale-[0.98]"
             >
               <Trash2 size={14} />
               <span>{t("slotPopover.delete")}</span>
@@ -166,7 +169,7 @@ function SlotPopover({
             <button
               type="button"
               onClick={onClose}
-              className="h-8 px-3 rounded-lg text-xs font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-colors"
+              className="h-11 sm:h-8 px-4 sm:px-3 rounded-lg text-sm sm:text-xs font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-colors"
             >
               {t("slotPopover.cancel")}
             </button>

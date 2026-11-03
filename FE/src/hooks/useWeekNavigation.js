@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getMondayOfWeek,
   calculateWeekDates,
@@ -14,10 +15,12 @@ export function useWeekNavigation(initialDate = new Date()) {
   const [currentMonday, setCurrentMonday] = useState(() => getMondayOfWeek(initialDate));
 
   // 7 ngày trong tuần được tự động tính toán
-  const weekDays = useMemo(() => calculateWeekDates(currentMonday), [currentMonday]);
+  const { i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || i18n.language;
+  const weekDays = useMemo(() => calculateWeekDates(currentMonday, lang), [currentMonday, lang]);
 
   // Tiêu đề khoảng tuần (ví dụ: "Sep 28 – Oct 4, 2026")
-  const weekLabel = useMemo(() => formatWeekRangeLabel(currentMonday), [currentMonday]);
+  const weekLabel = useMemo(() => formatWeekRangeLabel(currentMonday, lang), [currentMonday, lang]);
 
   // Lùi 1 tuần (-7 ngày)
   const goToPrevWeek = useCallback(() => {
