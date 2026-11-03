@@ -199,8 +199,22 @@ export function useGridDrag({
       setDragState(null);
     };
 
+    // Cảm ứng (sau khi nhấn giữ đã bắt đầu kéo): chặn cuộn trang/lưới trong lúc kéo; preventDefault ở touchend
+    // để trình duyệt không phát thêm mousedown/mouseup "giả lập" gây tạo trùng một slot 30 phút.
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      if (e.touches[0]) handleMouseMove(e.touches[0]);
+    };
+    const handleTouchEnd = (e) => {
+      e.preventDefault();
+      handleMouseUp();
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd, { passive: false });
+    window.addEventListener("touchcancel", handleMouseUp);
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -208,6 +222,9 @@ export function useGridDrag({
       document.body.style.cursor = "";
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleMouseUp);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragState, columnRefs, containerRef, onDragComplete]);
