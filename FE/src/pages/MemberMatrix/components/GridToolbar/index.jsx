@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, Globe, Trash2, FileSpreadsheet, Lock, LockOpen } from "lucide-react";
+import { Globe, Trash2, FileSpreadsheet, Lock, LockOpen } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { ConfirmModal } from "~/components/Modals";
+import WeekNav from "./WeekNav";
 import TouchDragHint from "../TouchDragHint";
 
 /**
@@ -26,6 +27,7 @@ function GridToolbar({
   isBusy = false,
   onFinalize,
   onUnfinalize,
+  weekNavOnMobile = true,
 }) {
   const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -34,38 +36,13 @@ function GridToolbar({
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-1 sm:py-2 px-1 text-xs select-none">
       {/* Cụm điều hướng tuần: < Today > + Tiêu đề khoảng ngày */}
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex items-center gap-1 bg-white border border-slate-200/90 rounded-xl p-1 shadow-2xs">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={onPrevWeek}
-            className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer"
-            aria-label={t("gridToolbar.prevWeek")}
-          >
-            <ChevronLeft size={16} />
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onToday}
-            className="h-7 px-2.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer"
-          >
-            {t("gridToolbar.today")}
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={onNextWeek}
-            className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer"
-            aria-label={t("gridToolbar.nextWeek")}
-          >
-            <ChevronRight size={16} />
-          </Button>
-        </div>
+        {/* Màn Lead trên mobile đưa cụm này lên header (weekNavOnMobile=false) để nhường chỗ cho lưới */}
+        <WeekNav
+          onPrevWeek={onPrevWeek}
+          onNextWeek={onNextWeek}
+          onToday={onToday}
+          className={weekNavOnMobile ? undefined : "max-sm:hidden"}
+        />
 
         <span className="text-[13px] sm:text-sm font-bold text-slate-900 whitespace-nowrap">
           {weekLabel}

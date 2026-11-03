@@ -124,6 +124,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         hideSwitch={readOnly || Boolean(finalized)}
         finalized={finalized}
         readOnly={readOnly}
+        weekNav={{ onPrevWeek: goToPrevWeek, onNextWeek: goToNextWeek, onToday: goToToday }}
       />
 
       {finalizeActions.error && !finalizeActions.isModalOpen && (
@@ -157,6 +158,7 @@ export function LeadMatrixContent({ readOnly = false }) {
           isBusy={finalizeActions.isSubmitting}
           onFinalize={finalizeActions.openModal}
           onUnfinalize={() => setIsUnlockConfirmOpen(true)}
+          weekNavOnMobile={false}
         />
       </div>
 
