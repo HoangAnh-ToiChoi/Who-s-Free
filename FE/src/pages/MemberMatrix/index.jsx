@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useParams } from "react-router";
 import { useSessionResolver, useCurrentUser, useUserGroupRole } from "~/hooks";
 import MatrixHeader from "./components/MatrixHeader";
 import AvailabilityGrid from "./components/AvailabilityGrid";
 import { LeadMatrixContent } from "~/pages/LeadMatrix";
 import MatrixGate from "~/components/MatrixGate";
+import SaveStatusIndicator from "./components/SaveStatusIndicator";
 import { useSessionFinalizeSync } from "~/hooks";
 
 /**
@@ -17,11 +19,26 @@ function MatrixContent() {
   const { role } = useUserGroupRole(groupId);
   const isLead = role === "owner" || role === "lead";
   useSessionFinalizeSync(currentSession?.id, refreshCurrentSession);
+  // Server từ chối lần lưu vì phiên vừa chốt → chuyển màn đã chốt ngay và nói rõ thay đổi cuối chưa được lưu
+  const [lostLastEdit, setLostLastEdit] = useState(false);
+  const handleSessionLocked = () => {
+    setLostLastEdit(true);
+    refreshCurrentSession();
+  };
 
   // Lịch đã chốt: khoá kéo thả, mọi người xem như chế độ Lead (ai chọn gì, chọn như nào).
   // Chỉ trưởng nhóm (lead/owner) có thêm nút Xuất Excel và Huỷ chốt.
   if (currentSession?.status === "finalized") {
-    return <LeadMatrixContent readOnly={!isLead} />;
+    return (
+      <>
+        <LeadMatrixContent readOnly={!isLead} />
+        {lostLastEdit && (
+          <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md bg-white shadow-lg rounded-xl">
+            <SaveStatusIndicator status="locked" />
+          </div>
+        )}
+      </>
+    );
   }
 
   return (
@@ -35,6 +52,7 @@ function MatrixContent() {
           sessionId={currentSession?.id}
           sessionCacheKey={currentSession?.slug || currentSession?.id}
           memberId={currentUser?.id}
+          onSessionLocked={handleSessionLocked}
         />
       </div>
     </div>
