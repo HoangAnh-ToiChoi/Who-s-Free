@@ -130,7 +130,8 @@ export function LeadMatrixContent({ readOnly = false }) {
         <p role="alert" className="mb-2 text-xs font-semibold text-rose-600">{finalizeActions.error}</p>
       )}
 
-      {/* Member Filter Bar */}
+      {/* Member Filter Bar — mobile xếp sau thanh Hôm nay/Chốt lịch (order) */}
+      <div className="max-sm:order-1">
       <MemberFilterBar
         activePreset={activePreset}
         allMembers={allMembers}
@@ -138,6 +139,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         onPresetChange={setPreset}
         onToggleMember={toggleMember}
       />
+      </div>
 
       {/* Grid Toolbar — chế độ Lead: nút Xuất file */}
       <div className="px-1">
@@ -159,7 +161,7 @@ export function LeadMatrixContent({ readOnly = false }) {
       </div>
 
       {/* Main Content: Heatmap + Sidebar Analysis */}
-      <div className="flex-1 min-h-0 flex gap-4 mt-1">
+      <div className="flex-1 min-h-0 flex gap-4 mt-1 max-sm:order-2">
         {/* Heatmap Grid */}
         <div className="flex-1 min-w-0 flex flex-col min-h-0">
           <HeatmapGrid
