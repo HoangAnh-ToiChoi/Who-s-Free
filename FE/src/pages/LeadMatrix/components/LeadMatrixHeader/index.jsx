@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { createCompositeSlug } from "~/utils/slugify";
 import FinalizedBanner from "~/pages/LeadMatrix/components/FinalizedBanner";
+import WeekNav from "~/pages/MemberMatrix/components/GridToolbar/WeekNav";
 
 /**
  * LeadMatrixHeader - Header trang LeadMatrix cho Trưởng nhóm
@@ -11,7 +12,7 @@ import FinalizedBanner from "~/pages/LeadMatrix/components/FinalizedBanner";
  * - Tên session + ref code
  * - Nút chuyển sang MemberMatrix (Nhập lịch của tôi)
  */
-function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readOnly = false }) {
+function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readOnly = false, weekNav }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isLeadRoute = useLocation().pathname.includes("/lead-matrix");
@@ -29,20 +30,21 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
         <Link
           to={backUrl}
           aria-label={t("groupDetail.backToGroup")}
-          className="group flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-9"
+          className="group flex h-10 w-10 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-9 sm:w-auto sm:px-3"
         >
           {/* Nút quay lại có viền, cao 40px (mobile) / 36px (desktop) — ngang tầm nút "Chế độ Lead" */}
           <ArrowLeft
             size={18}
             className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600 sm:size-4"
           />
-          <span className="sm:hidden">{t("common.back")}</span>
           <span className="hidden sm:inline">
             {t("groupDetail.backToGroup")}
           </span>
         </Link>
         <span className="hidden shrink-0 text-slate-300 sm:inline">/</span>
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+        {/* Mobile: hàng đầu = [←] [‹ Hôm nay ›] [📅]; tên phiên ẩn để nhường chỗ */}
+        {weekNav && <WeekNav {...weekNav} className="mx-auto sm:hidden" />}
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 max-sm:hidden">
           <span className="truncate text-sm font-bold text-slate-900">
             {session?.title || ""}
           </span>
