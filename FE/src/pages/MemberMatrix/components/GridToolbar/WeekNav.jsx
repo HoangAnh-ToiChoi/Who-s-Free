@@ -4,8 +4,11 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
 /** Cụm điều hướng tuần ‹ Hôm nay ›. Dùng trong GridToolbar và (mobile) trên header màn Lead. */
-function WeekNav({ onPrevWeek, onNextWeek, onToday, className }) {
+function WeekNav({ onPrevWeek, onNextWeek, onToday, weekOffset = 0, className }) {
   const { t } = useTranslation();
+  // Nút giữa cho biết đang xem tuần nào so với hiện tại; bấm vào luôn về tuần này
+  const label =
+    weekOffset === 0 ? t("gridToolbar.thisWeek") : weekOffset > 0 ? t("gridToolbar.nextWeek") : t("gridToolbar.prevWeek");
   return (
     <div className={cn("flex items-center gap-1 bg-white border border-slate-200/90 rounded-xl p-1 shadow-2xs", className)}>
       <Button
@@ -23,9 +26,10 @@ function WeekNav({ onPrevWeek, onNextWeek, onToday, className }) {
         type="button"
         variant="ghost"
         onClick={onToday}
-        className="h-7 px-2.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer"
+        aria-label={t("gridToolbar.backToThisWeek")}
+        className="h-7 min-w-[76px] px-2.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer"
       >
-        {t("gridToolbar.today")}
+        {label}
       </Button>
 
       <Button

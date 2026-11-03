@@ -36,13 +36,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
   });
 
   // 1. Hook quản lý ngày tháng & tuần
-  const {
-    weekDays,
-    weekLabel,
-    goToPrevWeek,
-    goToNextWeek,
-    goToToday,
-  } = useWeekNavigation();
+  const { weekDays, weekLabel, goToPrevWeek, goToNextWeek, goToToday, weekOffset } = useWeekNavigation();
 
   // Mobile: lưới hiện 3/7 ngày → mở trang thì cuộn ngang tới hôm nay
   const { scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
@@ -72,11 +66,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
   }, [currentWeekSlots, draftSlots]);
 
   // 4. Hook quản lý popover tuỳ chỉnh slot (Chỉnh sửa giờ, note, xoá)
-  const {
-    popover,
-    openPopover,
-    closePopover,
-  } = useSlotPopover();
+  const { popover, openPopover, closePopover } = useSlotPopover();
 
   // 5. Hook quản lý cơ chế kéo thả chuột thời gian thực (hỗ trợ kéo 2 chiều & kéo chéo nhiều ngày)
   const {
@@ -138,6 +128,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
         onPrevWeek={goToPrevWeek}
         onNextWeek={goToNextWeek}
         onToday={goToToday}
+        weekOffset={weekOffset}
         onClearAll={clearAllSlots}
       />
 
