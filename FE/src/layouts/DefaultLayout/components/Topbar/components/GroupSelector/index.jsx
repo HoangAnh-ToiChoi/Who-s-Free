@@ -53,7 +53,7 @@ function GroupSelector({ workspaces = [], activeWorkspace, onChange, onCreateGro
         </Button>
 
         {open && (
-          <div className="absolute top-full right-0 z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="absolute top-full right-0 z-50 mt-2 w-72 max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.5rem] max-sm:w-auto max-sm:max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1 duration-150">
             {/* Option: Trang chủ */}
             <div className="p-1 border-b border-slate-100">
               <Button

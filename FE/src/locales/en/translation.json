@@ -250,7 +250,13 @@
     "invalidTime": "End time must be after start time",
     "apply": "Apply",
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "start": "Start",
+    "end": "End",
+    "deleteConfirmTitle": "Delete this time slot?",
+    "deleteConfirmDesc": "This free time slot will be removed from your schedule.",
+    "deleteConfirm": "Delete",
+    "deleteKeep": "Keep"
   },
   "gridToolbar": {
     "today": "Today",

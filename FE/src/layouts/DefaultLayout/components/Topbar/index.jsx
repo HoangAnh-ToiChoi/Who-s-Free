@@ -27,7 +27,7 @@ function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-10 py-3.5 shadow-xs">
+    <header className="sticky top-0 z-50 flex items-center border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-10 py-3.5 shadow-xs">
       {/* Left — Logo */}
       <div className="flex items-center shrink-0">
         <AppLogo />
