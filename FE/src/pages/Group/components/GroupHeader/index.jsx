@@ -153,7 +153,7 @@ function GroupHeader({
         </div>
 
         {/* Right: Actions */}
-        {/* Mobile: nút Tạo lịch trình ghim đáy màn hình (fixed), trang Group chừa pb tương ứng */}
+        {/* Mobile: nút Tạo lịch trình ghim đáy nằm ở trang Group (ngoài SlideIn), xem pages/Group */}
         <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           {canInvite && (
             <Button
@@ -169,7 +169,7 @@ function GroupHeader({
 
           <Button
             onClick={onOpenCreateCalendar}
-            className="h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap max-sm:fixed max-sm:inset-x-4 max-sm:bottom-4 max-sm:z-40 max-sm:h-12 max-sm:text-sm max-sm:shadow-lg"
+            className="hidden h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap sm:inline-flex"
           >
             <CalendarPlus size={14} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
