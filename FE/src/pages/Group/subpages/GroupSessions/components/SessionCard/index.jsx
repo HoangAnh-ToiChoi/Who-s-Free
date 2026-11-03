@@ -65,7 +65,7 @@ function SessionCard({ session }) {
   return (
     <div
       onClick={() => navigate(matrixUrl, { state: { session } })}
-      className="group relative flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+      className="group relative flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs sm:p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
     >
       {/* Top Header: Tag & Options Menu */}
       <div>
@@ -130,7 +130,7 @@ function SessionCard({ session }) {
         </div>
 
         {/* Overlap Mini Sparkline */}
-        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+        <div className="mt-4 hidden items-center justify-between border-t border-slate-100 pt-3 sm:flex">
           <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             {t("groupDetail.overlap")}
           </span>
@@ -165,14 +165,14 @@ function SessionCard({ session }) {
       </div>
 
       {/* CTA Button - Cố định height h-10 chống giật, hover vào card thì hiện style primary như calendar 1 */}
-      <div className="mt-5 border-t border-slate-100/80 pt-3">
+      <div className="mt-4 sm:mt-5 sm:border-t sm:border-slate-100/80 sm:pt-3">
         <Button
           variant="outline"
           onClick={(e) => {
             e.stopPropagation();
             navigate(matrixUrl, { state: { session } });
           }}
-          className="h-10 w-full cursor-pointer justify-center gap-2 rounded-xl border-slate-200 bg-white text-xs font-medium whitespace-nowrap text-slate-700 shadow-2xs transition-all duration-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:font-semibold group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!border-indigo-700 hover:!bg-indigo-700 hover:!text-white active:scale-[0.99]"
+          className="h-11 sm:h-10 w-full cursor-pointer justify-center gap-2 rounded-xl max-sm:border-indigo-600 max-sm:bg-indigo-600 max-sm:text-white max-sm:font-semibold border-slate-200 bg-white text-xs font-medium whitespace-nowrap text-slate-700 shadow-2xs transition-all duration-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:font-semibold group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!border-indigo-700 hover:!bg-indigo-700 hover:!text-white active:scale-[0.99]"
         >
           <span>{t("groupDetail.openCalendar")}</span>
           <ArrowRight

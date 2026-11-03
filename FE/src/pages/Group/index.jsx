@@ -39,7 +39,7 @@ function Group() {
   const [isCreateCalendarOpen, setIsCreateCalendarOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-12">
+    <div className="mx-auto max-w-7xl px-4 pt-4 pb-24 sm:px-6 sm:py-8 lg:px-12">
       {/* --- Case 1: Đang tải dữ liệu lần đầu (Skeleton) --- */}
       {isLoading ? (
         <div className="space-y-8 animate-pulse">
@@ -111,14 +111,16 @@ function Group() {
                 </SlideIn>
 
                 {/* Subpage 1: Calendars / Planning Sessions */}
+                {/* Mobile: thống kê lên trước danh sách lịch trình (order-first) */}
                 {activeTab === "calendars" && (
-                  <>
+                  <div className="flex flex-col">
                     <SlideIn key="calendars" index={1} direction="up">
                       <GroupSessions
                         sessions={sessions}
                         onOpenCreateModal={() => setIsCreateCalendarOpen(true)}
                       />
                     </SlideIn>
+                    <div className="max-sm:order-first">
                     <SlideIn index={2} direction="up">
                       <GroupMetricsBar
                         activeSessionsCount={activeSessionsCount}
@@ -126,7 +128,8 @@ function Group() {
                         medianResponseHours={group?.medianResponseHours ?? null}
                       />
                     </SlideIn>
-                  </>
+                    </div>
+                  </div>
                 )}
               </>
             );

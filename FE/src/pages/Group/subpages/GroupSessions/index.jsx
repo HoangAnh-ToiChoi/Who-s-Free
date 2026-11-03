@@ -7,14 +7,14 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
   const { t } = useTranslation();
 
   return (
-    <section className="mt-8">
+    <section className="mt-4 sm:mt-8">
       {/* Section Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
             {t("groupDetail.activePlanningSessions")}
           </h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 hidden text-xs text-slate-500 sm:block">
             {t("groupDetail.activePlanningSessionsDesc")}
           </p>
         </div>
@@ -38,14 +38,14 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
 
       {/* Grid of Session Cards */}
       {sessions.length > 0 ? (
-        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {sessions.map((session) => (
             <SessionCard key={session.id} session={session} />
           ))}
         </div>
       ) : (
         /* Empty State */
-        <div className="mt-8 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-xs">
+        <div className="mt-4 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center shadow-xs sm:mt-8 sm:p-12">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
             <Calendar size={22} />
           </div>

@@ -40,11 +40,11 @@ function Home() {
 
       {/* --- Case 1: Đang tải dữ liệu (Loading Skeleton) --- */}
       {isLoading ? (
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-2 md:mt-8 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {[1, 2, 3].map((skeletonId) => (
             <div
               key={skeletonId}
-              className="flex h-64 animate-pulse flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
+              className="flex h-[70px] md:h-64 animate-pulse flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs"
             >
               <div className="flex items-center justify-between">
                 <div className="h-12 w-12 rounded-xl bg-slate-200" />
@@ -84,7 +84,7 @@ function Home() {
         /* --- Case 3: Hiển thị danh sách Cards thành công --- */
         <div
           key={activeFilter}
-          className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+          className="mt-4 grid grid-cols-1 gap-2 md:mt-8 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
         >
           {filteredGroups.map((group, index) => (
             <SlideIn key={group.id} index={index}>

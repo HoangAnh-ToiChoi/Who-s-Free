@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -7,37 +6,12 @@ import {
   UserPlus,
   Bot,
   ArrowLeft,
+  Settings,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { useCurrentUser } from "~/hooks";
-
-function HeaderAvatarItem({ member, src }) {
-  const [imageError, setImageError] = useState(false);
-  const avatarUrl = typeof src === "string" ? src : member?.avatarUrl;
-  const name = member?.name || "Thành viên";
-  const initial = name.charAt(0).toUpperCase() || "U";
-  const hasAvatar = Boolean(avatarUrl) && !imageError;
-
-  if (hasAvatar) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={name}
-        onError={() => setImageError(true)}
-        className="inline-block h-7 w-7 rounded-full ring-2 ring-white object-cover shrink-0 select-none"
-      />
-    );
-  }
-
-  return (
-    <div
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 font-bold text-[10px] text-indigo-700 ring-2 ring-white select-none"
-      title={name}
-    >
-      {initial}
-    </div>
-  );
-}
+import HeaderAvatarItem from "./HeaderAvatarItem";
+import GroupTabs from "./GroupTabs";
 
 function GroupHeader({
   group,
@@ -69,15 +43,31 @@ function GroupHeader({
   const remainingCount = Math.max(0, totalMembers - previews.length);
 
   const tabs = [
-    { id: "calendars", label: t("groupDetail.tabCalendars"), count: sessionsCount, minW: "min-w-[105px]" },
-    { id: "members", label: t("groupDetail.tabMembers"), count: group?.memberCount || 0, minW: "min-w-[110px]" },
-    { id: "settings", label: t("groupDetail.tabSettings"), minW: "min-w-[85px]" },
+    { id: "calendars", label: t("groupDetail.tabCalendars"), count: sessionsCount, minW: "sm:min-w-[105px]" },
+    { id: "members", label: t("groupDetail.tabMembers"), count: group?.memberCount || 0, minW: "sm:min-w-[110px]" },
+    { id: "settings", label: t("groupDetail.tabSettings"), minW: "sm:min-w-[85px]" },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       {/* Back to Home breadcrumb */}
-      <div className="flex items-center gap-1.5 text-xs">
+      {/* Mobile: 1 thanh gọn — quay lại · tên nhóm · mời · cài đặt (thay cho tab Cài đặt) */}
+      <div className="-mx-2 -mt-2 flex items-center gap-1 sm:hidden">
+        <Link to="/" aria-label={t("common.backToHome")} className="flex h-11 w-11 items-center justify-center text-slate-500">
+          <ArrowLeft size={20} />
+        </Link>
+        <h1 className="min-w-0 flex-1 truncate text-lg font-bold text-slate-900">{group?.name || ""}</h1>
+        {canInvite && (
+          <button type="button" onClick={onOpenInvite} aria-label={t("groupDetail.inviteMembers")} className="flex h-11 w-11 items-center justify-center text-slate-500">
+            <UserPlus size={20} />
+          </button>
+        )}
+        <button type="button" onClick={() => onTabChange?.("settings")} aria-label={t("groupDetail.tabSettings")} className="flex h-11 w-11 items-center justify-center text-slate-500">
+          <Settings size={20} />
+        </button>
+      </div>
+
+      <div className="hidden items-center gap-1.5 text-xs sm:flex">
         <Link
           to="/"
           className="flex items-center gap-1.5 text-slate-500 hover:text-red-600 font-semibold transition-colors shrink-0 group"
@@ -90,7 +80,7 @@ function GroupHeader({
         {/* Left: Info */}
         <div className="max-w-3xl">
           {/* Metadata Badges */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden flex-wrap items-center gap-2 sm:flex">
             <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-200/70 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold tracking-wider text-indigo-700 uppercase">
               <Bot size={12} className="text-indigo-600" />
               <span>{group?.name || ""}</span>
@@ -110,19 +100,19 @@ function GroupHeader({
           </div>
 
           {/* Group Title */}
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl break-words">
+          <h1 className="mt-3 hidden text-2xl font-extrabold sm:block tracking-tight text-slate-900 sm:text-3xl lg:text-4xl break-words">
             {group?.name || ""}
           </h1>
 
           {/* Description */}
           {group?.description && (
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-[40px]">
+            <p className="text-sm text-slate-600 leading-relaxed max-sm:line-clamp-2 sm:mt-2 sm:min-h-[40px]">
               {group.description}
             </p>
           )}
 
           {/* Avatars & Lead Admin */}
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3 sm:mt-4">
             {previews.length > 0 ? (
               <div className="flex -space-x-2 overflow-hidden shrink-0 items-center">
                 {previews.map((item, i) => (
@@ -163,13 +153,14 @@ function GroupHeader({
         </div>
 
         {/* Right: Actions */}
+        {/* Mobile: nút Tạo lịch trình ghim đáy màn hình (fixed), trang Group chừa pb tương ứng */}
         <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           {canInvite && (
             <Button
               type="button"
               onClick={onOpenInvite}
               variant="outline"
-              className="h-9.5 min-w-[140px] justify-center gap-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs rounded-xl whitespace-nowrap"
+              className="hidden h-9.5 min-w-[140px] justify-center gap-2 border-slate-200 sm:inline-flex bg-white px-4 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 cursor-pointer text-xs rounded-xl whitespace-nowrap"
             >
               <UserPlus size={14} className="text-slate-500 shrink-0" />
               <span>{t("groupDetail.inviteMembers")}</span>
@@ -178,7 +169,7 @@ function GroupHeader({
 
           <Button
             onClick={onOpenCreateCalendar}
-            className="h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap"
+            className="h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap max-sm:fixed max-sm:inset-x-4 max-sm:bottom-4 max-sm:z-40 max-sm:h-12 max-sm:text-sm max-sm:shadow-lg"
           >
             <CalendarPlus size={14} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
@@ -186,36 +177,7 @@ function GroupHeader({
         </div>
       </div>
 
-      {/* Bottom Section: Tabs Navigation */}
-      <div className="flex items-center gap-1 border-b border-slate-200 pt-2 overflow-x-auto">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange?.(tab.id)}
-              className={`h-9 ${tab.minW} flex items-center justify-center gap-2 border-b-2 px-4 text-xs font-semibold transition-all cursor-pointer select-none whitespace-nowrap ${
-                isActive
-                  ? "border-indigo-600 text-indigo-700 font-bold"
-                  : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800"
-              }`}
-            >
-              <span>{tab.label}</span>
-              {tab.count !== undefined && (
-                <span
-                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                    isActive
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <GroupTabs tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
     </div>
   );
 }
