@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, RefreshCw, WifiOff } from "lucide-react";
@@ -5,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import SlideIn from "~/components/SlideIn";
 import { useMatrixGate } from "~/hooks/useMatrixGate";
 
-const FRAME_CLASS = "mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6 lg:px-8 h-[calc(100vh-72px)]";
+const FRAME_CLASS = "mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 h-[calc(100dvh-72px)]";
 
 function MatrixSkeleton() {
   return (
@@ -53,6 +54,22 @@ function MatrixLoadError({ onRetry }) {
   );
 }
 
+const SKELETON_DELAY_MS = 200;
+
+/** true chỉ khi `active` giữ nguyên true lâu hơn `delayMs`. */
+function useDelayedFlag(active, delayMs) {
+  const [passed, setPassed] = useState(false);
+  useEffect(() => {
+    if (!active) return undefined;
+    const timer = setTimeout(() => setPassed(true), delayMs);
+    return () => {
+      clearTimeout(timer);
+      setPassed(false);
+    };
+  }, [active, delayMs]);
+  return active && passed;
+}
+
 /**
  * MatrixGate - Chỉ hiện trang lịch sau khi dữ liệu đã tải xong (có khung chờ, báo lỗi + thử lại khi mất mạng),
  * rồi trượt từ dưới lên cho mượt.
@@ -60,8 +77,11 @@ function MatrixLoadError({ onRetry }) {
 function MatrixGate({ withMyAvailability = false, children }) {
   const { groupId } = useParams();
   const { status, retry } = useMatrixGate({ groupId, withMyAvailability });
+  const showSkeleton = useDelayedFlag(status === "loading", SKELETON_DELAY_MS);
 
-  if (status === "loading") return <MatrixSkeleton />;
+  // Dữ liệu đã có trong cache (vd: chuyển Lịch ↔ Ma trận) thì xong gần như tức thì: không cho khung chờ
+  // nháy lên 1 khoảnh khắc rồi biến mất (cảm giác "giật"), chỉ hiện nếu chờ quá SKELETON_DELAY_MS.
+  if (status === "loading") return showSkeleton ? <MatrixSkeleton /> : null;
   if (status === "error") return <MatrixLoadError onRetry={retry} />;
 
   return <SlideIn direction="up">{children}</SlideIn>;
