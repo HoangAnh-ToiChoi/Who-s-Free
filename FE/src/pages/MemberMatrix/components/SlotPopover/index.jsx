@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Trash2, Check, AlertCircle } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { X, AlertCircle } from "lucide-react";
 import { cn } from "~/lib/utils";
 import {
   minutesToTimeString,
@@ -9,6 +8,10 @@ import {
   formatDuration,
 } from "~/utils/timeUtils";
 import TimePicker from "./TimePicker";
+import SlotPopoverFooter from "./SlotPopoverFooter";
+
+// Mobile (< sm): popover neo theo slot hay bị lọt xuống đáy và bị cắt → hiện dạng tấm cố định ở đáy màn hình.
+const isNarrowScreen = () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
 
 /**
  * SlotPopover - Popover nhỏ neo trực tiếp vào khối thời gian
@@ -60,18 +63,21 @@ function SlotPopover({
 
   const isEditMode = mode === "edit";
   const isRight = anchorPos?.placement === "right";
+  const asSheet = isNarrowScreen();
 
   return (
     <div
       ref={popoverRef}
-      style={{
-        top: `${anchorPos?.top || 0}px`,
-        left: `${anchorPos?.left || 0}px`,
-      }}
-      className="absolute z-50 w-[330px] rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none"
+      style={asSheet ? undefined : { top: `${anchorPos?.top || 0}px`, left: `${anchorPos?.left || 0}px` }}
+      className={cn(
+        "z-50 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xl animate-in fade-in duration-150 select-none",
+        asSheet
+          ? "fixed inset-x-3 bottom-3 rounded-3xl slide-in-from-bottom-4"
+          : "absolute w-[330px] zoom-in-95"
+      )}
     >
-      {/* Arrow */}
-      {isRight ? (
+      {/* Arrow (chỉ khi neo cạnh slot) */}
+      {asSheet ? null : isRight ? (
         <div
           style={{ top: `${anchorPos?.arrowTop ?? 32}px` }}
           className="absolute -left-2 h-4 w-4 -translate-y-1/2 rotate-45 border-b border-l border-slate-200/90 bg-white transition-[top] duration-150"
@@ -116,13 +122,13 @@ function SlotPopover({
         {/* START & END custom pickers */}
         <div className="grid grid-cols-2 gap-2.5">
           <TimePicker
-            label="START"
+            label={t("slotPopover.start")}
             value={startTime}
             onChange={setStartTime}
             hasError={isInvalidTime}
           />
           <TimePicker
-            label="END"
+            label={t("slotPopover.end")}
             value={endTime}
             onChange={setEndTime}
             disabledBefore={startMin}
@@ -154,36 +160,12 @@ function SlotPopover({
           <div className="min-h-[20px]" />
         )}
 
-        {/* Footer */}
-        <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-          {isEditMode ? (
-            <button
-              type="button"
-              onClick={() => onDelete(slotData.id)}
-              className="flex h-11 sm:h-8 items-center gap-1.5 px-3 sm:px-2.5 rounded-lg text-sm sm:text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors active:scale-[0.98]"
-            >
-              <Trash2 size={14} />
-              <span>{t("slotPopover.delete")}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-11 sm:h-8 px-4 sm:px-3 rounded-lg text-sm sm:text-xs font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-colors"
-            >
-              {t("slotPopover.cancel")}
-            </button>
-          )}
-
-          <Button
-            type="submit"
-            disabled={isInvalidTime}
-            className="h-9 px-4 rounded-xl text-xs font-semibold gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs cursor-pointer active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-          >
-            <Check size={14} strokeWidth={2.5} />
-            <span>{isEditMode ? t("slotPopover.apply") : t("slotPopover.apply")}</span>
-          </Button>
-        </div>
+        <SlotPopoverFooter
+          isEditMode={isEditMode}
+          isInvalidTime={isInvalidTime}
+          onDelete={() => onDelete(slotData.id)}
+          onClose={onClose}
+        />
       </form>
     </div>
   );

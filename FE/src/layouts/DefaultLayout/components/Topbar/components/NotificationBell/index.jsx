@@ -69,7 +69,7 @@ function NotificationBell({ items = [], unreadCount = 0, onOpen }) {
       </Button>
 
       {open && (
-        <div className="absolute top-full right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] origin-top-right animate-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg duration-150 fade-in-0 zoom-in-95">
+        <div className="absolute top-full right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.5rem] max-sm:w-auto max-sm:max-w-none origin-top-right animate-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg duration-150 fade-in-0 zoom-in-95">
           <div className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">
             {t("notifications.title")}
           </div>

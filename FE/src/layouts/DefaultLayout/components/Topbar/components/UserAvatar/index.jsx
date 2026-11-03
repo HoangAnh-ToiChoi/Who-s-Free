@@ -80,7 +80,7 @@ function UserAvatar({ user }) {
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full right-0 z-50 mt-2 w-64 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1 duration-150">
           {/* User info */}
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
             <div className="h-9 w-9 overflow-hidden rounded-full shrink-0 flex items-center justify-center bg-indigo-50">
