@@ -9,8 +9,9 @@ import { pool } from "./configs/db.config.js";
 
 const app = express();
 
-// Render/Vercel đứng sau reverse proxy: cần để rate limit và req.ip lấy đúng IP client
-app.set("trust proxy", 1);
+// Request production đi qua 2 proxy: Vercel rewrite (/api/*) rồi load balancer của Render.
+// Tin đúng 2 hop để req.ip (rate limit, log) là IP người dùng chứ không phải IP của Vercel.
+app.set("trust proxy", 2);
 
 // ─── Allowed Origins (comma-separated CLIENT_ORIGINS or fallback to CLIENT_ORIGIN) ─
 const allowedOrigins = (process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "http://localhost:5173")
