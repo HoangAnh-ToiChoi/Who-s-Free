@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Globe, Trash2, FileSpreadsheet, Lock, LockOpen } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { ConfirmModal } from "~/components/Modals";
+import TouchDragHint from "../TouchDragHint";
 
 /**
  * GridToolbar - Thanh công cụ điều hướng tuần (Google Calendar Navigation)
@@ -72,7 +73,7 @@ function GridToolbar({
       </div>
 
       {/* Cụm thống kê & Thao tác nhanh */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 max-w-full items-center gap-2 sm:gap-3">
         {/* Múi giờ: mobile ẩn để nhường chỗ cho lưới (góc lưới đã có biểu tượng giờ) */}
         <div className="hidden sm:flex items-center gap-1.5 text-slate-500">
           <Globe size={13} className="text-slate-400" />
@@ -136,7 +137,7 @@ function GridToolbar({
             )}
           </div>
         ) : stats.count > 0 ? (
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <span className="hidden sm:inline rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
               {t("gridToolbar.slotsSelected", {
                 count: stats.count,
@@ -159,11 +160,15 @@ function GridToolbar({
               <Trash2 size={13} className="shrink-0" />
               <span className="hidden sm:inline">{t("gridToolbar.clearSelections")}</span>
             </Button>
+            <TouchDragHint />
           </div>
         ) : (
-          <span className="text-xs text-slate-400 italic">
-            {t("gridToolbar.noSlotsSelected")}
-          </span>
+          <>
+            <span className="text-xs text-slate-400 italic [@media(pointer:coarse)]:hidden">
+              {t("gridToolbar.noSlotsSelected")}
+            </span>
+            <TouchDragHint />
+          </>
         )}
       </div>
 

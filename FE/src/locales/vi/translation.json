@@ -268,7 +268,9 @@
   "matrix": {
     "switchToLeadMode": "Chế độ Lead",
     "leadModeActive": "Đang xem: Lead",
-    "available": "Lịch trống"
+    "available": "Lịch trống",
+    "touchDragHint": "Giữ rồi kéo để chọn giờ",
+    "touchDragHintDismiss": "Ẩn gợi ý"
   },
   "leadMatrix": {
     "leaderView": "Chế độ Trưởng nhóm",
