@@ -1,18 +1,13 @@
 import { useMemo } from "react";
 
 /**
- * Slot thuộc tuần đang xem + thống kê tuần + tập ngày có slot (để dải ngày mobile hiện chấm).
+ * Slot thuộc tuần đang xem + thống kê tuần.
  * Slot cũ không có dateStr (theo dayIndex) được coi là thuộc mọi tuần.
  */
 export function useWeekSlots(slots, weekDays) {
   const currentWeekSlots = useMemo(
     () => slots.filter((s) => !s.dateStr || weekDays.some((w) => w.dateStr === s.dateStr)),
     [slots, weekDays]
-  );
-
-  const markedDates = useMemo(
-    () => new Set(currentWeekSlots.map((s) => s.dateStr).filter(Boolean)),
-    [currentWeekSlots]
   );
 
   const weekStats = useMemo(() => {
@@ -27,5 +22,5 @@ export function useWeekSlots(slots, weekDays) {
     };
   }, [currentWeekSlots]);
 
-  return { currentWeekSlots, markedDates, weekStats };
+  return { currentWeekSlots, weekStats };
 }

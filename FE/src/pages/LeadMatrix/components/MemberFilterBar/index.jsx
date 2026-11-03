@@ -22,10 +22,10 @@ function MemberFilterBar({
   };
 
   return (
-    <div className="flex flex-col gap-3 py-3 px-1 select-none">
+    <div className="flex gap-2 overflow-x-auto py-1.5 px-1 select-none sm:flex-col sm:gap-3 sm:overflow-visible sm:py-3">
       {/* Preset buttons */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1">
+      <div className="flex shrink-0 items-center gap-2 sm:flex-wrap">
+        <span className="hidden sm:inline text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1">
           {t("leadMatrix.filterLabel")}
         </span>
         {Object.entries(presetLabels).map(([key, label]) => (
@@ -46,7 +46,7 @@ function MemberFilterBar({
       </div>
 
       {/* Member chips */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex shrink-0 items-center gap-2 sm:flex-wrap">
         {allMembers.map((member) => (
           <MemberChip
             key={member.memberId || member.id}
