@@ -1,6 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { minutesToTimeString } from "~/utils/timeUtils";
+import { cn } from "~/lib/utils";
+
+// Mobile (< sm): bấm ô là popover bật ngay tại chỗ, che lưới → hiện dạng tấm cố định ở đáy màn hình.
+const isNarrowScreen = () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
 
 /**
  * CellDetailPopover - Popover hiển thị chi tiết danh sách thành viên rảnh/bận
@@ -24,21 +28,32 @@ function CellDetailPopover({
   const blockEnd = blockStart + 30;
   const timeRange = `${minutesToTimeString(blockStart)} – ${minutesToTimeString(blockEnd)}`;
 
+  const asSheet = isNarrowScreen();
+
   return (
     <div
       ref={popoverRef}
-      style={{
-        top: position ? `${position.top}px` : "50px",
-        left: position ? `${position.left}px` : "50px",
-        visibility: position ? "visible" : "hidden",
-      }}
-      className="absolute z-50 max-h-88 w-76 overflow-y-auto rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_20px_45px_-12px_rgba(15,23,42,0.18),0_4px_16px_-2px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/5 transition-all duration-150"
+      style={
+        asSheet
+          ? undefined
+          : {
+              top: position ? `${position.top}px` : "50px",
+              left: position ? `${position.left}px` : "50px",
+              visibility: position ? "visible" : "hidden",
+            }
+      }
+      className={cn(
+        "z-50 overflow-y-auto border border-slate-200/90 bg-white p-4 shadow-[0_20px_45px_-12px_rgba(15,23,42,0.18),0_4px_16px_-2px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/5",
+        asSheet
+          ? "fixed inset-x-3 bottom-3 max-h-[45dvh] rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-150"
+          : "absolute max-h-88 w-76 rounded-2xl transition-all duration-150"
+      )}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
       <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2.5">
         <div>
-          <p className="text-xs font-bold text-slate-900">
+          <p className="text-xs font-bold text-slate-900 max-sm:text-sm">
             {dayName} · {timeRange}
           </p>
           <p className="mt-0.5 text-[11px] text-slate-500">
@@ -54,7 +69,7 @@ function CellDetailPopover({
           type="button"
           onClick={onClose}
           aria-label={t("common.close", "Đóng")}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+          className="flex h-11 w-11 sm:h-9 sm:w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-400 max-sm:bg-slate-100 max-sm:text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600"
         >
           <X size={18} strokeWidth={2.2} />
         </button>
