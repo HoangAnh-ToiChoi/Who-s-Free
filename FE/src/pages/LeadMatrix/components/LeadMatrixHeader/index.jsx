@@ -29,12 +29,12 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
         <Link
           to={backUrl}
           aria-label={t("groupDetail.backToGroup")}
-          className="group flex shrink-0 items-center gap-1.5 font-semibold text-slate-500 transition-colors hover:text-red-600 max-sm:h-10 max-sm:rounded-xl max-sm:border max-sm:border-slate-200 max-sm:bg-white max-sm:px-3 max-sm:text-sm max-sm:text-slate-700 max-sm:shadow-2xs"
+          className="group flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:h-9"
         >
-          {/* Mobile: nút quay lại cao 40px, có chữ cho dễ bấm; desktop giữ breadcrumb gọn */}
+          {/* Nút quay lại có viền, cao 40px (mobile) / 36px (desktop) — ngang tầm nút "Chế độ Lead" */}
           <ArrowLeft
             size={18}
-            className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600 sm:size-3.5"
+            className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600 sm:size-4"
           />
           <span className="sm:hidden">{t("common.back")}</span>
           <span className="hidden sm:inline">
@@ -43,7 +43,7 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
         </Link>
         <span className="hidden shrink-0 text-slate-300 sm:inline">/</span>
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="truncate font-bold text-slate-900 max-sm:text-sm">
+          <span className="truncate text-sm font-bold text-slate-900">
             {session?.title || ""}
           </span>
 
