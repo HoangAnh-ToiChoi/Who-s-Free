@@ -250,7 +250,13 @@
     "invalidTime": "Giờ kết thúc phải sau giờ bắt đầu",
     "apply": "Áp dụng",
     "delete": "Xóa",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "start": "Bắt đầu",
+    "end": "Kết thúc",
+    "deleteConfirmTitle": "Xóa khung giờ này?",
+    "deleteConfirmDesc": "Khung giờ rảnh này sẽ bị xóa khỏi lịch của bạn.",
+    "deleteConfirm": "Xóa",
+    "deleteKeep": "Giữ lại"
   },
   "gridToolbar": {
     "today": "Hôm nay",

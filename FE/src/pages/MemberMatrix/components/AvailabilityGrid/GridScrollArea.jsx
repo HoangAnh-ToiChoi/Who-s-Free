@@ -27,7 +27,7 @@ function GridScrollArea({
   return (
     <div
       ref={scrollRef}
-      className="calendar-scrollbar relative mb-2 min-h-0 flex-1 snap-x snap-mandatory scroll-pl-12 overflow-auto overscroll-x-contain md:snap-none md:scroll-pl-0"
+      className="calendar-scrollbar relative isolate mb-2 min-h-0 flex-1 snap-x snap-mandatory scroll-pl-12 overflow-auto overscroll-x-contain md:snap-none md:scroll-pl-0"
     >
       <div className="relative w-[calc(48px+(100%-48px)*7/3)] md:w-auto md:min-w-[840px]">
         <GridHeader weekDays={weekDays} />
