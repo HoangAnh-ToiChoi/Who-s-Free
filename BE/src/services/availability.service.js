@@ -1,9 +1,8 @@
 import AvailabilityModel from "../models/availability.model.js";
-import SessionModel from "../models/session.model.js";
-import GroupMemberModel from "../models/group-member.model.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
+import { requireSessionMember } from "./session-access.helpers.js";
 import {
   toPublicUserAvailability,
   toPublicMemberAvailability,
@@ -45,10 +44,7 @@ class AvailabilityService {
     requireSessionAndUser(sessionId, userId);
     validateSlots(slots);
 
-    const session = await SessionModel.findById(sessionId);
-    if (!session) throw AppError.notFound("Không tìm thấy phiên", ErrorCodes.SESSION_NOT_FOUND);
-    const member = await GroupMemberModel.findMember(session.group_id, userId).catch(() => null);
-    if (!member) throw AppError.forbidden("Bạn không phải thành viên của nhóm này", ErrorCodes.FORBIDDEN);
+    const { session } = await requireSessionMember(sessionId, userId);
     if (session.status === "finalized") throw await finalizedConflict(sessionId, userId);
 
     const saved = await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
@@ -60,9 +56,10 @@ class AvailabilityService {
     return toPublicUserAvailability({ sessionId, userId, slots: saved });
   }
 
-  async getSessionAvailabilities(sessionId, roleFilter = "all") {
-    if (!sessionId) throw AppError.badRequest("sessionId là bắt buộc", ErrorCodes.SESSION_ID_REQUIRED);
-    const rows = await AvailabilityModel.findAllBySession(sessionId);
+  async getSessionAvailabilities(sessionId, userId, roleFilter = "all") {
+    requireSessionAndUser(sessionId, userId);
+    const { session } = await requireSessionMember(sessionId, userId);
+    const rows = await AvailabilityModel.findAllBySession(session.id);
 
     const byUser = new Map();
     for (const row of rows) {

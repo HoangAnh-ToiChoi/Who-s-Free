@@ -445,11 +445,16 @@ test.todo("[C6] POST /api/availabilities (write) yêu cầu authentication — 4
 
 test.todo("[C6] PATCH /api/availabilities/:id yêu cầu authentication — 401 khi không có Bearer (route chưa tồn tại — cần implement)");
 
-test("[C6] GET /api/sessions vẫn là public — không cần auth để đọc", async () => {
+test("[C6] GET /api/sessions yêu cầu authentication — 401 khi không có Bearer", async () => {
   const { response } = await request("/api/sessions");
-  // GET phải cho qua (200 hoặc error nghiệp vụ), không phải 401
-  assert.notEqual(response.status, 401,
-    "GET /api/sessions phải là public endpoint");
+  assert.equal(response.status, 401,
+    "GET /api/sessions không được lộ lịch của nhóm cho người chưa đăng nhập");
+});
+
+test("[C6] GET /api/sessions/:id yêu cầu authentication — 401 khi không có Bearer", async () => {
+  const { response } = await request("/api/sessions/some-id");
+  assert.equal(response.status, 401,
+    "GET /api/sessions/:id không được lộ lịch của nhóm cho người chưa đăng nhập");
 });
 
 test("[C6] GET /api/availabilities vẫn là public — không cần auth để đọc", async () => {
