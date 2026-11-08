@@ -29,7 +29,10 @@ class SessionService {
     if (!payload?.groupId) {
       throw AppError.badRequest("groupId là bắt buộc khi tạo phiên", ErrorCodes.GROUP_ID_REQUIRED);
     }
-    await requireGroupMember(payload.groupId, actorId);
+    const member = await requireGroupMember(payload.groupId, actorId);
+    if (!isLeadOrOwner(member)) {
+      throw AppError.forbidden("Chỉ trưởng nhóm hoặc chủ nhóm mới được tạo lịch trình", ErrorCodes.FORBIDDEN);
+    }
     const created = await SessionModel.create({ ...payload, createdBy: actorId });
     const withMetrics = await SessionModel.findById(created.id);
     return toPublicSession(withMetrics ?? created);

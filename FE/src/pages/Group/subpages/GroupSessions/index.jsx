@@ -55,6 +55,7 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
           <p className="mt-1 max-w-xs text-xs text-slate-500">
             {t("groupDetail.noSessionsDesc")}
           </p>
+          {onOpenCreateModal && (
           <Button
             onClick={onOpenCreateModal}
             className="mt-4 gap-2 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 cursor-pointer h-9 min-w-[170px] justify-center"
@@ -62,6 +63,7 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
             <Plus size={14} className="shrink-0" />
             <span>{t("groupDetail.createSession")}</span>
           </Button>
+          )}
         </div>
       )}
     </section>

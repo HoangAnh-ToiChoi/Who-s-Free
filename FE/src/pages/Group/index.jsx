@@ -10,6 +10,7 @@ import { InviteMembersModal, CreateCalendarModal } from "~/components/Modals";
 import { calculateGroupMetrics } from "~/utils";
 
 import GroupHeader from "~/pages/Group/components/GroupHeader";
+import NotMemberNotice from "~/pages/Group/components/NotMemberNotice";
 import GroupMetricsBar from "~/pages/Group/components/GroupMetricsBar";
 import GroupSessions from "~/pages/Group/subpages/GroupSessions";
 import GroupMembers from "~/pages/Group/subpages/GroupMembers";
@@ -26,6 +27,7 @@ function Group() {
     isLoading,
     isCreatingCalendar,
     error,
+    isForbidden,
     activeTab,
     setActiveTab,
     loadGroupData,
@@ -38,8 +40,11 @@ function Group() {
   // Quản lý trạng thái mở modal Tạo Calendar (dùng chung cho cả Header và Empty State của GroupSessions)
   const [isCreateCalendarOpen, setIsCreateCalendarOpen] = useState(false);
 
+  // Chỉ trưởng nhóm/chủ nhóm được tạo lịch trình (BE cũng chặn 403)
+  const canCreateCalendar = ["owner", "lead"].includes((group?.userRole || group?.role || "").toLowerCase());
+
   return (
-    <div className="mx-auto max-w-7xl px-4 pt-4 pb-24 sm:px-6 sm:py-8 lg:px-12">
+    <div className={`mx-auto max-w-7xl px-4 pt-4 ${canCreateCalendar ? "pb-24" : "pb-6"} sm:px-6 sm:py-8 lg:px-12`}>
       {/* --- Case 1: Đang tải dữ liệu lần đầu (Skeleton) --- */}
       {isLoading ? (
         <div className="space-y-8 animate-pulse">
@@ -71,6 +76,8 @@ function Group() {
             ))}
           </div>
         </div>
+      ) : isForbidden ? (
+        <NotMemberNotice />
       ) : error ? (
         /* --- Case 2: Lỗi khi tải dữ liệu --- */
         <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50/50 p-10 text-center">
@@ -106,7 +113,7 @@ function Group() {
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     onOpenInvite={() => setIsInviteModalOpen(true)}
-                    onOpenCreateCalendar={() => setIsCreateCalendarOpen(true)}
+                    onOpenCreateCalendar={canCreateCalendar ? () => setIsCreateCalendarOpen(true) : null}
                   />
                 </SlideIn>
 
@@ -117,7 +124,7 @@ function Group() {
                     <SlideIn key="calendars" index={1} direction="up">
                       <GroupSessions
                         sessions={sessions}
-                        onOpenCreateModal={() => setIsCreateCalendarOpen(true)}
+                        onOpenCreateModal={canCreateCalendar ? () => setIsCreateCalendarOpen(true) : null}
                       />
                     </SlideIn>
                     <div className="max-sm:order-first">
@@ -161,6 +168,7 @@ function Group() {
 
           {/* Mobile: nút Tạo lịch trình ghim đáy. Phải nằm NGOÀI SlideIn: transform của hiệu ứng làm
               position:fixed neo theo khối đang trượt nên nút hiện ở trên rồi mới nhảy xuống đáy. */}
+          {canCreateCalendar && (
           <Button
             onClick={() => setIsCreateCalendarOpen(true)}
             className="fixed inset-x-4 bottom-4 z-40 h-12 justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 sm:hidden"
@@ -168,6 +176,7 @@ function Group() {
             <CalendarPlus size={16} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
           </Button>
+          )}
 
           {/* Modal Tạo Lịch Trình - Dùng chung cấp Group & Empty State */}
           <CreateCalendarModal

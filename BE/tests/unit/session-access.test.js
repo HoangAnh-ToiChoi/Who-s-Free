@@ -95,9 +95,9 @@ describe("SessionService.getSessionById", () => {
 });
 
 describe("SessionService.createSession", () => {
-  test("thành viên thường được tạo", async () => {
+  test("trưởng nhóm (lead) được tạo", async () => {
     let createdBy;
-    stub(GroupMemberModel, "findMember", memberOf({ u1: "member" }));
+    stub(GroupMemberModel, "findMember", memberOf({ u1: "lead" }));
     stub(SessionModel, "create", async (p) => {
       createdBy = p.createdBy;
       return { id: "s1" };
@@ -106,6 +106,20 @@ describe("SessionService.createSession", () => {
     const result = await sessionService.createSession({ groupId: GROUP, title: "Họp" }, "u1");
     assert.equal(createdBy, "u1");
     assert.equal(result.id, "s1");
+  });
+
+  test("chủ nhóm (owner) được tạo", async () => {
+    stub(GroupMemberModel, "findMember", memberOf({ u1: "owner" }));
+    stub(SessionModel, "create", async () => ({ id: "s1" }));
+    stub(SessionModel, "findById", async () => session({ created_by: "u1" }));
+    const result = await sessionService.createSession({ groupId: GROUP, title: "Họp" }, "u1");
+    assert.equal(result.id, "s1");
+  });
+
+  test("thành viên thường → 403, không tạo", async () => {
+    stub(GroupMemberModel, "findMember", memberOf({ u1: "member" }));
+    stub(SessionModel, "create", noCall("create"));
+    await rejectsWith(sessionService.createSession({ groupId: GROUP, title: "Họp" }, "u1"), 403);
   });
 
   test("không phải thành viên → 403, không tạo", async () => {

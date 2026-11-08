@@ -167,6 +167,7 @@ function GroupHeader({
             </Button>
           )}
 
+          {onOpenCreateCalendar && (
           <Button
             onClick={onOpenCreateCalendar}
             className="hidden h-9.5 min-w-[155px] justify-center gap-2 bg-indigo-600 px-4 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer text-xs rounded-xl whitespace-nowrap sm:inline-flex"
@@ -174,6 +175,7 @@ function GroupHeader({
             <CalendarPlus size={14} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
           </Button>
+          )}
         </div>
       </div>
 

@@ -78,6 +78,10 @@ class GroupService {
     if (!detail) {
       throw AppError.notFound("Không tìm thấy thông tin nhóm", "GROUP_NOT_FOUND");
     }
+    // findDetailByIdOrSlug trả user_role = 'guest' khi userId không có trong group_members
+    if (detail.user_role === "guest") {
+      throw AppError.forbidden("Bạn không phải thành viên của nhóm này", "FORBIDDEN");
+    }
 
     return toPublicGroup(detail);
   }
