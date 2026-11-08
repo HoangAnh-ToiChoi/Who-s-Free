@@ -110,6 +110,7 @@ export async function backendRequest(
     headers: customHeaders = {},
     credentials = "omit",
     responseType = "json",
+    keepalive = false,
     _retried = false,
   } = {}
 ) {
@@ -133,6 +134,8 @@ export async function backendRequest(
     headers,
     credentials,
     signal,
+    // keepalive: request vẫn được gửi khi trang đang đóng/rời đi (dùng cho lần lưu lịch cuối)
+    keepalive,
     body:
       body === undefined || isFormData || typeof body === "string"
         ? body

@@ -60,13 +60,23 @@ export function useAvailabilitySync({ sessionId, memberId, cacheKey, onServerSlo
     flushRef.current = flush;
   }, [flush]);
 
-  useEffect(
-    () => () => {
+  // Rời trang (Back, đổi chế độ, đóng tab) khi còn bản chưa gửi: gửi ngay với keepalive thay vì huỷ,
+  // nếu không slot vừa kéo sẽ mất và lần sau server ghi đè bản trong cache.
+  useEffect(() => {
+    const flushOnLeave = () => {
       clearTimeout(debounceRef.current);
       clearTimeout(retryRef.current);
-    },
-    []
-  );
+      const pending = pendingRef.current;
+      if (pending === null) return;
+      pendingRef.current = null;
+      calendarService.saveMemberAvailability(sessionId, memberId, pending, { keepalive: true }).catch(() => {});
+    };
+    window.addEventListener("pagehide", flushOnLeave);
+    return () => {
+      window.removeEventListener("pagehide", flushOnLeave);
+      flushOnLeave();
+    };
+  }, [sessionId, memberId]);
 
   const queueSave = useCallback(
     (slots) => {
