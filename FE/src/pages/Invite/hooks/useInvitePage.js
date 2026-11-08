@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "~/hooks";
 import { invitationService } from "~/service/invitationService/invitationService";
 import { groupService } from "~/service/groupService/groupService";
+import { getAcceptErrorMessage } from "./acceptErrorMessage";
 
 /**
  * useInvitePage - Custom Domain Hook quản lý logic tải và chấp nhận lời mời
@@ -13,6 +14,8 @@ export function useInvitePage() {
   const { token } = useParams();
   const navigate = useNavigate();
   const { user, isLoading: isAuthLoading, logout } = useAuth();
+  // User seed từ localStorage không có email — chỉ so khớp email sau khi /auth/me trả về
+  const isAuthReady = !isAuthLoading;
   const userId = user?.id;
   const userEmail = user?.email;
 
@@ -52,7 +55,6 @@ export function useInvitePage() {
         }
       }
     } catch (err) {
-      console.error("Failed to load invitation preview:", err);
       setError(
         err?.message ||
           t("invitePage.notFoundMessage", {
@@ -65,6 +67,7 @@ export function useInvitePage() {
   }, [token, userId, userEmail, t]);
 
   useEffect(() => {
+    if (!isAuthReady) return;
     let isActive = true;
     queueMicrotask(() => {
       if (isActive) loadPreview();
@@ -72,7 +75,7 @@ export function useInvitePage() {
     return () => {
       isActive = false;
     };
-  }, [loadPreview]);
+  }, [loadPreview, isAuthReady]);
 
   const handleAccept = async () => {
     if (!token || isAccepting) return;
@@ -84,30 +87,10 @@ export function useInvitePage() {
       setAcceptedData(result);
       setAcceptSuccess(true);
     } catch (err) {
-      console.error("Failed to accept invitation:", err);
-      const errCode = err?.code;
-      if (errCode === "EMAIL_MISMATCH") {
-        setError(t("invitePage.errorMismatchDetail", {
-          defaultValue: "Email tài khoản hiện tại không khớp với email được mời.",
-        }));
-      } else if (errCode === "INVITATION_EXPIRED") {
-        setError(t("invitePage.errorExpired", {
-          defaultValue: "Lời mời đã hết hạn sau 24 giờ. Vui lòng yêu cầu lời mời mới.",
-        }));
-      } else if (errCode === "INVITATION_REVOKED") {
-        setError(t("invitePage.errorRevoked", {
-          defaultValue: "Lời mời đã bị thu hồi bởi quản trị viên nhóm.",
-        }));
-      } else if (errCode === "ALREADY_MEMBER") {
+      if (err?.code === "ALREADY_MEMBER") {
         setIsAlreadyMember(true);
-      } else if (errCode === "GROUP_CAPACITY_FULL") {
-        setError(t("invitePage.errorGroupFull", {
-          defaultValue: "Nhóm đã đạt số lượng thành viên tối đa.",
-        }));
       } else {
-        setError(err?.message || t("invitePage.errorAcceptFailed", {
-          defaultValue: "Không thể chấp nhận lời mời lúc này. Vui lòng thử lại sau.",
-        }));
+        setError(getAcceptErrorMessage(err, t));
       }
     } finally {
       setIsAccepting(false);
@@ -124,8 +107,9 @@ export function useInvitePage() {
 
   const currentEmail = user?.email?.toLowerCase();
   const invitedEmail = preview?.email?.toLowerCase();
-  const isEmailMatching = Boolean(user && currentEmail && invitedEmail && currentEmail === invitedEmail);
-  const isEmailMismatch = Boolean(user && currentEmail && invitedEmail && currentEmail !== invitedEmail);
+  const canCompareEmail = Boolean(isAuthReady && user && currentEmail && invitedEmail);
+  const isEmailMatching = canCompareEmail && currentEmail === invitedEmail;
+  const isEmailMismatch = canCompareEmail && currentEmail !== invitedEmail;
   const isInvalid =
     preview?.isExpired ||
     preview?.isRevoked ||
@@ -135,7 +119,7 @@ export function useInvitePage() {
 
   // Đăng nhập đúng email được mời xong thì tự chấp nhận lời mời (chỉ thử một lần)
   const hasAutoAccepted = useRef(false);
-  const canAutoAccept = isEmailMatching && !isInvalid && !acceptSuccess && !isLoading && !isAuthLoading;
+  const canAutoAccept = isEmailMatching && !isInvalid && !acceptSuccess && !isLoading;
   useEffect(() => {
     if (!canAutoAccept || hasAutoAccepted.current) return;
     hasAutoAccepted.current = true;
