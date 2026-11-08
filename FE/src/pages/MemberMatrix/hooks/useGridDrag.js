@@ -1,10 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { yOffsetToMinutes, calculateSlotGeometry } from "~/utils/timeUtils";
-import {
-  isMinuteInAnySlot,
-  clampDragBoundary,
-  hasSlotCollision,
-} from "~/utils/slotCollision";
+import { yOffsetToMinutes } from "~/utils/timeUtils";
+import { isMinuteInAnySlot } from "~/utils/slotCollision";
+import { computeDragUpdate, buildDragCompletion } from "./gridDragMath";
 
 /**
  * Hook quản lý riêng biệt cơ chế Kéo Thả (Drag to Select) thời gian thực trên lưới
@@ -68,69 +65,9 @@ export function useGridDrag({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
       rafRef.current = requestAnimationFrame(() => {
-        // 1. Xác định cột ngày hiện tại mà chuột đang trỏ tới (Hỗ trợ kéo ngang qua nhiều ngày)
-        let newCurrentDay = dragState.originDayIndex;
-        if (columnRefs.current && columnRefs.current.length > 0) {
-          const firstCol = columnRefs.current[0];
-          const lastCol = columnRefs.current[columnRefs.current.length - 1];
-
-          if (firstCol && e.clientX < firstCol.getBoundingClientRect().left) {
-            newCurrentDay = 0;
-          } else if (lastCol && e.clientX > lastCol.getBoundingClientRect().right) {
-            newCurrentDay = columnRefs.current.length - 1;
-          } else {
-            for (let i = 0; i < columnRefs.current.length; i++) {
-              const el = columnRefs.current[i];
-              if (!el) continue;
-              const cRect = el.getBoundingClientRect();
-              if (e.clientX >= cRect.left && e.clientX <= cRect.right) {
-                newCurrentDay = i;
-                break;
-              }
-            }
-          }
-        }
-
-        // 2. Tính số phút dựa trên trục Y của cột mục tiêu
-        const targetCol =
-          columnRefs.current[newCurrentDay] ||
-          columnRefs.current[dragState.originDayIndex];
-        if (!targetCol) return;
-
-        const rect = targetCol.getBoundingClientRect();
-        const offsetY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
-        const hoveredMinutes = yOffsetToMinutes(offsetY);
-
-        // 3. Cho phép kéo lên hoặc kéo xuống linh hoạt kèm clamp va chạm
-        const rawNextMinutes =
-          hoveredMinutes >= dragState.originMinutes
-            ? hoveredMinutes + 30
-            : hoveredMinutes;
-
-        // Tính các ngày đang được chọn
-        const minDay = Math.min(dragState.originDayIndex, newCurrentDay);
-        const maxDay = Math.max(dragState.originDayIndex, newCurrentDay);
-        const activeDays = [];
-        for (let d = minDay; d <= maxDay; d++) activeDays.push(d);
-
-        // Thuật toán: Clamp phạm vi kéo không cho vượt qua mép slot đã có
-        const clampedMinutes = clampDragBoundary(
-          dragState.originMinutes,
-          rawNextMinutes,
-          activeDays,
-          existingSlots
-        );
-
-        setDragState((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            currentDayIndex: newCurrentDay,
-            currentMinutes: clampedMinutes,
-            cursorX: e.clientX,
-            cursorY: e.clientY,
-          };
-        });
+        const next = computeDragUpdate(e, dragState, columnRefs.current || [], existingSlots);
+        if (!next) return;
+        setDragState((prev) => (prev ? { ...prev, ...next, cursorX: e.clientX, cursorY: e.clientY } : null));
       });
     };
 
@@ -143,60 +80,8 @@ export function useGridDrag({
 
       if (!dragState) return;
 
-      const startDay = Math.min(dragState.originDayIndex, dragState.currentDayIndex);
-      const endDay = Math.max(dragState.originDayIndex, dragState.currentDayIndex);
-
-      const activeColEl =
-        columnRefs.current[dragState.currentDayIndex] ||
-        columnRefs.current[dragState.originDayIndex];
-      const containerEl = containerRef.current;
-
-      if (!activeColEl || !containerEl) {
-        setDragState(null);
-        return;
-      }
-
-      const rawStart = dragState.originMinutes;
-      const rawEnd = dragState.currentMinutes;
-      const start = Math.min(rawStart, rawEnd);
-      const end = Math.max(rawStart, rawEnd);
-      const finalEnd = end === start ? start + 30 : end;
-
-      const dayIndices = [];
-      for (let i = startDay; i <= endDay; i++) {
-        dayIndices.push(i);
-      }
-
-      // Thuật toán: Kiểm tra lần cuối, nếu khoảng kéo giao thoa với slot đã có -> Hủy bỏ
-      if (hasSlotCollision(dayIndices, start, finalEnd, existingSlots)) {
-        setDragState(null);
-        return;
-      }
-
-      const { top, height } = calculateSlotGeometry(start, finalEnd);
-      const colRect = activeColEl.getBoundingClientRect();
-
-      // Vùng anchor để neo popover tại cột kéo kết thúc
-      const anchorRect = {
-        top: colRect.top + top,
-        left: colRect.left,
-        right: colRect.right,
-        bottom: colRect.top + top + height,
-        width: colRect.width,
-        height,
-      };
-
-      onDragComplete?.({
-        startDayIndex: startDay,
-        endDayIndex: endDay,
-        dayIndices,
-        dayIndex: dragState.currentDayIndex,
-        startMinutes: start,
-        endMinutes: finalEnd,
-        anchorRect,
-        containerRect: containerEl.getBoundingClientRect(),
-      });
-
+      const result = buildDragCompletion(dragState, columnRefs.current || [], containerRef.current, existingSlots);
+      if (result) onDragComplete?.(result);
       setDragState(null);
     };
 

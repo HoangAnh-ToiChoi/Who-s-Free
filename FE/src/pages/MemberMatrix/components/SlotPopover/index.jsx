@@ -1,3 +1,4 @@
+import BodyPortal from "~/components/BodyPortal";
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { X, AlertCircle } from "lucide-react";
@@ -65,7 +66,7 @@ function SlotPopover({
   const isRight = anchorPos?.placement === "right";
   const asSheet = isNarrowScreen();
 
-  return (
+  const content = (
     <div
       ref={popoverRef}
       style={asSheet ? undefined : { top: `${anchorPos?.top || 0}px`, left: `${anchorPos?.left || 0}px` }}
@@ -168,7 +169,8 @@ function SlotPopover({
         />
       </form>
     </div>
-  );
+);
+  return asSheet ? <BodyPortal>{content}</BodyPortal> : content;
 }
 
 export default SlotPopover;

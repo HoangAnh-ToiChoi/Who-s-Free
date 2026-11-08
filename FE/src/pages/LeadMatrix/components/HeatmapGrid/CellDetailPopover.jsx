@@ -1,3 +1,4 @@
+import BodyPortal from "~/components/BodyPortal";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { minutesToTimeString } from "~/utils/timeUtils";
@@ -30,7 +31,7 @@ function CellDetailPopover({
 
   const asSheet = isNarrowScreen();
 
-  return (
+  const content = (
     <div
       ref={popoverRef}
       style={
@@ -126,7 +127,8 @@ function CellDetailPopover({
         </p>
       )}
     </div>
-  );
+);
+  return asSheet ? <BodyPortal>{content}</BodyPortal> : content;
 }
 
 export default CellDetailPopover;

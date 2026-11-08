@@ -11,6 +11,7 @@ import { calculateGroupMetrics } from "~/utils";
 
 import GroupHeader from "~/pages/Group/components/GroupHeader";
 import NotMemberNotice from "~/pages/Group/components/NotMemberNotice";
+import BodyPortal from "~/components/BodyPortal";
 import GroupMetricsBar from "~/pages/Group/components/GroupMetricsBar";
 import GroupSessions from "~/pages/Group/subpages/GroupSessions";
 import GroupMembers from "~/pages/Group/subpages/GroupMembers";
@@ -169,6 +170,7 @@ function Group() {
           {/* Mobile: nút Tạo lịch trình ghim đáy. Phải nằm NGOÀI SlideIn: transform của hiệu ứng làm
               position:fixed neo theo khối đang trượt nên nút hiện ở trên rồi mới nhảy xuống đáy. */}
           {canCreateCalendar && (
+          <BodyPortal>
           <Button
             onClick={() => setIsCreateCalendarOpen(true)}
             className="fixed inset-x-4 bottom-4 z-40 h-12 justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-medium text-white shadow-lg hover:bg-indigo-700 sm:hidden"
@@ -176,6 +178,7 @@ function Group() {
             <CalendarPlus size={16} className="shrink-0" />
             <span>{t("groupDetail.createCalendar")}</span>
           </Button>
+          </BodyPortal>
           )}
 
           {/* Modal Tạo Lịch Trình - Dùng chung cấp Group & Empty State */}

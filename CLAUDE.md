@@ -125,7 +125,7 @@ Mỗi function service mới → unit test tương ứng. Coverage tối thiểu
 
 - In-memory cache: group detail 30s/groupId, user profile 60s/userId — dùng Map + TTL.
 - Chỉ thêm cache khi có bằng chứng query chậm (> 200ms).
-- pg connection pool: max 10 (default đủ cho scale này).
+- pg connection pool: max 20 (`BE/src/configs/db.config.js`; đã test 100 người lưu lịch đồng thời ổn — giảm xuống sẽ làm hàng chờ dài gấp đôi).
 
 ---
 

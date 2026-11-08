@@ -1,3 +1,4 @@
+import BodyPortal from "~/components/BodyPortal";
 import { Clock } from "lucide-react";
 import { minutesToTimeString, formatDuration } from "~/utils/timeUtils";
 import { cn } from "~/lib/utils";
@@ -28,7 +29,7 @@ function DragRangeIndicator({ dragPreview, weekDays }) {
   const dayName = (dayIndex) => weekDays.find((d) => d.dayIndex === dayIndex)?.dayName || "";
   const { startDayIndex, endDayIndex, startMinutes, endMinutes, isTouch } = dragPreview;
 
-  return (
+  const content = (
     <div
       style={indicatorPosition(dragPreview)}
       className={cn(
@@ -50,7 +51,8 @@ function DragRangeIndicator({ dragPreview, weekDays }) {
         {formatDuration(startMinutes, endMinutes)}
       </span>
     </div>
-  );
+);
+  return <BodyPortal>{content}</BodyPortal>;
 }
 
 export default DragRangeIndicator;

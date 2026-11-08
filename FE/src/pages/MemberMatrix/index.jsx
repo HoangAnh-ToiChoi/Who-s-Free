@@ -6,6 +6,7 @@ import AvailabilityGrid from "./components/AvailabilityGrid";
 import { LeadMatrixContent } from "~/pages/LeadMatrix";
 import MatrixGate from "~/components/MatrixGate";
 import SaveStatusIndicator from "./components/SaveStatusIndicator";
+import BodyPortal from "~/components/BodyPortal";
 import { useSessionFinalizeSync } from "~/hooks";
 
 /**
@@ -33,9 +34,11 @@ function MatrixContent() {
       <>
         <LeadMatrixContent readOnly={!isLead} />
         {lostLastEdit && (
-          <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md bg-white shadow-lg rounded-xl">
-            <SaveStatusIndicator status="locked" />
-          </div>
+          <BodyPortal>
+            <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md bg-white shadow-lg rounded-xl">
+              <SaveStatusIndicator status="locked" />
+            </div>
+          </BodyPortal>
         )}
       </>
     );
