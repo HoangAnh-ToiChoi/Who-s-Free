@@ -19,7 +19,7 @@ class AvailabilityController extends BaseController {
   getSessionAvailabilities = asyncHandler(async (req, res) => {
     const { id: sessionId } = req.params;
     const { roleFilter = "all" } = req.query;
-    const data = await availabilityService.getSessionAvailabilities(sessionId, roleFilter);
+    const data = await availabilityService.getSessionAvailabilities(sessionId, req.user?.id, roleFilter);
     return this.sendSuccess(res, data, "Lấy danh sách lịch rảnh của nhóm thành công");
   });
 }

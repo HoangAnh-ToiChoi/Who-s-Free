@@ -56,5 +56,9 @@ export function setCachedSlots(cacheKey, memberId, slots) {
 }
 
 export function clearAllAvailabilityCache() {
-  localStorage.removeItem(CACHE_KEY);
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch {
+    // localStorage không truy cập được — không có gì để dọn
+  }
 }

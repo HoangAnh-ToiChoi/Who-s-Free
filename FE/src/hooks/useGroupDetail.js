@@ -14,6 +14,8 @@ export function useGroupDetail(groupId = "ws-1") {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingCalendar, setIsCreatingCalendar] = useState(false);
   const [error, setError] = useState(null);
+  // BE trả 403 khi người xem không phải thành viên nhóm → trang hiện thông báo riêng, không phải lỗi tải
+  const [isForbidden, setIsForbidden] = useState(false);
   const [activeTab, setActiveTab] = useState("calendars");
 
   /**
@@ -23,11 +25,9 @@ export function useGroupDetail(groupId = "ws-1") {
     try {
       setIsLoading(true);
       setError(null);
+      setIsForbidden(false);
 
-      const groupRes = await groupService.getGroupById(groupId).catch(() => null);
-      if (!groupRes) {
-        throw new Error("Group not found");
-      }
+      const groupRes = await groupService.getGroupById(groupId);
 
       const actualGroupId = groupRes.id;
       const actualGroupSlug = groupRes.slug || groupRes.id;
@@ -40,8 +40,8 @@ export function useGroupDetail(groupId = "ws-1") {
       setGroup(groupRes);
       setSessions(sessionsRes);
     } catch (err) {
-      console.error("Failed to load group details:", err);
-      setError(err?.message || "Failed to load group calendar sessions.");
+      if (err?.status === 403) setIsForbidden(true);
+      else setError(err?.message || "Failed to load group calendar sessions.");
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +133,7 @@ export function useGroupDetail(groupId = "ws-1") {
     isLoading,
     isCreatingCalendar,
     error,
+    isForbidden,
     activeTab,
     setActiveTab,
     loadGroupData,

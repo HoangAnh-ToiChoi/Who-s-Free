@@ -4,89 +4,45 @@
  * Tuân thủ Single Responsibility Principle (SRP) & AUTH_REFACTOR_PLAN:
  * - Chỉ chịu trách nhiệm kết nối API xác thực với Backend (/api/auth/*)
  * - Quản lý Access Token trong Memory qua tokenManager (Zero-XSS)
- * - Quản lý Session Profile cục bộ (localStorage currentUser phục vụ Frame 0)
+ * - Session Profile cục bộ (rút gọn) nằm ở authStorage.js; quên mật khẩu ở passwordResetService.js
  * - Refresh Token được lưu trữ và bảo vệ hoàn toàn qua HttpOnly Cookie phía BE.
  */
 
 import tokenManager from "~/utils/tokenManager";
-import { backendRequest, requestTokenRefresh } from "~/utils/backendApi";
-import { clearAllAvailabilityCache } from "~/utils/availabilityCache";
+import { requestTokenRefresh } from "~/utils/backendApi";
+import { formatUser } from "~/utils/authUser";
+import { normalizeEmail, sendAuthRequest } from "./authRequest";
+import { getStoredUser, setStoredUser, clearStoredUserData } from "./authStorage";
+import { createPasswordResetOtp, verifyOtp, resetPassword } from "./passwordResetService";
 
-const STORAGE_KEYS = {
-  CURRENT_USER: "currentUser",
-};
+export { getStoredUser, setStoredUser };
 
 let inFlightGetMe = null;
 let authStateVersion = 0;
-
-function normalizeEmail(email) {
-  return (email || "").trim().toLowerCase();
-}
-
-function formatUser(raw) {
-  if (!raw) return null;
-  const fullName =
-    raw.fullName ||
-    raw.name ||
-    raw.full_name ||
-    (raw.email ? raw.email.split("@")[0] : "Thành viên");
-
-  return {
-    id: raw.id || `usr-${Date.now()}`,
-    name: fullName,
-    fullName,
-    email: (raw.email || "").toLowerCase(),
-    avatarUrl: raw.avatarUrl || raw.avatar_url || "",
-    role: raw.role || "Member",
-    createdAt: raw.createdAt || raw.created_at || new Date().toISOString(),
-  };
-}
-
-// ─── Local Storage Session Profile Helpers (Zero-Wait State Transfer) ────────
-
-export function getStoredUser() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function setStoredUser(user) {
-  try {
-    if (user) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-    }
-  } catch (err) {
-    console.warn("Could not save user to localStorage:", err);
-  }
-}
 
 export function clearStoredAuth() {
   authStateVersion += 1;
   inFlightGetMe = null;
   tokenManager.clearAccessToken();
-  // Dọn sạch user cache và bất kỳ token cũ nào còn sót lại
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("whosfree_auth_users");
-  localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-  clearAllAvailabilityCache();
+  clearStoredUserData();
 }
 
-// ─── API Client Wrapper ───────────────────────────────────────────────────────
+function startSession(res, userData) {
+  const accessToken = res?.accessToken;
+  if (accessToken) tokenManager.setAccessToken(accessToken);
 
-async function sendAuthRequest(endpoint, options = {}) {
-  return backendRequest(endpoint, {
-    ...options,
-    credentials: options.credentials || "omit",
+  const user = formatUser(userData);
+  setStoredUser(user);
+  return { user, accessToken };
+}
+
+function postWithCookie(endpoint, body) {
+  return sendAuthRequest(endpoint, {
+    method: "POST",
+    credentials: "include",
+    body: JSON.stringify(body),
   });
 }
-
-// ─── Authentication Operations ────────────────────────────────────────────────
 
 /**
  * Đăng ký tài khoản người dùng mới
@@ -94,27 +50,12 @@ async function sendAuthRequest(endpoint, options = {}) {
  */
 export async function register({ fullName, email, password }) {
   const normalizedEmail = normalizeEmail(email);
-
-  const res = await sendAuthRequest("/auth/register", {
-    method: "POST",
-    credentials: "include",
-    body: JSON.stringify({
-      fullName: fullName.trim(),
-      email: normalizedEmail,
-      password,
-    }),
+  const res = await postWithCookie("/auth/register", {
+    fullName: fullName.trim(),
+    email: normalizedEmail,
+    password,
   });
-
-  const accessToken = res?.accessToken;
-  if (accessToken) {
-    tokenManager.setAccessToken(accessToken);
-  }
-
-  const userData = res?.user || res || { fullName, email: normalizedEmail };
-  const user = formatUser(userData);
-
-  setStoredUser(user);
-  return { user, accessToken };
+  return startSession(res, res?.user || res || { fullName, email: normalizedEmail });
 }
 
 /**
@@ -122,18 +63,11 @@ export async function register({ fullName, email, password }) {
  * @param {{ token: string, fullName: string, password: string }} payload
  */
 export async function registerWithInvitation({ token, fullName, password }) {
-  const res = await sendAuthRequest(`/invitations/${encodeURIComponent(token)}/register`, {
-    method: "POST",
-    credentials: "include",
-    body: JSON.stringify({ fullName: fullName.trim(), password }),
+  const res = await postWithCookie(`/invitations/${encodeURIComponent(token)}/register`, {
+    fullName: fullName.trim(),
+    password,
   });
-
-  const accessToken = res?.accessToken;
-  if (accessToken) tokenManager.setAccessToken(accessToken);
-
-  const user = formatUser(res?.user || res);
-  setStoredUser(user);
-  return { user, accessToken };
+  return startSession(res, res?.user || res);
 }
 
 /**
@@ -141,23 +75,8 @@ export async function registerWithInvitation({ token, fullName, password }) {
  * @param {{ email: string, password: string }} payload
  */
 export async function login({ email, password }) {
-  const normalizedEmail = normalizeEmail(email);
-
-  const res = await sendAuthRequest("/auth/login", {
-    method: "POST",
-    credentials: "include",
-    body: JSON.stringify({ email: normalizedEmail, password }),
-  });
-
-  const accessToken = res?.accessToken;
-  if (accessToken) {
-    tokenManager.setAccessToken(accessToken);
-  }
-
-  const user = formatUser(res?.user);
-  setStoredUser(user);
-
-  return { user, accessToken };
+  const res = await postWithCookie("/auth/login", { email: normalizeEmail(email), password });
+  return startSession(res, res?.user);
 }
 
 /**
@@ -166,26 +85,8 @@ export async function login({ email, password }) {
  * @param {{ accessToken: string }} payload
  */
 export async function syncGoogleSession({ accessToken }) {
-  try {
-    const res = await sendAuthRequest("/auth/google/session", {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({ accessToken }),
-    });
-
-    const newAccessToken = res?.accessToken;
-    if (newAccessToken) {
-      tokenManager.setAccessToken(newAccessToken);
-    }
-
-    const user = formatUser(res?.user);
-    setStoredUser(user);
-
-    return { user, accessToken: newAccessToken };
-  } catch (err) {
-    console.error("Lỗi đồng bộ session Google:", err);
-    throw err;
-  }
+  const res = await postWithCookie("/auth/google/session", { accessToken });
+  return startSession(res, res?.user);
 }
 
 /**
@@ -270,53 +171,6 @@ export async function getMe() {
 
   inFlightGetMe = request;
   return request;
-}
-
-/**
- * Tạo và gửi mã OTP 6 số để khôi phục mật khẩu
- * @param {string} email
- */
-export async function createPasswordResetOtp(email) {
-  const normalizedEmail = normalizeEmail(email);
-  const res = await sendAuthRequest("/auth/forgot-password", {
-    method: "POST",
-    body: JSON.stringify({ email: normalizedEmail }),
-  });
-
-  return res?.otp || null;
-}
-
-/**
- * Xác thực mã OTP 6 số
- * @param {{ email: string, otp: string }} payload
- */
-export async function verifyOtp({ email, otp }) {
-  const normalizedEmail = normalizeEmail(email);
-  const res = await sendAuthRequest("/auth/verify-otp", {
-    method: "POST",
-    body: JSON.stringify({ email: normalizedEmail, otp: String(otp).trim() }),
-  });
-
-  return res?.resetToken;
-}
-
-/**
- * Đặt lại mật khẩu mới
- * @param {{ email: string, resetToken: string, password: string, confirmPassword: string }} payload
- */
-export async function resetPassword({ email, resetToken, password, confirmPassword }) {
-  const normalizedEmail = normalizeEmail(email);
-  const res = await sendAuthRequest("/auth/reset-password", {
-    method: "POST",
-    body: JSON.stringify({
-      email: normalizedEmail,
-      resetToken,
-      password,
-      confirmPassword,
-    }),
-  });
-
-  return res?.message || "SUCCESS";
 }
 
 export const authService = {

@@ -7,8 +7,8 @@ import { availabilityWriteRateLimit } from "../middlewares/rateLimit.middleware.
 const router = Router();
 
 // Session CRUD
-router.get("/", sessionController.getSessions);
-router.get("/:id", sessionController.getSessionById);
+router.get("/", AuthMiddleware.authenticate, sessionController.getSessions);
+router.get("/:id", AuthMiddleware.authenticate, sessionController.getSessionById);
 router.post("/", AuthMiddleware.authenticate, sessionController.createSession);
 router.post("/:id/finalize", AuthMiddleware.authenticate, sessionController.finalizeSession);
 router.post("/:id/unfinalize", AuthMiddleware.authenticate, sessionController.unfinalizeSession);
