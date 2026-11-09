@@ -17,6 +17,7 @@ export function useAvailabilitySync({ sessionId, memberId, cacheKey, onServerSlo
   const debounceRef = useRef(null);
   const retryRef = useRef(null);
   const flushRef = useRef(null);
+  const inFlightRef = useRef(false);
   const callbacksRef = useRef({ onServerSlots, onLocked });
   useEffect(() => {
     callbacksRef.current = { onServerSlots, onLocked };
@@ -24,16 +25,22 @@ export function useAvailabilitySync({ sessionId, memberId, cacheKey, onServerSlo
 
   const flush = useCallback(async () => {
     clearTimeout(retryRef.current);
+    // Mỗi lúc chỉ MỘT request lưu: hai request song song có thể tới server sai thứ tự và bản cũ đè bản mới.
+    // Sửa tiếp trong lúc đang gửi → request đang chạy xong sẽ tự gửi bản mới nhất.
+    if (inFlightRef.current) return;
     const sent = pendingRef.current;
     if (sent === null) return;
+    inFlightRef.current = true;
     setStatus("saving");
+    let sendLatestNext = false;
     try {
       await calendarService.saveMemberAvailability(sessionId, memberId, sent);
       attemptRef.current = 0;
-      // Trong lúc gửi người dùng có thể đã sửa tiếp → bản mới vẫn đang chờ, chưa tính là "đã lưu"
       if (pendingRef.current === sent) {
         pendingRef.current = null;
         setStatus("saved");
+      } else {
+        sendLatestNext = true;
       }
     } catch (error) {
       const kind = classifySaveError(error);
@@ -54,7 +61,11 @@ export function useAvailabilitySync({ sessionId, memberId, cacheKey, onServerSlo
       }
       attemptRef.current = 0;
       setStatus("failed");
+      sendLatestNext = pendingRef.current !== sent;
+    } finally {
+      inFlightRef.current = false;
     }
+    if (sendLatestNext) flushRef.current();
   }, [sessionId, memberId, cacheKey]);
   useEffect(() => {
     flushRef.current = flush;

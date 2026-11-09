@@ -39,3 +39,21 @@ export function promoteDrafts(draftSlots, slotData, now = Date.now()) {
   }
   return { ...slotData, id: `slot-${now}` };
 }
+
+/**
+ * Khung giờ đang chỉnh trong popover có đè lên slot đã lưu khác cùng ngày không (so theo dateStr để
+ * không lẫn tuần). Slot mới kéo nhiều ngày → kiểm tra mọi ngày nháp; slot đang sửa bỏ qua chính nó.
+ */
+export function popoverOverlaps({ slots, draftSlots, editingSlot, startMinutes, endMinutes }) {
+  if (!editingSlot) return false;
+  const isDraft = draftSlots.some((d) => d.id === editingSlot.id);
+  const targets = isDraft ? draftSlots : [editingSlot];
+  return targets.some((target) =>
+    slots.some(
+      (s) =>
+        s.id !== editingSlot.id &&
+        s.dateStr === target.dateStr &&
+        Math.max(startMinutes, s.startMinutes) < Math.min(endMinutes, s.endMinutes)
+    )
+  );
+}

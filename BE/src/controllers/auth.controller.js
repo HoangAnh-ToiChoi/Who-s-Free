@@ -154,7 +154,9 @@ class AuthController extends BaseController {
         "Token đã được làm mới"
       );
     } catch (err) {
-      TokenService.clearAuthCookies(res);
+      // Hai tab cùng làm mới: tab thua nhận INVALID_REFRESH_TOKEN. Không xoá cookie, vì nếu phản hồi này
+      // về sau phản hồi của tab thắng thì sẽ xoá mất refresh token MỚI và đăng xuất cả hai tab.
+      if (err?.errorCode !== "INVALID_REFRESH_TOKEN") TokenService.clearAuthCookies(res);
       throw err;
     }
   });

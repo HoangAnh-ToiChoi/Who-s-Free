@@ -4,7 +4,7 @@ import GridScrollArea from "./GridScrollArea";
 import DragRangeIndicator from "./DragRangeIndicator";
 import SlotPopover from "../SlotPopover";
 import SaveStatusIndicator from "../SaveStatusIndicator";
-import { buildDraftSlots, promoteDrafts } from "./draftSlots";
+import { buildDraftSlots, promoteDrafts, popoverOverlaps } from "./draftSlots";
 
 import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
 import { useAvailabilitySlots } from "../../hooks/useAvailabilitySlots";
@@ -145,6 +145,8 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
           mode={popover.mode}
           slotData={popover.slotData}
           anchorPos={popover.anchorPos}
+          hasConflict={(startMinutes, endMinutes) =>
+            popoverOverlaps({ slots, draftSlots, editingSlot: popover.slotData, startMinutes, endMinutes })}
           onSave={(slotData) => {
             // "new": lúc bấm Áp dụng MỚI chính thức lưu draft vào slots & DB; "edit": lưu slot đã có
             saveSlot(popover.mode === "new" ? promoteDrafts(draftSlots, slotData) : slotData);

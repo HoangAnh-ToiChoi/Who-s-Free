@@ -3,13 +3,11 @@ import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import { requireSessionMember } from "./session-access.helpers.js";
+import { getSlotsValidationError } from "../validations/availability.validation.js";
 import {
   toPublicUserAvailability,
   toPublicMemberAvailability,
 } from "../utils/mappers/availability.mapper.js";
-
-// 7 ngày × 48 slot 30 phút = 336 slots tối đa
-const MAX_SLOTS = 336;
 
 function requireSessionAndUser(sessionId, userId) {
   if (!sessionId) throw AppError.badRequest("sessionId là bắt buộc", ErrorCodes.SESSION_ID_REQUIRED);
@@ -17,8 +15,8 @@ function requireSessionAndUser(sessionId, userId) {
 }
 
 function validateSlots(slots) {
-  if (!Array.isArray(slots)) throw AppError.badRequest("slots phải là mảng", ErrorCodes.VALIDATION_ERROR);
-  if (slots.length > MAX_SLOTS) throw AppError.badRequest(`Tối đa ${MAX_SLOTS} slots mỗi lần lưu`, ErrorCodes.VALIDATION_ERROR);
+  const error = getSlotsValidationError(slots);
+  if (error) throw AppError.badRequest(error, ErrorCodes.VALIDATION_ERROR);
 }
 
 /**
