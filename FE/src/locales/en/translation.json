@@ -251,6 +251,7 @@
     "optional": "Optional",
     "notePlaceholder": "e.g. Available after class, Prefer morning sync...",
     "invalidTime": "End time must be after start time",
+    "overlapTime": "Overlaps another time slot on this day",
     "apply": "Apply",
     "delete": "Delete",
     "cancel": "Cancel",

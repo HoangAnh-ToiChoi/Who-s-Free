@@ -24,6 +24,7 @@ function SlotPopover({
   slotData,
   anchorPos,
   onSave,
+  hasConflict,
   onDelete,
   onClose,
 }) {
@@ -47,13 +48,16 @@ function SlotPopover({
   const startMin = timeStringToMinutes(startTime);
   const endMin = timeStringToMinutes(endTime);
   const isInvalidTime = endMin <= startMin;
+  const overlaps = !isInvalidTime && Boolean(hasConflict?.(startMin, endMin));
+  const isBlocked = isInvalidTime || overlaps;
+  const errorText = isInvalidTime ? t("slotPopover.invalidTime") : overlaps ? t("slotPopover.overlapTime") : null;
   const durationText = isInvalidTime
     ? t("slotPopover.durationInvalid")
     : formatDuration(startMin, endMin);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isInvalidTime) return;
+    if (isBlocked) return;
     onSave({
       ...slotData,
       startMinutes: startMin,
@@ -126,14 +130,14 @@ function SlotPopover({
             label={t("slotPopover.start")}
             value={startTime}
             onChange={setStartTime}
-            hasError={isInvalidTime}
+            hasError={isBlocked}
           />
           <TimePicker
             label={t("slotPopover.end")}
             value={endTime}
             onChange={setEndTime}
             disabledBefore={startMin}
-            hasError={isInvalidTime}
+            hasError={isBlocked}
           />
         </div>
 
@@ -146,16 +150,17 @@ function SlotPopover({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={2}
+            maxLength={500}
             placeholder={t("slotPopover.notePlaceholder")}
             className="w-full rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors resize-none"
           />
         </div>
 
         {/* Error message / Notice section (thay the cho Visible to Maya Lin) */}
-        {isInvalidTime ? (
+        {errorText ? (
           <div className="flex items-center gap-1.5 text-xs text-rose-600 font-semibold animate-in fade-in duration-150 py-0.5">
             <AlertCircle size={14} className="shrink-0 text-rose-500" />
-            <span>{t("slotPopover.invalidTime")}</span>
+            <span>{errorText}</span>
           </div>
         ) : (
           <div className="min-h-[20px]" />
@@ -163,7 +168,7 @@ function SlotPopover({
 
         <SlotPopoverFooter
           isEditMode={isEditMode}
-          isInvalidTime={isInvalidTime}
+          isInvalidTime={isBlocked}
           onDelete={() => onDelete(slotData.id)}
           onClose={onClose}
         />
