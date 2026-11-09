@@ -107,7 +107,9 @@
       "response": "Thời gian phản hồi",
       "systemOperational": "Hệ thống hoạt động ổn định • Đồng bộ thời gian thực",
       "copyright": "© 2026 Who's Free. Điều phối lịch trình chuẩn xác."
-    }
+    },
+    "notMemberTitle": "Bạn chưa phải thành viên nhóm này",
+    "notMemberDesc": "Hãy nhờ trưởng nhóm gửi lời mời để xem lịch trình và nhập lịch rảnh."
   },
   "createGroupModal": {
     "title": "Tạo nhóm mới",

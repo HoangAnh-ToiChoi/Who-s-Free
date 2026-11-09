@@ -8,14 +8,13 @@ import asyncHandler from "../utils/asyncHandler.js";
  */
 class SessionController extends BaseController {
   getSessions = asyncHandler(async (req, res) => {
-    const { groupId, slug } = req.query;
-    const sessions = await sessionService.getSessions({ groupId, slug });
+    const sessions = await sessionService.getSessions({ groupId: req.query.groupId }, req.user?.id);
     return this.sendSuccess(res, sessions, "Lấy danh sách phiên khảo sát thành công");
   });
 
   getSessionById = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const session = await sessionService.getSessionById(id);
+    const session = await sessionService.getSessionById(id, req.user?.id);
     return this.sendSuccess(res, session, "Lấy thông tin phiên khảo sát thành công");
   });
 

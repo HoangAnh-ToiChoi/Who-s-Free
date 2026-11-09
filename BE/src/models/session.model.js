@@ -5,18 +5,8 @@ import { isUuid } from "../utils/uuid.js";
 
 class SessionModel {
   static async findAll({ groupId } = {}) {
-    if (!groupId) return [];
-
-    // Resolve slug → UUID to avoid 22P02 on the UUID group_id column
-    let resolvedGroupId = groupId;
-    if (!isUuid(groupId)) {
-      const { rows: gRows } = await query(
-        "SELECT id FROM public.groups WHERE slug = $1 LIMIT 1;",
-        [groupId]
-      );
-      if (!gRows?.length) return [];
-      resolvedGroupId = gRows[0].id;
-    }
+    // groupId phải là UUID đã resolve (service tra slug nhóm trước) để tránh 22P02
+    if (!isUuid(groupId)) return [];
 
     const sql = `
       SELECT s.*, s.finalized_date::text AS finalized_date,
@@ -26,7 +16,7 @@ class SessionModel {
       WHERE s.group_id = $1
       ORDER BY s.created_at DESC;
     `;
-    const { rows } = await query(sql, [resolvedGroupId]);
+    const { rows } = await query(sql, [groupId]);
     return rows || [];
   }
 

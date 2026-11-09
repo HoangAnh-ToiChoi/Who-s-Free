@@ -107,7 +107,9 @@
       "response": "Median response time",
       "systemOperational": "All systems operational • Realtime Sync Active",
       "copyright": "© 2026 Who's Free. Precision group coordination."
-    }
+    },
+    "notMemberTitle": "You are not a member of this group",
+    "notMemberDesc": "Ask the group lead to send you an invite to see its schedules and add your availability."
   },
   "createGroupModal": {
     "title": "Create New Group",

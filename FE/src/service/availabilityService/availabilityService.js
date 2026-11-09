@@ -18,9 +18,9 @@ export const availabilityService = {
     return strict ? request : request.catch(() => null);
   },
 
-  async saveMemberAvailability(sessionId, _memberId, slots = []) {
+  async saveMemberAvailability(sessionId, _memberId, slots = [], { keepalive = false } = {}) {
     const actualId = extractIdFromSlug(sessionId);
-    const saved = await http.put(`/sessions/${actualId}/my-availability`, { slots });
+    const saved = await http.put(`/sessions/${actualId}/my-availability`, { slots }, { keepalive });
     invalidateCached(myAvailabilityKey(actualId));
     invalidateCached(availabilitiesKey(actualId));
     return { data: saved, recordId: actualId };
