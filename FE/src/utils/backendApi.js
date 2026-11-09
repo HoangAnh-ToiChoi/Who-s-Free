@@ -24,6 +24,7 @@ const HEALTH_URL = `${API_BASE_URL}/health`;
 const apiFetch = (url, init) => fetchWithWake(url, init, { healthUrl: HEALTH_URL });
 
 let refreshInFlight = null;
+const REFRESH_RACE_RETRY_MS = 500;
 
 /** Địa chỉ kiểm tra máy chủ đã sẵn sàng (dùng để đánh thức / chờ). */
 export const backendHealthUrl = () => HEALTH_URL;
@@ -62,18 +63,28 @@ async function readPayload(response) {
   return response.json().catch(() => null);
 }
 
+async function postRefresh() {
+  const response = await apiFetch(`${API_BASE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+  });
+  return { response, payload: await readPayload(response) };
+}
+
 /** One shared refresh operation for every frontend API caller. */
 export function requestTokenRefresh() {
   if (refreshInFlight) return refreshInFlight;
 
   refreshInFlight = (async () => {
     try {
-      const response = await apiFetch(`${API_BASE_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        credentials: "include",
-      });
-      const payload = await readPayload(response);
+      let { response, payload } = await postRefresh();
+      // Tab khác vừa dùng cùng refresh token (mở 2 tab cùng lúc): cookie đã được thay bằng token mới,
+      // đợi một chút rồi thử lại đúng một lần thay vì đăng xuất người dùng.
+      if (response.status === 401 && payload?.error === "INVALID_REFRESH_TOKEN") {
+        await new Promise((resolve) => setTimeout(resolve, REFRESH_RACE_RETRY_MS));
+        ({ response, payload } = await postRefresh());
+      }
       const accessToken = payload?.data?.accessToken || payload?.accessToken;
 
       if (!response.ok || payload?.success === false || !accessToken) {

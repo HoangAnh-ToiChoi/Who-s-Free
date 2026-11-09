@@ -251,6 +251,7 @@
     "optional": "Tùy chọn",
     "notePlaceholder": "vd: Rảnh sau giờ học, Ưu tiên họp sáng...",
     "invalidTime": "Giờ kết thúc phải sau giờ bắt đầu",
+    "overlapTime": "Trùng với khung giờ khác trong ngày",
     "apply": "Áp dụng",
     "delete": "Xóa",
     "cancel": "Hủy",
