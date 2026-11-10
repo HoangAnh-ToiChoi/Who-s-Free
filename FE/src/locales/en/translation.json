@@ -469,5 +469,54 @@
     "save": "Save",
     "placeholder": "e.g. Bring your laptop, evenings preferred...",
     "saveFailed": "Couldn't save the note, please try again."
+  },
+  "manage": {
+    "menu": "Options",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "keep": "Keep",
+    "failed": "Something went wrong, please try again."
+  },
+  "sessionActions": {
+    "editTitle": "Edit schedule",
+    "editSubtitle": "Rename it or change the survey dates.",
+    "titleLabel": "Schedule name",
+    "dateLabel": "Survey date range",
+    "finalizedDateLocked": "This schedule is finalized, so its dates can't change. Unlock it first.",
+    "deleteTitle": "Delete \"{{title}}\"?",
+    "deleteDesc": "All availability members entered for this schedule will be deleted permanently.",
+    "deleteConfirm": "Delete schedule"
+  },
+  "groupActions": {
+    "menu": "Group options",
+    "edit": "Edit group",
+    "delete": "Delete group",
+    "editTitle": "Edit group",
+    "editSubtitle": "Change the group name or member limit.",
+    "nameLabel": "Group name",
+    "capacityLabel": "Capacity",
+    "capacityTooSmall": "The group has {{count}} members",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteDesc": "All schedules, availability and members of this group will be deleted permanently.",
+    "deleteTypeHint": "Type the group name to confirm:",
+    "deleteConfirm": "Delete forever"
+  },
+  "memberActions": {
+    "menu": "Member options",
+    "promote": "Promote to Lead",
+    "remove": "Remove from group",
+    "leave": "Leave group",
+    "promoteTitle": "Promote {{name}} to Lead?",
+    "promoteDesc": "Leads can create, edit and delete schedules, finalize them, and invite or remove members. This can NOT be undone — leads can't be demoted.",
+    "promoteConfirm": "Promote to Lead",
+    "removeTitle": "Remove {{name}} from the group?",
+    "removeDesc": "Their availability in schedules that aren't finalized will also be deleted.",
+    "removeConfirm": "Remove",
+    "leaveTitle": "Leave \"{{name}}\"?",
+    "leaveDesc": "Your availability in schedules that aren't finalized will be deleted. You'll need a new invite to rejoin.",
+    "leaveConfirm": "Leave group",
+    "lockedLead": "Leads can't be demoted"
   }
 }
