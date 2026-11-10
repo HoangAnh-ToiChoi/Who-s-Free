@@ -1,6 +1,6 @@
-import { Link } from "react-router";
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import BackButton from "~/components/BackButton";
 
 /**
  * InviteNotFoundCard - Hiển thị khi lời mời không tồn tại hoặc liên kết bị lỗi
@@ -21,15 +21,7 @@ export function InviteNotFoundCard({ error }) {
             </h2>
             <p className="text-xs text-rose-600 leading-relaxed">{error}</p>
           </div>
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer group"
-          >
-            <ArrowLeft size={14} className="transition-colors group-hover:text-red-600" />
-            <span className="transition-colors group-hover:text-red-600">
-              {t("invitePage.backHome", { defaultValue: "Về trang chủ" })}
-            </span>
-          </Link>
+          <BackButton to="/" label={t("invitePage.backHome", { defaultValue: "Về trang chủ" })} />
         </div>
       </div>
     </div>

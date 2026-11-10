@@ -1,7 +1,8 @@
-import { Link, useNavigate } from "react-router";
-import { CheckCircle2, Clock, ShieldAlert, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router";
+import { CheckCircle2, Clock, ShieldAlert, AlertCircle, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
+import BackButton from "~/components/BackButton";
 
 /**
  * InviteStatusAlert - Hiển thị các thông báo trạng thái đặc biệt
@@ -19,15 +20,7 @@ export function InviteStatusAlert({
 
   // Nút về trang chủ theo chuẩn fe-guidelines (hover cả icon và text màu đỏ)
   const BackHomeButton = (
-    <Link
-      to="/"
-      className="inline-flex items-center justify-center gap-2 w-full h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer group"
-    >
-      <ArrowLeft size={14} className="transition-colors group-hover:text-red-600" />
-      <span className="transition-colors group-hover:text-red-600">
-        {t("invitePage.backHome", { defaultValue: "Về trang chủ" })}
-      </span>
-    </Link>
+    <BackButton to="/" label={t("invitePage.backHome", { defaultValue: "Về trang chủ" })} className="w-full" />
   );
 
   // 1. Đã là thành viên

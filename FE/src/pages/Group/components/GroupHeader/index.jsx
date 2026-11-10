@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 import { useCurrentUser } from "~/hooks";
 import HeaderAvatarItem from "./HeaderAvatarItem";
 import GroupTabs from "./GroupTabs";
+import BackButton from "~/components/BackButton";
 
 function GroupHeader({
   group,
@@ -68,13 +69,7 @@ function GroupHeader({
       </div>
 
       <div className="hidden items-center gap-1.5 text-xs sm:flex">
-        <Link
-          to="/"
-          className="flex items-center gap-1.5 text-slate-500 hover:text-red-600 font-semibold transition-colors shrink-0 group"
-        >
-          <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600" />
-          <span className="hidden sm:inline">{t("common.backToHome")}</span>
-        </Link>
+        <BackButton to="/" label={t("common.backToHome")} />
       </div>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         {/* Left: Info */}
