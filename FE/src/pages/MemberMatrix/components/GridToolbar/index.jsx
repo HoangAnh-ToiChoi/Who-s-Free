@@ -15,9 +15,7 @@ import TouchDragHint from "../TouchDragHint";
 function GridToolbar({
   weekLabel,
   stats,
-  onPrevWeek,
-  onNextWeek,
-  onToday,
+  weekNav,
   onClearAll,
   mode = "member",
   onExport,
@@ -28,7 +26,6 @@ function GridToolbar({
   onFinalize,
   onUnfinalize,
   weekNavOnMobile = true,
-  weekOffset = 0,
   touchDragPreview = null,
   weekDays = [],
 }) {
@@ -41,10 +38,7 @@ function GridToolbar({
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Màn Lead trên mobile đưa cụm này lên header (weekNavOnMobile=false) để nhường chỗ cho lưới */}
         <WeekNav
-          onPrevWeek={onPrevWeek}
-          onNextWeek={onNextWeek}
-          onToday={onToday}
-          weekOffset={weekOffset}
+          {...weekNav}
           className={weekNavOnMobile ? undefined : "max-sm:hidden"}
         />
 

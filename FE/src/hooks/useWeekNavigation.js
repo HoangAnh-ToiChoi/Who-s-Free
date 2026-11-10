@@ -5,15 +5,31 @@ import {
   calculateWeekDates,
   formatWeekRangeLabel,
   parseISODate,
+  toISODateString,
+  isDateInWindow,
 } from "~/utils/dateUtils";
 
+const shiftWeek = (weeks) => (monday) => {
+  const next = new Date(monday);
+  next.setDate(monday.getDate() + weeks * 7);
+  return next;
+};
+
+/** Hôm nay, kẹp vào khoảng khảo sát (hôm nay ngoài khoảng → ngày đầu/cuối gần nhất). */
+function clampToWindow(startDate, endDate) {
+  const today = toISODateString(new Date());
+  if (startDate && today < startDate) return parseISODate(startDate);
+  if (endDate && today > endDate) return parseISODate(endDate);
+  return new Date();
+}
+
 /**
- * Hook quản lý riêng biệt việc chuyển mốc thời gian ngày tháng (Google Calendar Navigation)
- * Chỉ tập trung vào một nhiệm vụ: Điều hướng tuần, tính toán ngày động.
- * Dùng chung cho cả MemberMatrix và LeadMatrix.
- * startDate ("YYYY-MM-DD", ngày bắt đầu khảo sát của phiên): mở đúng tuần chứa ngày đó; phiên cũ không có → tuần hiện tại.
+ * Điều hướng tuần dùng chung cho MemberMatrix và LeadMatrix.
+ * startDate/endDate ("YYYY-MM-DD"): khoảng khảo sát của phiên. Có khoảng → mở tuần chứa ngày bắt đầu, khoá lùi/tiến
+ * ra ngoài khoảng, đánh dấu từng ngày `inWindow`; nút giữa về tuần hiện tại (kẹp vào khoảng).
+ * Phiên cũ không có ngày → hành vi như trước (tuần hiện tại, không giới hạn).
  */
-export function useWeekNavigation(startDate = null) {
+export function useWeekNavigation({ startDate = null, endDate = null } = {}) {
   const anchorMonday = () => getMondayOfWeek(startDate ? parseISODate(startDate) : new Date());
   const [currentMonday, setCurrentMonday] = useState(anchorMonday);
   // Session thường tải xong sau lần render đầu → khi startDate đổi thì nhảy tới tuần đó (cập nhật ngay trong render, không cần effect).
@@ -23,52 +39,39 @@ export function useWeekNavigation(startDate = null) {
     if (startDate) setCurrentMonday(anchorMonday());
   }
 
-  // 7 ngày trong tuần được tự động tính toán
   const { i18n } = useTranslation();
   const lang = i18n.resolvedLanguage || i18n.language;
-  const weekDays = useMemo(() => calculateWeekDates(currentMonday, lang), [currentMonday, lang]);
-
-  // Tiêu đề khoảng tuần (ví dụ: "Sep 28 – Oct 4, 2026")
+  const weekDays = useMemo(
+    () =>
+      calculateWeekDates(currentMonday, lang).map((day) => ({
+        ...day,
+        inWindow: isDateInWindow(day.dateStr, startDate, endDate),
+      })),
+    [currentMonday, lang, startDate, endDate]
+  );
   const weekLabel = useMemo(() => formatWeekRangeLabel(currentMonday, lang), [currentMonday, lang]);
 
-  // Lùi 1 tuần (-7 ngày)
-  const goToPrevWeek = useCallback(() => {
-    setCurrentMonday((prev) => {
-      const next = new Date(prev);
-      next.setDate(prev.getDate() - 7);
-      return next;
-    });
-  }, []);
-
-  // Tiến 1 tuần (+7 ngày)
-  const goToNextWeek = useCallback(() => {
-    setCurrentMonday((prev) => {
-      const next = new Date(prev);
-      next.setDate(prev.getDate() + 7);
-      return next;
-    });
-  }, []);
-
-  // Trở về tuần hiện tại (Today)
   // Số tuần so với tuần hiện tại: 0 = tuần này, >0 = các tuần sau, <0 = các tuần trước
-  const weekOffset = useMemo(
-    () => Math.round((currentMonday - getMondayOfWeek(new Date())) / (7 * 24 * 60 * 60 * 1000)),
-    [currentMonday]
+  const weekOffset = Math.round((currentMonday - getMondayOfWeek(new Date())) / (7 * 24 * 60 * 60 * 1000));
+
+  const goToPrevWeek = useCallback(() => setCurrentMonday(shiftWeek(-1)), []);
+  const goToNextWeek = useCallback(() => setCurrentMonday(shiftWeek(1)), []);
+  const goToToday = useCallback(
+    () => setCurrentMonday(getMondayOfWeek(clampToWindow(startDate, endDate))),
+    [startDate, endDate]
   );
 
-  const goToToday = useCallback(() => {
-    setCurrentMonday(getMondayOfWeek(new Date()));
-  }, []);
-
-  return {
-    currentMonday,
-    weekDays,
-    weekLabel,
+  // Props cho WeekNav (‹ Tuần này ›)
+  const weekNav = {
+    onPrevWeek: goToPrevWeek,
+    onNextWeek: goToNextWeek,
+    onToday: goToToday,
     weekOffset,
-    goToPrevWeek,
-    goToNextWeek,
-    goToToday,
+    canGoPrev: !startDate || weekDays[0].dateStr > startDate,
+    canGoNext: !endDate || weekDays[6].dateStr < endDate,
   };
+
+  return { currentMonday, weekDays, weekLabel, weekNav };
 }
 
 export default useWeekNavigation;

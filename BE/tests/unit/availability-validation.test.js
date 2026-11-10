@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { getSlotsValidationError, MAX_SLOTS } from "../../src/validations/availability.validation.js";
+import { getSlotsValidationError, getSlotsWindowError, MAX_SLOTS } from "../../src/validations/availability.validation.js";
 
 const slot = (extra = {}) => ({ dayIndex: 0, dateStr: "2026-11-09", startMinutes: 480, endMinutes: 540, label: "Available", note: "", ...extra });
 const rejects = (slots, fragment) => {
@@ -48,4 +48,15 @@ describe("getSlotsValidationError — dữ liệu rác (đều phải 400, khôn
   test("hai slot chồng giờ trong cùng ngày", () =>
     rejects([slot({ startMinutes: 480, endMinutes: 600 }), slot({ startMinutes: 540, endMinutes: 660 })], /#1 và #2 bị chồng/));
   test("slot trùng y hệt", () => rejects([slot(), slot()], /chồng/));
+});
+
+describe("getSlotsWindowError — khoảng khảo sát của phiên", () => {
+  const inWindow = [slot({ dateStr: "2026-11-10" }), slot({ dateStr: "2026-11-12" })];
+  test("phiên cũ không có ngày → không giới hạn", () => assert.equal(getSlotsWindowError([slot()], null, null), null));
+  test("slot nằm trong khoảng, kể cả 2 ngày biên", () => assert.equal(getSlotsWindowError(inWindow, "2026-11-10", "2026-11-12"), null));
+  test("mảng rỗng (xoá hết lịch)", () => assert.equal(getSlotsWindowError([], "2026-11-10", "2026-11-12"), null));
+  test("slot trước ngày bắt đầu", () =>
+    assert.match(getSlotsWindowError([slot({ dateStr: "2026-11-09" })], "2026-11-10", "2026-11-12"), /#1.*2026-11-09.*ngoài/));
+  test("slot sau ngày kết thúc", () =>
+    assert.match(getSlotsWindowError([...inWindow, slot({ dateStr: "2026-11-13" })], "2026-11-10", "2026-11-12"), /#3/));
 });

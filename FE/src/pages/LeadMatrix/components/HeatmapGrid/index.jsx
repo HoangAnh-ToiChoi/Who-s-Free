@@ -7,6 +7,8 @@ import HeatmapLegend from "./HeatmapLegend";
 import { useScrollRestoration, useDayPager } from "~/hooks";
 import { useCellDetailPopover } from "../../hooks/useCellDetailPopover";
 import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
+import { initialDayIndex } from "~/utils/dateUtils";
+import OutOfWindowOverlay from "~/components/OutOfWindowOverlay";
 
 // Cùng khung giờ với lưới nhập lịch của thành viên (timeUtils), để slot sáng sớm/đêm muộn không bị giấu khỏi Lead.
 const BLOCKS = Array.from({ length: (END_HOUR - START_HOUR + 1) * 2 }, (_, i) => START_HOUR * 60 + i * 30);
@@ -33,8 +35,7 @@ function HeatmapGrid({
   const scrollBodyRef = useRef(null);
   const { scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
   useEffect(() => {
-    const todayIndex = weekDays.findIndex((d) => d.isToday);
-    scrollToDay(Math.min(Math.max(todayIndex, 0), 4), "auto");
+    scrollToDay(Math.min(initialDayIndex(weekDays), 4), "auto");
   }, [weekDays, scrollToDay]);
 
   // Key mới: vị trí cuộn đã lưu theo khung 06:00–22:00 cũ sẽ lệch 6 tiếng nếu dùng lại
@@ -102,7 +103,8 @@ function HeatmapGrid({
 
             <div className="grid flex-1 grid-cols-7">
               {weekDays.map((day) => (
-                <div key={day.dateStr} className="flex flex-col">
+                <div key={day.dateStr} className="relative flex flex-col">
+                  {day.inWindow === false && <OutOfWindowOverlay />}
                   {blocks.map((blockStart) => {
                     const cell = getCell(day.dayIndex, blockStart);
                     return (

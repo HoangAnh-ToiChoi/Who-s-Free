@@ -4,9 +4,10 @@ import GridScrollArea from "./GridScrollArea";
 import DragRangeIndicator from "./DragRangeIndicator";
 import SlotPopover from "../SlotPopover";
 import SaveStatusIndicator from "../SaveStatusIndicator";
-import { buildDraftSlots, promoteDrafts, popoverOverlaps } from "./draftSlots";
+import { buildDraftSlots, promoteDrafts, popoverOverlaps, pickWindowDays } from "./draftSlots";
 
 import { START_HOUR, END_HOUR, HOUR_HEIGHT } from "~/utils/timeUtils";
+import { initialDayIndex } from "~/utils/dateUtils";
 import { useAvailabilitySlots } from "../../hooks/useAvailabilitySlots";
 import { useGridDrag } from "../../hooks/useGridDrag";
 import { useWeekSlots } from "../../hooks/useWeekSlots";
@@ -24,7 +25,7 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_
  * AvailabilityGrid - Lưới nhập lịch rảnh của thành viên: điều hướng tuần, kéo chọn khung 30 phút,
  * popover chỉnh slot. Mobile hiện 3 ngày/màn với cột giờ cố định (xem GridScrollArea).
  */
-function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, memberId, onSessionLocked }) {
+function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, onSessionLocked }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -36,16 +37,13 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, member
   });
 
   // 1. Hook quản lý ngày tháng & tuần
-  const { weekDays, weekLabel, goToPrevWeek, goToNextWeek, goToToday, weekOffset } = useWeekNavigation(sessionStartDate);
+  const { weekDays, weekLabel, weekNav } = useWeekNavigation(dateWindow);
 
-  // Mobile: lưới hiện 3/7 ngày → cuộn ngang tới hôm nay, hoặc tới ngày bắt đầu khảo sát nếu tuần này không có hôm nay
+  // Mobile: lưới hiện 3/7 ngày → cuộn ngang tới hôm nay, hoặc ngày đầu tiên trong khoảng khảo sát
   const { scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
   useEffect(() => {
-    const todayIndex = weekDays.findIndex((d) => d.isToday);
-    const startIndex = weekDays.findIndex((d) => d.dateStr === sessionStartDate);
-    const target = todayIndex >= 0 ? todayIndex : Math.max(startIndex, 0);
-    scrollToDay(Math.min(target, 4), "auto");
-  }, [weekDays, scrollToDay, sessionStartDate]);
+    scrollToDay(Math.min(initialDayIndex(weekDays), 4), "auto");
+  }, [weekDays, scrollToDay]);
 
   // 2. Hook quản lý danh sách slot rảnh & thống kê
   const {
@@ -87,12 +85,14 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, member
       anchorRect,
       containerRect,
     }) => {
-      const { drafts, active } = buildDraftSlots({ weekDays, dayIndices, dayIndex, startMinutes, endMinutes });
+      const target = pickWindowDays(weekDays, dayIndices, dayIndex);
+      if (!target) return;
+      const { drafts, active } = buildDraftSlots({ weekDays, ...target, startMinutes, endMinutes });
       // Chỉ lưu vào draftSlots để hiển thị tạm trên lưới, KHÔNG LƯU vào DB khi chưa bấm Áp dụng
       setDraftSlots(drafts);
       openPopover({
         mode: "new",
-        slotData: drafts.length > 1 ? { ...active, dayIndices, createdSlots: drafts } : active,
+        slotData: drafts.length > 1 ? { ...active, dayIndices: target.dayIndices, createdSlots: drafts } : active,
         anchorRect,
         containerRect,
       });
@@ -127,10 +127,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, member
       <GridToolbar
         weekLabel={weekLabel}
         stats={weekStats}
-        onPrevWeek={goToPrevWeek}
-        onNextWeek={goToNextWeek}
-        onToday={goToToday}
-        weekOffset={weekOffset}
+        weekNav={weekNav}
         onClearAll={clearAllSlots}
         touchDragPreview={isDragging && dragPreview?.isTouch ? dragPreview : null}
         weekDays={weekDays}

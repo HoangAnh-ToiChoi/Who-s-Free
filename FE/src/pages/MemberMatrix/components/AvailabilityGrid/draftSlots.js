@@ -1,4 +1,17 @@
 /**
+ * Kéo qua nhiều ngày có lẫn ngày ngoài khoảng khảo sát → chỉ giữ ngày trong khoảng (weekDays[i].inWindow).
+ * Trả về { dayIndices, dayIndex } cho buildDraftSlots, hoặc null nếu không còn ngày nào hợp lệ.
+ */
+export function pickWindowDays(weekDays, dayIndices, dayIndex) {
+  const allowed = (dayIndices ?? [dayIndex]).filter((i) => weekDays[i]?.inWindow !== false);
+  if (allowed.length === 0) return null;
+  return {
+    dayIndices: allowed.length > 1 ? allowed : undefined,
+    dayIndex: allowed.includes(dayIndex) ? dayIndex : allowed[allowed.length - 1],
+  };
+}
+
+/**
  * Tạo các slot nháp sau khi kéo chọn xong (chưa lưu DB cho tới khi bấm Áp dụng).
  * Kéo qua nhiều ngày → một slot nháp cho mỗi ngày; `active` là slot gắn với cột kết thúc kéo.
  */

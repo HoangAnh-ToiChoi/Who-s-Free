@@ -3,7 +3,7 @@ import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import { requireSessionMember } from "./session-access.helpers.js";
-import { getSlotsValidationError } from "../validations/availability.validation.js";
+import { getSlotsValidationError, getSlotsWindowError } from "../validations/availability.validation.js";
 import {
   toPublicUserAvailability,
   toPublicMemberAvailability,
@@ -14,8 +14,7 @@ function requireSessionAndUser(sessionId, userId) {
   if (!userId) throw AppError.unauthorized("Vui lòng đăng nhập", ErrorCodes.UNAUTHORIZED);
 }
 
-function validateSlots(slots) {
-  const error = getSlotsValidationError(slots);
+function throwIfInvalid(error) {
   if (error) throw AppError.badRequest(error, ErrorCodes.VALIDATION_ERROR);
 }
 
@@ -40,10 +39,11 @@ class AvailabilityService {
 
   async saveMyAvailability(sessionId, userId, slots = []) {
     requireSessionAndUser(sessionId, userId);
-    validateSlots(slots);
+    throwIfInvalid(getSlotsValidationError(slots));
 
     const { session } = await requireSessionMember(sessionId, userId);
     if (session.status === "finalized") throw await finalizedConflict(sessionId, userId);
+    throwIfInvalid(getSlotsWindowError(slots, session.start_date, session.end_date));
 
     const saved = await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
     // Phiên có thể vừa được chốt giữa lúc kiểm tra ở trên và lúc ghi (transaction trả về null)
