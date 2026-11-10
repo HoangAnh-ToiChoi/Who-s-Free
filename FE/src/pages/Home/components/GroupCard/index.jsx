@@ -12,19 +12,24 @@ import { Button } from "~/components/ui/button";
 import { calcPercentage } from "~/utils";
 import { getGroupThemeColor } from "~/data/groupPalettes";
 import MemberAvatarStack from "./MemberAvatarStack";
+import ActionMenu from "~/components/ActionMenu";
+import { GroupManageDialogs, useGroupManageMenu } from "~/components/GroupManage";
 
 // Tải sẵn trang nhóm khi người dùng rê chuột / focus vào thẻ để lúc bấm chuyển trang không bị khựng
 const preloadGroupPage = () => import("~/pages/Group");
 
 function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
   const { t } = useTranslation();
+  const { items: manageItems, mode, setMode } = useGroupManageMenu(group.userRole);
   const isOwner = group.role === "Owner";
   const themeColor = getGroupThemeColor(group);
 
   // Sử dụng hàm tiện ích dùng chung để tính phần trăm
   const memberPercent = calcPercentage(group.memberCount, group.capacity);
 
+  // Modal nằm NGOÀI <Link>: sự kiện trong modal (portal) vẫn nổi lên cây React và sẽ kích hoạt Link nếu đặt bên trong
   return (
+    <>
     <Link
       to={to}
       onClick={onClick}
@@ -72,6 +77,7 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
               </span>
             )}
           </div>
+          <ActionMenu items={manageItems} label={t("groupActions.menu")} buttonClassName="max-md:h-9 max-md:w-9" />
           <ChevronRight size={18} className="shrink-0 text-slate-400 md:hidden" aria-hidden="true" />
         </div>
 
@@ -147,6 +153,8 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
         </div>
       </div>
     </Link>
+    <GroupManageDialogs group={group} mode={mode} onModeChange={setMode} />
+    </>
   );
 }
 

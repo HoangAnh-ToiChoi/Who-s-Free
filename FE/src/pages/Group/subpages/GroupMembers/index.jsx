@@ -4,7 +4,10 @@ import { Users, UserPlus, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { groupService } from "~/service/groupService/groupService";
 import { GROUP_MEMBERS_CHANGED_EVENT } from "~/events/groupEvents";
+import { useCurrentUser } from "~/hooks";
 import MemberCard from "./components/MemberCard";
+import MemberActionModal from "./components/MemberActionModal";
+import { getMemberPermissions, getMemberRole, useMemberActions } from "./useMemberActions";
 
 /**
  * GroupMembers - Subpage hiển thị danh sách thành viên thực tế của nhóm từ Backend API
@@ -27,6 +30,8 @@ function GroupMembers({ group, onOpenInvite }) {
     : members.length;
   const normalizedUserRole = (group?.userRole || group?.role || "").toLowerCase();
   const canInvite = normalizedUserRole === "owner" || normalizedUserRole === "lead";
+  const { currentUser } = useCurrentUser();
+  const memberActions = useMemberActions(group);
 
   const loadMembers = useCallback(async () => {
     requestControllerRef.current?.abort();
@@ -44,7 +49,6 @@ function GroupMembers({ group, onOpenInvite }) {
       setMembers(Array.isArray(data) ? data : []);
     } catch (err) {
       if (controller.signal.aborted || err.name === "AbortError") return;
-      console.error("Failed to load group members:", err);
       setMembers([]);
       setError(
         err?.message ||
@@ -140,7 +144,17 @@ function GroupMembers({ group, onOpenInvite }) {
         /* 3. Trạng thái Thành công: Grid thẻ thành viên */
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
-            <MemberCard key={member.id} member={member} />
+            <MemberCard
+              key={member.id}
+              member={member}
+              role={getMemberRole(member)}
+              isManager={canInvite}
+              permissions={getMemberPermissions(member, {
+                myRole: normalizedUserRole,
+                myUserId: currentUser?.id,
+              })}
+              onAction={memberActions.open}
+            />
           ))}
         </div>
       ) : (
@@ -152,6 +166,15 @@ function GroupMembers({ group, onOpenInvite }) {
           </h3>
         </div>
       )}
+
+      <MemberActionModal
+        groupName={group?.name}
+        pending={memberActions.pending}
+        isSubmitting={memberActions.isSubmitting}
+        error={memberActions.error}
+        onClose={memberActions.close}
+        onConfirm={memberActions.confirm}
+      />
     </div>
   );
 }

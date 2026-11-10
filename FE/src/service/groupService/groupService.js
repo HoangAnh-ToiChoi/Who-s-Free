@@ -199,6 +199,22 @@ export const groupService = {
     return backendRequest(`/groups/${encodeURIComponent(id)}`, { method: "DELETE" });
   },
 
+  /** Nâng một thành viên lên Lead (không có chiều hạ). */
+  async promoteMember(groupId, userId) {
+    const member = await backendRequest(
+      `/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(userId)}/role`,
+      { method: "PATCH", body: { role: "lead" } }
+    );
+    return this.formatMember(member);
+  },
+
+  /** Xoá thành viên khỏi nhóm, hoặc tự rời nhóm khi userId là chính mình. */
+  async removeMember(groupId, userId) {
+    return backendRequest(`/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(userId)}`, {
+      method: "DELETE",
+    });
+  },
+
   /**
    * Lấy danh sách các lời mời đang chờ (pending) của nhóm từ Backend API
    * @param {string} groupId

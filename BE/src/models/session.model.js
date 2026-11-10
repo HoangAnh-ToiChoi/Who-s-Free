@@ -63,12 +63,26 @@ class SessionModel {
     return rows?.[0] ?? null;
   }
 
-  static async updateNote(id, note) {
+  /** Cập nhật các cột được phép (tên, khoảng ngày, ghi chú). `fields` dùng tên cột DB. */
+  static async update(id, fields) {
+    const ALLOWED = ["title", "start_date", "end_date", "date_range", "description"];
+    const keys = Object.keys(fields).filter((key) => ALLOWED.includes(key));
+    if (keys.length === 0) return false;
+    const sets = keys.map((key, i) => `${key} = $${i + 2}`).join(", ");
     const { rowCount } = await query(
-      "UPDATE public.sessions SET description = $2, updated_at = NOW() WHERE id = $1;",
-      [id, note],
+      `UPDATE public.sessions SET ${sets}, updated_at = NOW() WHERE id = $1;`,
+      [id, ...keys.map((key) => fields[key])],
     );
     return rowCount > 0;
+  }
+
+  /** Số slot thành viên đã nhập nằm ngoài khoảng ngày mới (chặn thu hẹp làm mất lịch). */
+  static async countSlotsOutsideWindow(id, startDate, endDate) {
+    const { rows } = await query(
+      "SELECT COUNT(*)::int AS n FROM public.availability_slots WHERE session_id = $1 AND (date_str < $2 OR date_str > $3);",
+      [id, startDate, endDate],
+    );
+    return rows?.[0]?.n ?? 0;
   }
 
   /** Đánh dấu session đã chốt với khung giờ được chọn (chỉ khi chưa chốt). */
@@ -110,9 +124,10 @@ class SessionModel {
     return rows || [];
   }
 
+  /** Xoá theo UUID (service đã tra session trước). So `id = $1 OR slug = $1` lỗi 500 vì Postgres không so uuid với text. */
   static async delete(id) {
-    if (!id) return false;
-    const sql = "DELETE FROM public.sessions WHERE id = $1 OR slug = $1 RETURNING id;";
+    if (!isUuid(id)) return false;
+    const sql = "DELETE FROM public.sessions WHERE id = $1 RETURNING id;";
     const { rows } = await query(sql, [id]);
     return (rows?.length ?? 0) > 0;
   }

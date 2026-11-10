@@ -10,6 +10,7 @@ const router = Router();
 router.get("/", AuthMiddleware.authenticate, sessionController.getSessions);
 router.get("/:id", AuthMiddleware.authenticate, sessionController.getSessionById);
 router.post("/", AuthMiddleware.authenticate, sessionController.createSession);
+router.patch("/:id", AuthMiddleware.authenticate, sessionController.updateSession);
 router.patch("/:id/note", AuthMiddleware.authenticate, sessionController.updateNote);
 router.post("/:id/finalize", AuthMiddleware.authenticate, sessionController.finalizeSession);
 router.post("/:id/unfinalize", AuthMiddleware.authenticate, sessionController.unfinalizeSession);

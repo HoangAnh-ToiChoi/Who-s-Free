@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, RefreshCw, CalendarPlus } from "lucide-react";
@@ -16,12 +16,12 @@ import GroupMetricsBar from "~/pages/Group/components/GroupMetricsBar";
 import GroupSessions from "~/pages/Group/subpages/GroupSessions";
 import GroupMembers from "~/pages/Group/subpages/GroupMembers";
 import GroupSettings from "~/pages/Group/subpages/GroupSettings";
+import { useGroupMembersSync } from "~/pages/Group/hooks/useGroupMembersSync";
 
 function Group() {
   const { t } = useTranslation();
   const { groupId } = useParams();
 
-  // Sử dụng Domain Hook đóng gói toàn bộ state async và thao tác tạo calendar
   const {
     group,
     sessions,
@@ -35,13 +35,15 @@ function Group() {
     createCalendar,
   } = useGroupDetail(groupId);
 
-  // Quản lý trạng thái mở modal Mời thành viên (dùng chung cho cả Header và Tab Members)
+  // Modal dùng chung cho Header, tab Members và Empty State của GroupSessions
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-
-  // Quản lý trạng thái mở modal Tạo Calendar (dùng chung cho cả Header và Empty State của GroupSessions)
   const [isCreateCalendarOpen, setIsCreateCalendarOpen] = useState(false);
 
-  // Chỉ trưởng nhóm/chủ nhóm được tạo lịch trình (BE cũng chặn 403)
+  // Sau khi sửa/xóa phiên, sửa nhóm hoặc đổi thành viên: tải lại không hiện skeleton
+  const refreshGroup = useCallback(() => loadGroupData({ silent: true }), [loadGroupData]);
+  useGroupMembersSync(group?.id, refreshGroup);
+
+  // Chỉ trưởng nhóm/chủ nhóm được tạo lịch trình, sửa/xóa phiên (BE cũng chặn 403)
   const canCreateCalendar = ["owner", "lead"].includes((group?.userRole || group?.role || "").toLowerCase());
 
   return (
@@ -49,7 +51,6 @@ function Group() {
       {/* --- Case 1: Đang tải dữ liệu lần đầu (Skeleton) --- */}
       {isLoading ? (
         <div className="space-y-8 animate-pulse">
-          {/* Header Skeleton */}
           <div className="space-y-4">
             <div className="flex gap-2">
               <div className="h-5 w-28 rounded-md bg-slate-200" />
@@ -90,7 +91,7 @@ function Group() {
           </h3>
           <p className="mt-1 max-w-sm text-sm text-slate-500">{error}</p>
           <Button
-            onClick={loadGroupData}
+            onClick={() => loadGroupData()}
             className="mt-5 gap-2 bg-indigo-600 px-4 py-2 font-medium text-white shadow-xs hover:bg-indigo-700 cursor-pointer h-9.5 min-w-[120px] justify-center"
           >
             <RefreshCw size={15} />
@@ -104,17 +105,15 @@ function Group() {
             const { activeSessionsCount, turnoutRate } = calculateGroupMetrics(sessions, group);
             return (
               <>
-                {/* Group Overview Header + Modal Trigger */}
                 <SlideIn direction="up">
                   <GroupHeader
                     group={group}
                     sessionsCount={activeSessionsCount}
-                    onCreateCalendar={createCalendar}
-                    isCreatingCalendar={isCreatingCalendar}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     onOpenInvite={() => setIsInviteModalOpen(true)}
                     onOpenCreateCalendar={canCreateCalendar ? () => setIsCreateCalendarOpen(true) : null}
+                    onChanged={refreshGroup}
                   />
                 </SlideIn>
 
@@ -126,6 +125,8 @@ function Group() {
                       <GroupSessions
                         sessions={sessions}
                         onOpenCreateModal={canCreateCalendar ? () => setIsCreateCalendarOpen(true) : null}
+                        canManage={canCreateCalendar}
+                        onChanged={refreshGroup}
                       />
                     </SlideIn>
                     <div className="max-sm:order-first">

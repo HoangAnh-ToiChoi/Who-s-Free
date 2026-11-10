@@ -75,6 +75,12 @@ class GroupController extends BaseController {
     return this.sendCreated(res, member, "Thêm thành viên vào nhóm thành công");
   });
 
+  /** PATCH /api/groups/:id/members/:userId/role - Nâng member lên lead */
+  promoteMember = asyncHandler(async (req, res) => {
+    const member = await this.groupMemberService.promoteToLead(req.params.id, req.user.id, req.params.userId);
+    return this.sendSuccess(res, member, "Đã nâng thành viên lên Lead");
+  });
+
   /**
    * DELETE /api/groups/:id/members/:userId - Xóa thành viên hoặc Rời nhóm
    */

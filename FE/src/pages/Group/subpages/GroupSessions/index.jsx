@@ -1,10 +1,42 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SlidersHorizontal, Calendar, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { ConfirmModal, EditSessionModal } from "~/components/Modals";
+import { sessionService } from "~/service/sessionService/sessionService";
 import SessionCard from "~/pages/Group/subpages/GroupSessions/components/SessionCard";
 
-function GroupSessions({ sessions = [], onOpenCreateModal }) {
+function GroupSessions({ sessions = [], onOpenCreateModal, canManage = false, onChanged }) {
   const { t } = useTranslation();
+  // session giữ lại khi đóng để modal không trống nội dung lúc đang chạy hiệu ứng đóng
+  const [target, setTarget] = useState({ mode: null, session: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const closeModal = (open) => !open && setTarget((prev) => ({ ...prev, mode: null }));
+  const openDelete = (session) => {
+    setDeleteError("");
+    setTarget({ mode: "delete", session });
+  };
+
+  const handleUpdate = async (payload) => {
+    await sessionService.updateSession(target.session.id, payload);
+    onChanged?.();
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await sessionService.deleteCalendar(target.session.id);
+      closeModal(false);
+      onChanged?.();
+    } catch (err) {
+      setDeleteError(err?.message || t("manage.failed"));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <section className="mt-4 sm:mt-8">
@@ -40,7 +72,13 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
       {sessions.length > 0 ? (
         <div className="mt-4 grid grid-cols-1 gap-2.5 sm:mt-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {sessions.map((session) => (
-            <SessionCard key={session.id} session={session} />
+            <SessionCard
+              key={session.id}
+              session={session}
+              canManage={canManage}
+              onEdit={() => setTarget({ mode: "edit", session })}
+              onDelete={() => openDelete(session)}
+            />
           ))}
         </div>
       ) : (
@@ -66,6 +104,24 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
           )}
         </div>
       )}
+
+      <EditSessionModal
+        open={target.mode === "edit"}
+        onOpenChange={closeModal}
+        session={target.session}
+        onSubmit={handleUpdate}
+      />
+      <ConfirmModal
+        open={target.mode === "delete"}
+        onOpenChange={closeModal}
+        title={t("sessionActions.deleteTitle", { title: target.session?.title || "" })}
+        description={t("sessionActions.deleteDesc")}
+        confirmText={t("sessionActions.deleteConfirm")}
+        cancelText={t("manage.keep")}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        error={deleteError}
+      />
     </section>
   );
 }

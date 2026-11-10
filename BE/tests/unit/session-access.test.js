@@ -222,7 +222,7 @@ describe("SessionService.updateNote", () => {
     let saved;
     stub(SessionModel, "findById", async () => session({ description: saved ?? "" }));
     stub(GroupMemberModel, "findMember", memberOf({ lead: "lead" }));
-    stub(SessionModel, "updateNote", async (id, note) => { saved = note; return true; });
+    stub(SessionModel, "update", async (id, fields) => { saved = fields.description; return true; });
     const result = await sessionService.updateNote("s1", "lead", "  Mang laptop nhé  ");
     assert.equal(saved, "Mang laptop nhé");
     assert.equal(result.description, "Mang laptop nhé");
@@ -232,7 +232,7 @@ describe("SessionService.updateNote", () => {
     let saved = "cũ";
     stub(SessionModel, "findById", async () => session({ description: saved }));
     stub(GroupMemberModel, "findMember", memberOf({ owner: "owner" }));
-    stub(SessionModel, "updateNote", async (id, note) => { saved = note; return true; });
+    stub(SessionModel, "update", async (id, fields) => { saved = fields.description; return true; });
     await sessionService.updateNote("s1", "owner", "   ");
     assert.equal(saved, "");
   });
@@ -240,7 +240,7 @@ describe("SessionService.updateNote", () => {
   test("thành viên thường → 403, không ghi DB", async () => {
     stub(SessionModel, "findById", async () => session());
     stub(GroupMemberModel, "findMember", memberOf({ u1: "member" }));
-    stub(SessionModel, "updateNote", noCall("updateNote"));
+    stub(SessionModel, "update", noCall("update"));
     await rejectsWith(sessionService.updateNote("s1", "u1", "x"), 403);
   });
 
