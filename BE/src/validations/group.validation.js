@@ -86,3 +86,8 @@ export default {
   createInvitationSchema,
 };
 
+
+/** Chỉ cho nâng lên lead; không có chiều hạ quyền. */
+export const promoteMemberSchema = z
+  .object({ role: z.literal("lead", { errorMap: () => ({ message: "Chỉ hỗ trợ nâng thành viên lên Lead" }) }) })
+  .strict("Không được phép gửi các trường không hợp lệ");

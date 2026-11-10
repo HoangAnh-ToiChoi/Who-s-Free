@@ -9,6 +9,7 @@ import {
   updateGroupSchema,
   addMemberSchema,
   createInvitationSchema,
+  promoteMemberSchema,
 } from "../validations/group.validation.js";
 
 const router = Router();
@@ -33,6 +34,7 @@ router.delete("/:id", groupController.deleteGroup);
  */
 router.get("/:id/members", groupController.getMembers);
 router.post("/:id/members", validate(addMemberSchema), groupController.addMember);
+router.patch("/:id/members/:userId/role", validate(promoteMemberSchema), groupController.promoteMember);
 router.delete("/:id/members/:userId", groupController.removeMember);
 
 /**

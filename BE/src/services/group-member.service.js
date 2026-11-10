@@ -98,7 +98,31 @@ class GroupMemberService {
   }
 
   /**
-   * Xóa thành viên khỏi nhóm hoặc Rời nhóm
+   * Nâng một member lên lead (owner/lead thực hiện). Không có chiều hạ: lead đã lên thì khoá,
+   * tránh các lead hạ quyền lẫn nhau.
+   */
+  async promoteToLead(groupId, callerId, targetUserId) {
+    if (!isUuid(targetUserId)) throw AppError.badRequest("userId không đúng định dạng UUID", "INVALID_ID");
+    const group = await GroupModel.findByIdOrSlug(groupId);
+    if (!group) throw AppError.notFound("Không tìm thấy thông tin nhóm", "GROUP_NOT_FOUND");
+
+    const caller = await GroupMemberModel.findMember(group.id, callerId);
+    if (caller?.role !== "owner" && caller?.role !== "lead") {
+      throw AppError.forbidden("Chỉ Lead hoặc Owner mới có quyền nâng thành viên lên Lead", "FORBIDDEN");
+    }
+    const target = await GroupMemberModel.findMember(group.id, targetUserId);
+    if (!target) throw AppError.notFound("Không tìm thấy thành viên trong nhóm", "MEMBER_NOT_FOUND");
+    if (target.role !== "member") throw AppError.conflict("Thành viên này đã là Lead hoặc Owner", "ALREADY_LEAD");
+
+    const updated = await GroupMemberModel.promoteToLead(group.id, targetUserId);
+    if (!updated) throw AppError.conflict("Thành viên này đã là Lead hoặc Owner", "ALREADY_LEAD");
+    const publicMember = toPublicMember({ ...target, ...updated });
+    RealtimeService.broadcastGroupUpdate(group.id, "MEMBER_ROLE_CHANGED", { member: publicMember });
+    return publicMember;
+  }
+
+  /**
+   * Xóa thành viên khỏi nhóm hoặc Rời nhóm (kèm xoá lịch rảnh ở phiên chưa chốt)
    */
   async removeMember(groupId, callerId, targetUserId) {
     if (!isUuid(targetUserId)) {

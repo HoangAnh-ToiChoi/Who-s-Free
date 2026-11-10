@@ -152,13 +152,36 @@ class GroupMemberModel {
   /**
    * Xóa một thành viên khỏi nhóm
    */
+  /**
+   * Xoá thành viên khỏi nhóm và xoá lịch rảnh của họ trong các phiên CHƯA chốt của nhóm (cùng transaction),
+   * để số "đã phản hồi" không còn đếm người đã rời. Phiên đã chốt giữ nguyên làm lịch sử.
+   */
   static async removeMember(groupId, userId) {
     if (!groupId || !userId) return false;
     if (!isUuid(groupId) || !isUuid(userId)) return false;
 
-    const sql = "DELETE FROM public.group_members WHERE group_id = $1 AND user_id = $2 RETURNING id;";
-    const { rows } = await query(sql, [groupId, userId]);
-    return Boolean(rows && rows.length > 0);
+    return withTransaction(async (client) => {
+      const { rows } = await client.query(
+        "DELETE FROM public.group_members WHERE group_id = $1 AND user_id = $2 RETURNING id;",
+        [groupId, userId]
+      );
+      if (!rows?.length) return false;
+      await client.query(
+        `DELETE FROM public.availability_slots a USING public.sessions s
+         WHERE a.session_id = s.id AND s.group_id = $1 AND a.user_id = $2 AND s.status <> 'finalized';`,
+        [groupId, userId]
+      );
+      return true;
+    });
+  }
+
+  /** Nâng member lên lead. Chỉ đổi khi vai trò hiện tại đúng là 'member' (không hạ, không đụng owner). */
+  static async promoteToLead(groupId, userId) {
+    const { rows } = await query(
+      "UPDATE public.group_members SET role = 'lead' WHERE group_id = $1 AND user_id = $2 AND role = 'member' RETURNING *;",
+      [groupId, userId]
+    );
+    return rows?.[0] ?? null;
   }
 }
 
