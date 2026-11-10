@@ -4,6 +4,7 @@ import {
   Calendar,
   MoreHorizontal,
   ArrowRight,
+  ChevronRight,
   Star,
   CheckCircle2,
   Clock,
@@ -62,68 +63,63 @@ function SessionCard({ session }) {
     : (session.slug || session.id);
   const matrixUrl = `/groups/${groupId}/matrix/${sessionSlug}`;
 
+  const openMatrix = () => navigate(matrixUrl, { state: { session } });
+  const isFinalized = session.status === "finalized";
+
+  // Chưa có menu: chỉ chặn click lan ra thẻ. Dùng ở 2 chỗ (mobile cạnh tên, desktop cạnh nhãn danh mục).
+  const optionsButton = (className) => (
+    <button
+      type="button"
+      onClick={(e) => e.stopPropagation()}
+      className={cn("flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors", className)}
+      title={t("common.moreOptions")}
+      aria-label={t("common.moreOptions")}
+    >
+      <MoreHorizontal size={16} />
+    </button>
+  );
+
+  // Mobile: thẻ gọn (tên · ngày + trạng thái · tiến độ), bấm cả thẻ để mở lịch. Desktop (sm+): giữ thẻ đầy đủ.
   return (
     <div
-      onClick={() => navigate(matrixUrl, { state: { session } })}
-      className="group relative flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs sm:p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+      onClick={openMatrix}
+      className="group relative flex cursor-pointer items-center gap-1 rounded-2xl border border-slate-200/90 bg-white p-3.5 pr-2 shadow-xs sm:flex-col sm:items-stretch sm:justify-between sm:gap-0 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
     >
-      {/* Top Header: Tag & Options Menu */}
-      <div>
-        <div className="flex items-center justify-between">
-          <span
-            className={cn(
-              "rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wider whitespace-nowrap uppercase select-none",
-              theme.badge,
-            )}
-          >
+      <div className="min-w-0 flex-1">
+        <div className="hidden items-center justify-between sm:flex">
+          <span className={cn("rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wider whitespace-nowrap uppercase select-none", theme.badge)}>
             {session.tag}
           </span>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-            title={t("common.moreOptions")}
-            aria-label={t("common.moreOptions")}
-          >
-            <MoreHorizontal size={16} />
-          </button>
+          {optionsButton()}
         </div>
 
-        {/* Title & Date Range */}
-        <h3 className="mt-3 line-clamp-1 min-h-[24px] text-base font-bold text-slate-900 transition-colors group-hover:text-indigo-600">
+        <h3 className="line-clamp-1 text-[15px] font-bold text-slate-900 transition-colors group-hover:text-indigo-600 sm:mt-3 sm:min-h-[24px] sm:text-base">
           {session.title}
         </h3>
         <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
           <Calendar size={13} className="shrink-0 text-slate-400" />
           <span className="truncate">{session.dateRange}</span>
-        </div>
-
-        {/* Response Count & Progress Bar */}
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-700">
-              {t("groupDetail.responded", {
-                responded: session.respondedCount,
-                total: session.totalMembers,
-              })}
-            </span>
-            <span className="shrink-0 text-slate-900">{quorumPercent}%</span>
-          </div>
-
-          <div
+          <span
             className={cn(
-              "mt-2 h-1.5 w-full overflow-hidden rounded-full",
-              theme.progressTrack,
+              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold sm:hidden",
+              isFinalized ? "bg-indigo-50 text-indigo-700" : "bg-emerald-50 text-emerald-700"
             )}
           >
+            {t(isFinalized ? "groupDetail.statusFinalized" : "groupDetail.statusOpen")}
+          </span>
+        </div>
+
+        {/* Số phản hồi & thanh tiến độ */}
+        <div className="mt-2.5 sm:mt-4">
+          <div className="flex items-center justify-between text-xs font-semibold">
+            <span className="text-slate-600 sm:text-slate-700">
+              {t("groupDetail.responded", { responded: session.respondedCount, total: session.totalMembers })}
+            </span>
+            <span className="hidden shrink-0 text-slate-900 sm:inline">{quorumPercent}%</span>
+          </div>
+          <div className={cn("mt-1.5 h-1 w-full overflow-hidden rounded-full sm:mt-2 sm:h-1.5", theme.progressTrack)}>
             <div
-              className={cn(
-                "h-full rounded-full transition-all duration-500",
-                theme.progressBar,
-              )}
+              className={cn("h-full rounded-full transition-all duration-500", theme.progressBar)}
               style={{ width: `${quorumPercent}%` }}
             />
           </div>
@@ -140,11 +136,7 @@ function SessionCard({ session }) {
                 key={idx}
                 className={cn(
                   "w-1.5 rounded-xs transition-all",
-                  val >= 80
-                    ? theme.progressBar
-                    : val >= 50
-                      ? "bg-slate-400"
-                      : "bg-slate-200",
+                  val >= 80 ? theme.progressBar : val >= 50 ? "bg-slate-400" : "bg-slate-200",
                 )}
                 style={{ height: `${Math.max(val * 0.2, 3)}px` }}
               />
@@ -153,32 +145,27 @@ function SessionCard({ session }) {
         </div>
 
         {/* Highest Overlap Banner */}
-        <div
-          className={cn(
-            "mt-3 flex min-h-[36px] items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium",
-            theme.highlightBg,
-          )}
-        >
+        <div className={cn("mt-3 hidden min-h-[36px] items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium sm:flex", theme.highlightBg)}>
           <HighlightIcon size={14} className="shrink-0" />
           <span className="truncate">{session.highestOverlapText}</span>
         </div>
       </div>
 
-      {/* CTA Button - Cố định height h-10 chống giật, hover vào card thì hiện style primary như calendar 1 */}
-      <div className="mt-4 sm:mt-5 sm:border-t sm:border-slate-100/80 sm:pt-3">
+      {optionsButton("self-start sm:hidden")}
+      <ChevronRight size={18} className="shrink-0 text-slate-300 sm:hidden" />
+
+      {/* CTA (desktop) - cao cố định chống giật, hover thẻ thì chuyển style primary */}
+      <div className="mt-5 hidden border-t border-slate-100/80 pt-3 sm:block">
         <Button
           variant="outline"
           onClick={(e) => {
             e.stopPropagation();
-            navigate(matrixUrl, { state: { session } });
+            openMatrix();
           }}
-          className="h-11 sm:h-10 w-full cursor-pointer justify-center gap-2 rounded-xl max-sm:border-indigo-600 max-sm:bg-indigo-600 max-sm:text-white max-sm:font-semibold border-slate-200 bg-white text-xs font-medium whitespace-nowrap text-slate-700 shadow-2xs transition-all duration-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:font-semibold group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!border-indigo-700 hover:!bg-indigo-700 hover:!text-white active:scale-[0.99]"
+          className="h-10 w-full cursor-pointer justify-center gap-2 rounded-xl border-slate-200 bg-white text-xs font-medium whitespace-nowrap text-slate-700 shadow-2xs transition-all duration-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:font-semibold group-hover:text-white group-hover:shadow-md group-hover:shadow-indigo-500/20 hover:!border-indigo-700 hover:!bg-indigo-700 hover:!text-white active:scale-[0.99]"
         >
           <span>{t("groupDetail.openCalendar")}</span>
-          <ArrowRight
-            size={14}
-            className="shrink-0 text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-white"
-          />
+          <ArrowRight size={14} className="shrink-0 text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-white" />
         </Button>
       </div>
     </div>

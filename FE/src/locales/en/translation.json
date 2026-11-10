@@ -109,7 +109,9 @@
       "copyright": "© 2026 Who's Free. Precision group coordination."
     },
     "notMemberTitle": "You are not a member of this group",
-    "notMemberDesc": "Ask the group lead to send you an invite to see its schedules and add your availability."
+    "notMemberDesc": "Ask the group lead to send you an invite to see its schedules and add your availability.",
+    "statusOpen": "Open",
+    "statusFinalized": "Finalized"
   },
   "createGroupModal": {
     "title": "Create New Group",

@@ -29,6 +29,8 @@ function GridToolbar({
   onUnfinalize,
   weekNavOnMobile = true,
   weekOffset = 0,
+  touchDragPreview = null,
+  weekDays = [],
 }) {
   const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -139,14 +141,14 @@ function GridToolbar({
               <Trash2 size={13} className="shrink-0" />
               <span className="hidden sm:inline">{t("gridToolbar.clearSelections")}</span>
             </Button>
-            <TouchDragHint />
+            <TouchDragHint dragPreview={touchDragPreview} weekDays={weekDays} />
           </div>
         ) : (
           <>
             <span className="text-xs text-slate-400 italic [@media(pointer:coarse)]:hidden">
               {t("gridToolbar.noSlotsSelected")}
             </span>
-            <TouchDragHint />
+            <TouchDragHint dragPreview={touchDragPreview} weekDays={weekDays} />
           </>
         )}
       </div>
