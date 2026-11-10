@@ -5,6 +5,7 @@ import {
   MoreHorizontal,
   ArrowRight,
   ChevronRight,
+  Quote,
   Star,
   CheckCircle2,
   Clock,
@@ -93,9 +94,21 @@ function SessionCard({ session }) {
           {optionsButton()}
         </div>
 
-        <h3 className="line-clamp-1 text-[15px] font-bold text-slate-900 transition-colors group-hover:text-indigo-600 sm:mt-3 sm:min-h-[24px] sm:text-base">
-          {session.title}
-        </h3>
+        <div className="flex items-center gap-1.5 sm:mt-3 sm:min-h-[24px]">
+          <h3 className="line-clamp-1 text-[15px] font-bold text-slate-900 transition-colors group-hover:text-indigo-600 sm:text-base">
+            {session.title}
+          </h3>
+          {/* Có ghi chú của trưởng nhóm → dấu nháy, rê chuột xem nhanh; nội dung đầy đủ ở trang ma trận */}
+          {session.description && (
+            <span
+              title={session.description}
+              aria-label={t("sessionNote.hasNote")}
+              className="flex size-5 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-600"
+            >
+              <Quote size={11} />
+            </span>
+          )}
+        </div>
         <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
           <Calendar size={13} className="shrink-0 text-slate-400" />
           <span className="truncate">{session.dateRange}</span>

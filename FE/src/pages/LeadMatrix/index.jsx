@@ -118,6 +118,7 @@ export function LeadMatrixContent({ readOnly = false }) {
       {/* Header session */}
       <LeadMatrixHeader
         session={currentSession}
+        onNoteSaved={updateCurrentSession}
         hideSwitch={readOnly || Boolean(finalized)}
         finalized={finalized}
         readOnly={readOnly}

@@ -6,6 +6,7 @@ import { createCompositeSlug } from "~/utils/slugify";
 import FinalizedBanner from "~/pages/LeadMatrix/components/FinalizedBanner";
 import WeekNav from "~/pages/MemberMatrix/components/GridToolbar/WeekNav";
 import BackButton from "~/components/BackButton";
+import SessionNoteChip from "~/components/SessionNoteChip";
 
 /**
  * LeadMatrixHeader - Header trang LeadMatrix cho Trưởng nhóm
@@ -13,7 +14,7 @@ import BackButton from "~/components/BackButton";
  * - Tên session + ref code
  * - Nút chuyển sang MemberMatrix (Nhập lịch của tôi)
  */
-function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readOnly = false, weekNav }) {
+function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readOnly = false, weekNav, onNoteSaved }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isLeadRoute = useLocation().pathname.includes("/lead-matrix");
@@ -43,6 +44,8 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
             </span>
           )}
         </div>
+        {/* Ghi chú của trưởng nhóm: hiện cả trên mobile (tên phiên bị ẩn) */}
+        <SessionNoteChip session={session} canEdit={!readOnly} onSaved={onNoteSaved} />
       </div>
 
       {/* Nhãn lịch đã chốt: căn giữa header (màn hình hẹp thì xuống dòng riêng) */}

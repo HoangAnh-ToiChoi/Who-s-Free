@@ -20,3 +20,12 @@ export function getDateWindowError({ startDate, endDate } = {}, today = new Date
   if ((end - start) / DAY_MS + 1 > MAX_WINDOW_DAYS) return `Khoảng khảo sát tối đa ${MAX_WINDOW_DAYS} ngày`;
   return null;
 }
+
+export const MAX_NOTE_LENGTH = 500;
+
+/** Ghi chú của trưởng nhóm cho phiên (lưu ở sessions.description). Chuỗi rỗng = xoá ghi chú. */
+export function getNoteError(note) {
+  if (typeof note !== "string") return "Ghi chú phải là chuỗi";
+  if (note.trim().length > MAX_NOTE_LENGTH) return `Ghi chú tối đa ${MAX_NOTE_LENGTH} ký tự`;
+  return null;
+}

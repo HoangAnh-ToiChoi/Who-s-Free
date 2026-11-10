@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { createCompositeSlug } from "~/utils/slugify";
 import { useUserGroupRole } from "~/hooks/useUserGroupRole";
 import BackButton from "~/components/BackButton";
+import SessionNoteChip from "~/components/SessionNoteChip";
 
 /**
  * MatrixHeader - Thanh tiêu đề trên cùng của trang Ma trận
@@ -36,6 +37,7 @@ function MatrixHeader({ session }) {
             {session?.title || ""}
           </span>
         </div>
+        <SessionNoteChip session={session} />
       </div>
 
       {/* Nút chuyển đổi sang Chế độ Lead - Chỉ hiển thị cho người có role là Lead */}

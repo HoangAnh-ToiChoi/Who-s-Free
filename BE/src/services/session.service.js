@@ -6,7 +6,7 @@ import { ErrorCodes } from "../constants/errorCodes.js";
 import { toPublicSession } from "../utils/mappers/session.mapper.js";
 import { isLeadOrOwner } from "../utils/permissions.js";
 import { requireGroupMember, requireSessionMember } from "./session-access.helpers.js";
-import { getDateWindowError } from "../validations/session.validation.js";
+import { getDateWindowError, getNoteError } from "../validations/session.validation.js";
 
 class SessionService {
   /** groupId có thể là UUID hoặc slug nhóm. Không có groupId → [] (giữ hành vi cũ của ?slug=). */
@@ -39,6 +39,18 @@ class SessionService {
     const created = await SessionModel.create({ ...payload, createdBy: actorId });
     const withMetrics = await SessionModel.findById(created.id);
     return toPublicSession(withMetrics ?? created);
+  }
+
+  /** Chỉ owner/lead của nhóm được sửa ghi chú phiên (hiện cho mọi thành viên ở trang ma trận). */
+  async updateNote(id, actorId, note) {
+    const noteError = getNoteError(note);
+    if (noteError) throw AppError.badRequest(noteError, ErrorCodes.VALIDATION_ERROR);
+    const { session, member } = await requireSessionMember(id, actorId);
+    if (!isLeadOrOwner(member)) {
+      throw AppError.forbidden("Chỉ trưởng nhóm hoặc chủ nhóm mới được sửa ghi chú", ErrorCodes.FORBIDDEN);
+    }
+    await SessionModel.updateNote(session.id, note.trim());
+    return toPublicSession(await SessionModel.findById(session.id));
   }
 
   /** Chỉ người tạo phiên hoặc owner/lead của nhóm được xoá; created_by NULL → chỉ owner/lead. */
