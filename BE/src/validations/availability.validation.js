@@ -62,3 +62,16 @@ export function getSlotsValidationError(slots) {
   if (overlap) return `Slot #${overlap[0] + 1} và #${overlap[1] + 1} bị chồng giờ nhau`;
   return null;
 }
+
+/**
+ * Slot nằm ngoài khoảng khảo sát của phiên (start_date..end_date). Phiên cũ không có ngày → luôn null.
+ * So sánh chuỗi "YYYY-MM-DD" là đủ vì đã qua getSlotsValidationError (đúng định dạng).
+ */
+export function getSlotsWindowError(slots, startDate, endDate) {
+  if (!startDate && !endDate) return null;
+  const index = slots.findIndex(
+    (slot) => (startDate && slot.dateStr < startDate) || (endDate && slot.dateStr > endDate)
+  );
+  if (index < 0) return null;
+  return `Slot #${index + 1}: ngày ${slots[index].dateStr} nằm ngoài khoảng khảo sát ${startDate} – ${endDate}`;
+}

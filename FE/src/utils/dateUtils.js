@@ -129,3 +129,13 @@ export function pickRangeDate(range, dateStr) {
   if (!range?.start || range.end || dateStr < range.start) return { start: dateStr, end: null };
   return { start: range.start, end: dateStr };
 }
+
+/** Ngày "YYYY-MM-DD" có nằm trong khoảng khảo sát của phiên không (phiên cũ không có ngày → luôn đúng). */
+export const isDateInWindow = (dateStr, startDate, endDate) =>
+  (!startDate || dateStr >= startDate) && (!endDate || dateStr <= endDate);
+
+/** Cột mở đầu khi cuộn ngang trên mobile: hôm nay nếu nằm trong khoảng, không thì ngày đầu tiên trong khoảng. */
+export function initialDayIndex(weekDays) {
+  const today = weekDays.findIndex((d) => d.isToday && d.inWindow !== false);
+  return today >= 0 ? today : Math.max(weekDays.findIndex((d) => d.inWindow !== false), 0);
+}

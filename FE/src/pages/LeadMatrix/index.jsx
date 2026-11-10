@@ -32,14 +32,10 @@ import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
 export function LeadMatrixContent({ readOnly = false }) {
   const { t } = useTranslation();
   const { currentSession, updateCurrentSession, refreshCurrentSession } = useSessionResolver();
-  const {
-    weekDays,
-    weekLabel,
-    goToPrevWeek,
-    goToNextWeek,
-    goToToday,
-    weekOffset,
-  } = useWeekNavigation(currentSession?.startDate);
+  const { weekDays, weekLabel, weekNav } = useWeekNavigation({
+    startDate: currentSession?.startDate,
+    endDate: currentSession?.endDate,
+  });
 
   const sessionId = currentSession?.id;
 
@@ -125,7 +121,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         hideSwitch={readOnly || Boolean(finalized)}
         finalized={finalized}
         readOnly={readOnly}
-        weekNav={{ onPrevWeek: goToPrevWeek, onNextWeek: goToNextWeek, onToday: goToToday, weekOffset }}
+        weekNav={weekNav}
       />
 
       {finalizeActions.error && !finalizeActions.isModalOpen && (
@@ -149,10 +145,7 @@ export function LeadMatrixContent({ readOnly = false }) {
           mode="lead"
           weekLabel={weekLabel}
           stats={leadStats}
-          onPrevWeek={goToPrevWeek}
-          onNextWeek={goToNextWeek}
-          onToday={goToToday}
-          weekOffset={weekOffset}
+          weekNav={weekNav}
           onExport={handleExport}
           isExporting={isExporting}
           readOnly={readOnly}

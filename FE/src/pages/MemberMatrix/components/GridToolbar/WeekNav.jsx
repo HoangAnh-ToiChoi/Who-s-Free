@@ -4,7 +4,8 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
 /** Cụm điều hướng tuần ‹ Hôm nay ›. Dùng trong GridToolbar và (mobile) trên header màn Lead. */
-function WeekNav({ onPrevWeek, onNextWeek, onToday, weekOffset = 0, className }) {
+/** canGoPrev/canGoNext = false: khoá nút khi tuần kế tiếp nằm ngoài khoảng khảo sát của phiên. */
+function WeekNav({ onPrevWeek, onNextWeek, onToday, weekOffset = 0, canGoPrev = true, canGoNext = true, className }) {
   const { t } = useTranslation();
   // Nút giữa cho biết đang xem tuần nào so với hiện tại; bấm vào luôn về tuần này
   const label =
@@ -16,7 +17,8 @@ function WeekNav({ onPrevWeek, onNextWeek, onToday, weekOffset = 0, className })
         variant="ghost"
         size="icon-xs"
         onClick={onPrevWeek}
-        className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer"
+        disabled={!canGoPrev}
+        className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
         aria-label={t("gridToolbar.prevWeek")}
       >
         <ChevronLeft size={16} />
@@ -37,7 +39,8 @@ function WeekNav({ onPrevWeek, onNextWeek, onToday, weekOffset = 0, className })
         variant="ghost"
         size="icon-xs"
         onClick={onNextWeek}
-        className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer"
+        disabled={!canGoNext}
+        className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
         aria-label={t("gridToolbar.nextWeek")}
       >
         <ChevronRight size={16} />

@@ -76,7 +76,8 @@ export function useHeatmapMatrix(
         let targetDayIndex = -1;
         if (slot.dateStr && weekDays && weekDays.length > 0) {
           const matchDay = weekDays.find((d) => d.dateStr === slot.dateStr);
-          if (matchDay) {
+          // Ngày ngoài khoảng khảo sát không tính vào heatmap/gợi ý (slot cũ còn sót lại)
+          if (matchDay && matchDay.inWindow !== false) {
             targetDayIndex = matchDay.dayIndex;
           }
         } else if (slot.dayIndex >= 0 && slot.dayIndex <= 6) {
