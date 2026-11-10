@@ -22,7 +22,7 @@ function MemberFilterBar({
   };
 
   return (
-    <div className="flex gap-2 overflow-x-auto py-1.5 px-1 select-none sm:flex-col sm:gap-3 sm:overflow-visible sm:py-3">
+    <div className="flex gap-2 overflow-x-auto py-1.5 px-1 select-none sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-2 sm:overflow-visible sm:py-3">
       {/* Preset buttons */}
       <div className="flex shrink-0 items-center gap-2 sm:flex-wrap">
         <span className="hidden sm:inline text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1">
@@ -47,8 +47,8 @@ function MemberFilterBar({
         ))}
       </div>
 
-      {/* Member chips */}
-      <div className="flex shrink-0 items-center gap-2 sm:flex-wrap">
+      {/* Member chips: cùng hàng với nút lọc, hết chỗ thì xuống dòng */}
+      <div className="flex shrink-0 items-center gap-2 sm:min-w-0 sm:shrink sm:flex-wrap">
         {allMembers.map((member) => (
           <MemberChip
             key={member.memberId || member.id}

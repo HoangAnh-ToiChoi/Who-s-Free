@@ -94,3 +94,38 @@ export function formatWeekRangeLabel(mondayDate, lang = "en") {
   }
   return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${year}`;
 }
+
+/** "YYYY-MM-DD" → Date nửa đêm giờ máy (new Date("YYYY-MM-DD") là UTC, sẽ lệch ngày ở múi giờ âm). */
+export function parseISODate(value) {
+  const [y, m, d] = String(value).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** 42 ô (6 hàng × T2–CN) cho lịch tháng; ô ngoài tháng có inMonth=false. */
+export function buildMonthGrid(year, month) {
+  const first = getMondayOfWeek(new Date(year, month, 1));
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(first);
+    d.setDate(first.getDate() + i);
+    return { dateStr: toISODateString(d), day: d.getDate(), inMonth: d.getMonth() === month };
+  });
+}
+
+/** Nhãn khoảng ngày lưu kèm phiên, ví dụ "12/11 – 18/11/2026" hoặc "Nov 12 – Nov 18, 2026". */
+export function formatDateRangeLabel(startStr, endStr, lang = "en") {
+  const [s, e] = [parseISODate(startStr), parseISODate(endStr)];
+  if (langKey(lang) === "vi") {
+    const fmt = (d) => `${d.getDate()}/${d.getMonth() + 1}`;
+    const head = s.getFullYear() === e.getFullYear() ? fmt(s) : `${fmt(s)}/${s.getFullYear()}`;
+    return startStr === endStr ? `${fmt(e)}/${e.getFullYear()}` : `${head} – ${fmt(e)}/${e.getFullYear()}`;
+  }
+  const fmt = (d) => `${MONTH_NAMES_SHORT[d.getMonth()]} ${d.getDate()}`;
+  const head = s.getFullYear() === e.getFullYear() ? fmt(s) : `${fmt(s)}, ${s.getFullYear()}`;
+  return startStr === endStr ? `${fmt(e)}, ${e.getFullYear()}` : `${head} – ${fmt(e)}, ${e.getFullYear()}`;
+}
+
+/** Bấm lần 1 chọn ngày bắt đầu, lần 2 chọn ngày kết thúc; bấm ngày trước ngày bắt đầu thì làm lại từ đó. */
+export function pickRangeDate(range, dateStr) {
+  if (!range?.start || range.end || dateStr < range.start) return { start: dateStr, end: null };
+  return { start: range.start, end: dateStr };
+}

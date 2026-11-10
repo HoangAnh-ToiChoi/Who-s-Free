@@ -85,9 +85,10 @@ const DayColumn = forwardRef(function DayColumn(
       {isDraggingOnThisDay && previewStyle && (
         <div
           style={previewStyle}
-          className="absolute left-1 right-1 z-30 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden backdrop-blur-2xs transition-all duration-75"
+          className="absolute left-1 right-1 z-20 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden backdrop-blur-2xs transition-all duration-75"
         >
-          <div className="flex items-center justify-between gap-1">
+          {/* Mobile: cột hẹp nên ẩn chữ trong ô; giờ đang chọn hiện ở chip trên thanh công cụ */}
+          <div className="flex items-center justify-between gap-1 max-sm:hidden">
             <span className="text-[11px] font-bold text-indigo-950 truncate leading-tight">
               {previewText}
             </span>
@@ -98,7 +99,7 @@ const DayColumn = forwardRef(function DayColumn(
             )}
           </div>
           {previewHeight >= 72 && (
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-indigo-800">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-indigo-800 max-sm:hidden">
               <span className="rounded bg-indigo-100/90 px-1 py-0.5">
                 {minutesToTimeString(dragPreview.startMinutes)}
               </span>

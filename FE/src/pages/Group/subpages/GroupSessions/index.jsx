@@ -38,7 +38,7 @@ function GroupSessions({ sessions = [], onOpenCreateModal }) {
 
       {/* Grid of Session Cards */}
       {sessions.length > 0 ? (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-2.5 sm:mt-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {sessions.map((session) => (
             <SessionCard key={session.id} session={session} />
           ))}

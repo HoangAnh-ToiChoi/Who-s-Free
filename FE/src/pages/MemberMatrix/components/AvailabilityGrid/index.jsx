@@ -24,7 +24,7 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_
  * AvailabilityGrid - Lưới nhập lịch rảnh của thành viên: điều hướng tuần, kéo chọn khung 30 phút,
  * popover chỉnh slot. Mobile hiện 3 ngày/màn với cột giờ cố định (xem GridScrollArea).
  */
-function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocked }) {
+function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, memberId, onSessionLocked }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -36,14 +36,16 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
   });
 
   // 1. Hook quản lý ngày tháng & tuần
-  const { weekDays, weekLabel, goToPrevWeek, goToNextWeek, goToToday, weekOffset } = useWeekNavigation();
+  const { weekDays, weekLabel, goToPrevWeek, goToNextWeek, goToToday, weekOffset } = useWeekNavigation(sessionStartDate);
 
-  // Mobile: lưới hiện 3/7 ngày → mở trang thì cuộn ngang tới hôm nay
+  // Mobile: lưới hiện 3/7 ngày → cuộn ngang tới hôm nay, hoặc tới ngày bắt đầu khảo sát nếu tuần này không có hôm nay
   const { scrollToDay } = useDayPager(scrollBodyRef, { timeColumnWidth: 48 });
   useEffect(() => {
     const todayIndex = weekDays.findIndex((d) => d.isToday);
-    scrollToDay(Math.min(Math.max(todayIndex, 0), 4), "auto");
-  }, [weekDays, scrollToDay]);
+    const startIndex = weekDays.findIndex((d) => d.dateStr === sessionStartDate);
+    const target = todayIndex >= 0 ? todayIndex : Math.max(startIndex, 0);
+    scrollToDay(Math.min(target, 4), "auto");
+  }, [weekDays, scrollToDay, sessionStartDate]);
 
   // 2. Hook quản lý danh sách slot rảnh & thống kê
   const {
@@ -130,6 +132,8 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
         onToday={goToToday}
         weekOffset={weekOffset}
         onClearAll={clearAllSlots}
+        touchDragPreview={isDragging && dragPreview?.isTouch ? dragPreview : null}
+        weekDays={weekDays}
       />
 
       <SaveStatusIndicator status={saveStatus} onRetry={retrySave} />
@@ -168,7 +172,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, memberId, onSessionLocke
           }}
         />
 
-        {isDragging && dragPreview && (
+        {isDragging && dragPreview && !dragPreview.isTouch && (
           <DragRangeIndicator dragPreview={dragPreview} weekDays={weekDays} />
         )}
 

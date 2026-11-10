@@ -9,7 +9,7 @@ class SessionModel {
     if (!isUuid(groupId)) return [];
 
     const sql = `
-      SELECT s.*, s.finalized_date::text AS finalized_date,
+      SELECT s.*, s.finalized_date::text AS finalized_date, s.start_date::text AS start_date, s.end_date::text AS end_date,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
         (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
@@ -25,7 +25,7 @@ class SessionModel {
     // Use the correct column to avoid 22P02 when id is a slug (non-UUID)
     const whereClause = isUuid(id) ? "s.id = $1" : "s.slug = $1";
     const sql = `
-      SELECT s.*, s.finalized_date::text AS finalized_date,
+      SELECT s.*, s.finalized_date::text AS finalized_date, s.start_date::text AS start_date, s.end_date::text AS end_date,
         (SELECT COUNT(*)::int FROM public.group_members WHERE group_id = s.group_id) AS total_members,
         (SELECT COUNT(DISTINCT user_id)::int FROM public.availability_slots WHERE session_id = s.id) AS responded_count
       FROM public.sessions s
@@ -36,7 +36,7 @@ class SessionModel {
     return rows?.[0] ?? null;
   }
 
-  static async create({ groupId, title, description = "", tag, tagColor, dateRange, scheduledTime, location, status = "active_poll", createdBy }) {
+  static async create({ groupId, title, description = "", tag, tagColor, dateRange, startDate = null, endDate = null, scheduledTime, location, status = "active_poll", createdBy }) {
     if (!groupId) throw new Error("groupId là bắt buộc khi tạo session");
     const id = randomUUID();
     const slug = generateUniqueSlug(title || "session");
@@ -44,8 +44,8 @@ class SessionModel {
 
     const sql = `
       INSERT INTO public.sessions
-        (id, group_id, slug, ref_code, title, description, tag, tag_color, date_range, scheduled_time, location, status, created_by, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+        (id, group_id, slug, ref_code, title, description, tag, tag_color, date_range, start_date, end_date, scheduled_time, location, status, created_by, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
       RETURNING *;
     `;
     const { rows } = await query(sql, [
@@ -53,6 +53,8 @@ class SessionModel {
       tag || "CÔNG VIỆC & HỌC TẬP",
       tagColor || "primary",
       dateRange || "",
+      startDate,
+      endDate,
       scheduledTime || "Flexible Window",
       location || "Quán Cafe / Trực tuyến",
       status,

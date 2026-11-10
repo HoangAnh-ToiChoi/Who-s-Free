@@ -17,6 +17,8 @@ export function toPublicSession(s) {
     tag: s.tag || "CÔNG VIỆC & HỌC TẬP",
     tagColor: s.tag_color || s.tagColor || "primary",
     dateRange: s.date_range || s.dateRange || "",
+    startDate: s.start_date ? toDateString(s.start_date) : null,
+    endDate: s.end_date ? toDateString(s.end_date) : null,
     scheduledTime: s.scheduled_time || s.scheduledTime || "Flexible Window",
     location: s.location || "Quán Cafe / Trực tuyến",
     totalMembers,
