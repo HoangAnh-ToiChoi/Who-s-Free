@@ -23,12 +23,12 @@ function FinalizedBanner({ finalized, readOnly = false }) {
     <div
       role="status"
       title={details}
-      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-linear-to-r from-emerald-50 to-white py-1 pr-3 pl-1 shadow-2xs"
+      className="inline-flex max-w-full shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-linear-to-r from-emerald-50 to-white py-1 pr-3 pl-1 shadow-2xs"
     >
       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm shadow-emerald-500/30">
         <Lock size={13} />
       </span>
-      <span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase">
+      <span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase max-sm:hidden">
         {t("finalize.bannerTitle")}
       </span>
       <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-900">

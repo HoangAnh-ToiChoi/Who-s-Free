@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { createCompositeSlug } from "~/utils/slugify";
 import { useUserGroupRole } from "~/hooks/useUserGroupRole";
 import BackButton from "~/components/BackButton";
-import SessionNoteChip from "~/components/SessionNoteChip";
+import { SessionNoteBanner } from "~/components/SessionNote";
 
 /**
  * MatrixHeader - Thanh tiêu đề trên cùng của trang Ma trận
@@ -27,7 +27,7 @@ function MatrixHeader({ session }) {
     : session?.slug || session?.id || "";
 
   return (
-    <div className="mb-1 sm:mb-2.5 flex min-h-[36px] shrink-0 items-center justify-between gap-3 select-none">
+    <div className="mb-1 sm:mb-2.5 flex min-h-[36px] shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 select-none">
       {/* Cụm link quay lại nhóm & tên session */}
       <div className="flex min-w-0 items-center gap-2.5 text-xs">
         <BackButton to={backUrl} label={t("groupDetail.backToGroup")} shortLabel={t("common.back")} />
@@ -37,10 +37,17 @@ function MatrixHeader({ session }) {
             {session?.title || ""}
           </span>
         </div>
-        <SessionNoteChip session={session} />
       </div>
 
+      {/* Ghi chú của trưởng nhóm: hàng riêng, căn giữa (chỉ hiện khi có) */}
+      {session?.description && (
+        <div className="order-last flex w-full min-w-0 justify-center">
+          <SessionNoteBanner note={session.description} />
+        </div>
+      )}
+
       {/* Nút chuyển đổi sang Chế độ Lead - Chỉ hiển thị cho người có role là Lead */}
+      <div className="flex">
       {isLead && (
         <Button
           type="button"
@@ -55,6 +62,7 @@ function MatrixHeader({ session }) {
           <span>{t("matrix.switchToLeadMode")}</span>
         </Button>
       )}
+      </div>
     </div>
   );
 }

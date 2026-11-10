@@ -94,21 +94,9 @@ function SessionCard({ session }) {
           {optionsButton()}
         </div>
 
-        <div className="flex items-center gap-1.5 sm:mt-3 sm:min-h-[24px]">
-          <h3 className="line-clamp-1 text-[15px] font-bold text-slate-900 transition-colors group-hover:text-indigo-600 sm:text-base">
-            {session.title}
-          </h3>
-          {/* Có ghi chú của trưởng nhóm → dấu nháy, rê chuột xem nhanh; nội dung đầy đủ ở trang ma trận */}
-          {session.description && (
-            <span
-              title={session.description}
-              aria-label={t("sessionNote.hasNote")}
-              className="flex size-5 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-600"
-            >
-              <Quote size={11} />
-            </span>
-          )}
-        </div>
+        <h3 className="line-clamp-1 text-[15px] font-bold text-slate-900 transition-colors group-hover:text-indigo-600 sm:mt-3 sm:min-h-[24px] sm:text-base">
+          {session.title}
+        </h3>
         <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
           <Calendar size={13} className="shrink-0 text-slate-400" />
           <span className="truncate">{session.dateRange}</span>
@@ -121,6 +109,14 @@ function SessionCard({ session }) {
             {t(isFinalized ? "groupDetail.statusFinalized" : "groupDetail.statusOpen")}
           </span>
         </div>
+
+        {/* Ghi chú của trưởng nhóm (mobile 1 dòng, desktop tối đa 2 dòng; đầy đủ ở trang ma trận) */}
+        {session.description && (
+          <p title={session.description} className="mt-2 flex items-start gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-medium text-sky-800">
+            <Quote size={12} className="mt-0.5 shrink-0 text-sky-500" />
+            <span className="line-clamp-1 sm:line-clamp-2">{session.description}</span>
+          </p>
+        )}
 
         {/* Số phản hồi & thanh tiến độ */}
         <div className="mt-2.5 sm:mt-4">

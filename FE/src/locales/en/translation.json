@@ -468,7 +468,6 @@
     "edit": "Edit note",
     "save": "Save",
     "placeholder": "e.g. Bring your laptop, evenings preferred...",
-    "saveFailed": "Couldn't save the note, please try again.",
-    "hasNote": "Has a note from the lead"
+    "saveFailed": "Couldn't save the note, please try again."
   }
 }
