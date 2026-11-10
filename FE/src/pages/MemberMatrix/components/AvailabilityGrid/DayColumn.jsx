@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { cn } from "~/lib/utils";
 import SlotCard from "./SlotCard";
+import OutOfWindowOverlay from "~/components/OutOfWindowOverlay";
 import {
   calculateSlotGeometry,
   formatDuration,
@@ -28,7 +29,9 @@ const DayColumn = forwardRef(function DayColumn(
   },
   ref
 ) {
+  const isOutOfWindow = day.inWindow === false;
   const isDraggingOnThisDay =
+    !isOutOfWindow &&
     dragPreview &&
     day.dayIndex >= dragPreview.startDayIndex &&
     day.dayIndex <= dragPreview.endDayIndex;
@@ -51,8 +54,7 @@ const DayColumn = forwardRef(function DayColumn(
   return (
     <div
       ref={ref}
-      onMouseDown={onMouseDown}
-      {...touchHandlers}
+      {...(!isOutOfWindow && { onMouseDown, ...touchHandlers })}
       className={cn(
         "relative border-r border-slate-200/90 last:border-r-0 cursor-crosshair select-none transition-colors [-webkit-touch-callout:none]",
         isWeekend && "bg-slate-50/40",
@@ -80,6 +82,9 @@ const DayColumn = forwardRef(function DayColumn(
 
       {/* Khoảng dư sau 23h đồng bộ với TimeColumn */}
       <div className={cn("h-14", isWeekend ? "bg-slate-100/40" : "bg-slate-50/50")} />
+
+      {/* Ngày ngoài khoảng khảo sát của phiên: phủ gạch chéo, không kéo thả được */}
+      {isOutOfWindow && <OutOfWindowOverlay />}
 
       {/* Vùng xem trước khi đang kéo chuột (Real-time Drag Selection Box) */}
       {isDraggingOnThisDay && previewStyle && (

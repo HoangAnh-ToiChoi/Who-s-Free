@@ -23,7 +23,8 @@ function GridHeader({ weekDays }) {
               className={cn(
                 "snap-start border-r border-slate-200/90 last:border-r-0 py-2.5 px-1 flex flex-col items-center justify-center transition-colors",
                 isWeekend && "bg-slate-50/50",
-                day.isToday && "bg-indigo-50/50"
+                day.isToday && "bg-indigo-50/50",
+                day.inWindow === false && "opacity-40"
               )}
             >
               <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">

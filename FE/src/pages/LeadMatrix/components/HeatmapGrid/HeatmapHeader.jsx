@@ -15,7 +15,8 @@ function HeatmapHeader({ weekDays }) {
           key={day.dateStr}
           className={cn(
             "snap-start h-10 flex flex-col items-center justify-center text-center border-r border-slate-100/80 last:border-r-0",
-            day.isToday && "bg-indigo-50/60"
+            day.isToday && "bg-indigo-50/60",
+            day.inWindow === false && "opacity-40"
           )}
         >
           <span

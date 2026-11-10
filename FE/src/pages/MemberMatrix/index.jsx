@@ -54,7 +54,7 @@ function MatrixContent() {
         <AvailabilityGrid
           sessionId={currentSession?.id}
           sessionCacheKey={currentSession?.slug || currentSession?.id}
-          sessionStartDate={currentSession?.startDate}
+          dateWindow={{ startDate: currentSession?.startDate, endDate: currentSession?.endDate }}
           memberId={currentUser?.id}
           onSessionLocked={handleSessionLocked}
         />
