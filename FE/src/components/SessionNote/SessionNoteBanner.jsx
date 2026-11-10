@@ -23,7 +23,10 @@ function SessionNoteBanner({ note }) {
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm shadow-sky-500/30">
           <Quote size={14} />
         </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-sky-900">{note}</span>
+        <span className="min-w-0 truncate text-sm font-semibold text-sky-900">{note}</span>
+        {/* Dấu nháy đóng (ngoài phần bị cắt "…"), đủ cặp với dấu mở ở đầu */}
+        <Quote size={13} className="shrink-0 rotate-180 text-sky-400" />
+        <span className="flex-1" />
         <ChevronDown size={15} className={cn("shrink-0 text-sky-500 transition-transform", open && "rotate-180")} />
       </button>
 
@@ -32,7 +35,7 @@ function SessionNoteBanner({ note }) {
           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-sky-700 uppercase">
             <Quote size={12} /> {t("sessionNote.title")}
           </p>
-          <p className="rounded-xl bg-sky-50 px-3 py-2 text-sm whitespace-pre-wrap text-slate-800">{note}</p>
+          <p className="rounded-xl bg-sky-50 px-3 py-2 text-sm whitespace-pre-wrap text-slate-800">“{note}”</p>
         </div>
       )}
     </div>

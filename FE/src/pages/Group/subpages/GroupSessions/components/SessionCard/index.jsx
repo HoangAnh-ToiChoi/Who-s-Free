@@ -114,7 +114,8 @@ function SessionCard({ session }) {
         {session.description && (
           <p title={session.description} className="mt-2 flex items-start gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-medium text-sky-800">
             <Quote size={12} className="mt-0.5 shrink-0 text-sky-500" />
-            <span className="line-clamp-1 sm:line-clamp-2">{session.description}</span>
+            <span className="min-w-0 max-sm:truncate sm:line-clamp-2">{session.description}</span>
+            <Quote size={12} className="mt-0.5 shrink-0 rotate-180 self-end text-sky-500" />
           </p>
         )}
 

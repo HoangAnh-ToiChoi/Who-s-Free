@@ -8,10 +8,10 @@ import { NOTE_PANEL_CLASS, useNotePanel } from "./useNotePanel";
 const MAX_NOTE_LENGTH = 500;
 
 /**
- * Nút "Ghi chú" của trưởng nhóm (góc phải header màn Lead), luôn hiện.
+ * Nút "Thêm/Sửa ghi chú" của trưởng nhóm (màn Lead), luôn hiện: desktop ngay trên Xuất file/Chốt lịch, mobile trên header.
  * Bấm mở khung soạn sẵn nội dung hiện tại; Lưu thì ghi chú mới thay ghi chú cũ, để trống = xoá.
  */
-function SessionNoteEditButton({ sessionId, note = "", onSaved }) {
+function SessionNoteEditButton({ sessionId, note = "", onSaved, className }) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState(note);
   const [saving, setSaving] = useState(false);
@@ -38,15 +38,15 @@ function SessionNoteEditButton({ sessionId, note = "", onSaved }) {
   };
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={cn("relative shrink-0", className)}>
       <button
         type="button"
         onClick={openEditor}
         aria-expanded={open}
         aria-label={t(note ? "sessionNote.edit" : "sessionNote.add")}
-        className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border border-sky-200 bg-white px-3 text-xs font-semibold text-sky-700 shadow-2xs transition-all hover:border-sky-300 hover:bg-sky-50 active:scale-[0.98] sm:h-8"
+        className="inline-flex h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] sm:h-8"
       >
-        <Quote size={14} className="max-sm:size-5" />
+        <Quote size={14} className="text-slate-500 max-sm:size-5" />
         <span className="max-sm:hidden">{t(note ? "sessionNote.edit" : "sessionNote.add")}</span>
       </button>
 

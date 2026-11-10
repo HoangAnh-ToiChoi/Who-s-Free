@@ -56,7 +56,10 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
 
       {/* Nút ghi chú (lead) + chuyển sang MemberMatrix */}
       <div className="ml-auto flex items-center gap-2">
-      {!readOnly && <SessionNoteEditButton sessionId={session?.id} note={session?.description || ""} onSaved={onNoteSaved} />}
+      {/* Mobile: nút ghi chú ở header; desktop nằm ngay trên Xuất file/Chốt lịch (LeadMatrix) */}
+      {!readOnly && (
+        <SessionNoteEditButton className="sm:hidden" sessionId={session?.id} note={session?.description || ""} onSaved={onNoteSaved} />
+      )}
       {!hideSwitch && (
       <Button
         type="button"
