@@ -39,7 +39,7 @@ export function LeadMatrixContent({ readOnly = false }) {
     goToNextWeek,
     goToToday,
     weekOffset,
-  } = useWeekNavigation();
+  } = useWeekNavigation(currentSession?.startDate);
 
   const sessionId = currentSession?.id;
 

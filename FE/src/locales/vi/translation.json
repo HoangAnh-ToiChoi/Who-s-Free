@@ -141,7 +141,7 @@
     "hangoutChillDesc": "Cafe, ăn uống, xem phim, du lịch, thể thao",
     "otherActivity": "Mục khác / Linh hoạt",
     "otherActivityDesc": "Sinh nhật, party, sự kiện đột xuất, việc riêng",
-    "pollingWindow": "Tuần khảo sát / Khung thời gian",
+    "pollingWindow": "Khoảng thời gian khảo sát",
     "quorumGoal": "Mục tiêu Quorum",
     "locationMode": "Địa điểm / Hình thức",
     "locationPlaceholder": "vd: The Coffee House, Discord, Google Meet, Phòng lab...",
@@ -151,8 +151,13 @@
     "createSession": "Tạo lịch trình",
     "creatingSession": "Đang tạo...",
     "errorTitleRequired": "Vui lòng nhập tên sự kiện hoặc lịch hẹn.",
-    "errorDateRequired": "Vui lòng chọn khoảng thời gian cần khảo sát.",
-    "errorNetwork": "Không thể kết nối đến máy chủ dữ liệu. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau."
+    "errorDateRequired": "Vui lòng chọn ngày bắt đầu và kết thúc.",
+    "errorNetwork": "Không thể kết nối đến máy chủ dữ liệu. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.",
+    "datePlaceholder": "Chọn ngày bắt đầu và kết thúc",
+    "pickStartHint": "Chọn ngày bắt đầu",
+    "pickEndHint": "Chọn ngày kết thúc",
+    "prevMonth": "Tháng trước",
+    "nextMonth": "Tháng sau"
   },
   "inviteModal": {
     "title": "Mời thành viên",

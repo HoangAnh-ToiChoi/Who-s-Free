@@ -6,6 +6,7 @@ import { ErrorCodes } from "../constants/errorCodes.js";
 import { toPublicSession } from "../utils/mappers/session.mapper.js";
 import { isLeadOrOwner } from "../utils/permissions.js";
 import { requireGroupMember, requireSessionMember } from "./session-access.helpers.js";
+import { getDateWindowError } from "../validations/session.validation.js";
 
 class SessionService {
   /** groupId có thể là UUID hoặc slug nhóm. Không có groupId → [] (giữ hành vi cũ của ?slug=). */
@@ -29,6 +30,8 @@ class SessionService {
     if (!payload?.groupId) {
       throw AppError.badRequest("groupId là bắt buộc khi tạo phiên", ErrorCodes.GROUP_ID_REQUIRED);
     }
+    const dateError = getDateWindowError(payload);
+    if (dateError) throw AppError.badRequest(dateError, ErrorCodes.VALIDATION_ERROR);
     const member = await requireGroupMember(payload.groupId, actorId);
     if (!isLeadOrOwner(member)) {
       throw AppError.forbidden("Chỉ trưởng nhóm hoặc chủ nhóm mới được tạo lịch trình", ErrorCodes.FORBIDDEN);
