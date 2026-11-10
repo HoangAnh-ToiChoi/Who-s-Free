@@ -111,7 +111,8 @@
     "notMemberTitle": "You are not a member of this group",
     "notMemberDesc": "Ask the group lead to send you an invite to see its schedules and add your availability.",
     "statusOpen": "Open",
-    "statusFinalized": "Finalized"
+    "statusFinalized": "Finalized",
+    "roleOwner": "Owner"
   },
   "createGroupModal": {
     "title": "Create New Group",

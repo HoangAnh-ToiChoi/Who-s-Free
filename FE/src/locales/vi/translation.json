@@ -111,7 +111,8 @@
     "notMemberTitle": "Bạn chưa phải thành viên nhóm này",
     "notMemberDesc": "Hãy nhờ trưởng nhóm gửi lời mời để xem lịch trình và nhập lịch rảnh.",
     "statusOpen": "Đang mở",
-    "statusFinalized": "Đã chốt"
+    "statusFinalized": "Đã chốt",
+    "roleOwner": "Owner"
   },
   "createGroupModal": {
     "title": "Tạo nhóm mới",
