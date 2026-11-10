@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Mail,
   KeyRound,
   Send,
   AlertCircle,
-  ArrowLeft,
   CheckCircle2,
   ShieldCheck,
   RotateCcw,
@@ -16,6 +15,7 @@ import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/useAuth";
+import BackButton from "~/components/BackButton";
 
 function ForgotPassword() {
   const { t } = useTranslation();
@@ -386,18 +386,7 @@ function ForgotPassword() {
 
       {/* Back to Login Button — Chuẩn GEMINI.md: Hover Text & Icon màu ĐỎ */}
       <div className="mt-6 flex justify-center">
-        <Link
-          to="/auth/login"
-          className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-red-600"
-        >
-          <ArrowLeft
-            size={14}
-            className="transition-colors group-hover:text-red-600"
-          />
-          <span className="transition-colors group-hover:text-red-600">
-            {t("auth.backToLogin")}
-          </span>
-        </Link>
+        <BackButton to="/auth/login" label={t("auth.backToLogin")} />
       </div>
     </Card>
   );

@@ -1,7 +1,6 @@
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Sparkles, ArrowLeft } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Sparkles } from "lucide-react";
+import BackButton from "~/components/BackButton";
 
 /**
  * Placeholder - Trang giữ chỗ cho các tính năng đang phát triển (Overview, Settings,...)
@@ -24,16 +23,7 @@ function Placeholder({ pageName = "Feature" }) {
           {t("placeholder.comingSoonDesc", { name: pageName })}
         </p>
         <div className="mt-6">
-          <Link to="/">
-            <Button
-              type="button"
-              variant="outline"
-              className="group h-10 px-4 rounded-xl gap-2 font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-slate-200 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
-            >
-              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5 group-hover:text-red-600" />
-              <span>{t("placeholder.backHome")}</span>
-            </Button>
-          </Link>
+          <BackButton to="/" label={t("placeholder.backHome")} />
         </div>
       </div>
     </div>
