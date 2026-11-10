@@ -5,7 +5,6 @@ import {
   MoreHorizontal,
   ArrowRight,
   ChevronRight,
-  Quote,
   Star,
   CheckCircle2,
   Clock,
@@ -110,12 +109,12 @@ function SessionCard({ session }) {
           </span>
         </div>
 
-        {/* Ghi chú của trưởng nhóm (mobile 1 dòng, desktop tối đa 2 dòng; đầy đủ ở trang ma trận) */}
+        {/* Ghi chú của trưởng nhóm: 1 dòng trong cặp dấu nháy (rê chuột / trang ma trận xem đầy đủ) */}
         {session.description && (
-          <p title={session.description} className="mt-2 flex items-start gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-medium text-sky-800">
-            <Quote size={12} className="mt-0.5 shrink-0 text-sky-500" />
-            <span className="min-w-0 max-sm:truncate sm:line-clamp-2">{session.description}</span>
-            <Quote size={12} className="mt-0.5 shrink-0 rotate-180 self-end text-sky-500" />
+          <p title={session.description} className="mt-2 flex items-start rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-medium text-sky-800">
+            <span>"</span>
+            <span className="min-w-0 truncate">{session.description}</span>
+            <span>"</span>
           </p>
         )}
 
