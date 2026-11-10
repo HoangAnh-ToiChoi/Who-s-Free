@@ -5,7 +5,7 @@ import { ConfirmModal, EditGroupModal } from "~/components/Modals";
 import { groupService } from "~/service/groupService/groupService";
 import { useGroups } from "~/hooks";
 
-/** Modal sửa / xóa nhóm do menu ở GroupHeader mở. mode: "edit" | "delete" | null. */
+/** Modal sửa / xóa nhóm do menu 3 chấm mở (header trang nhóm, thẻ nhóm ở trang chủ). mode: "edit" | "delete" | null. */
 function GroupManageDialogs({ group, mode, onModeChange, onChanged }) {
   const { t } = useTranslation();
   const navigate = useNavigate();

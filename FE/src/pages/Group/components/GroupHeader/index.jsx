@@ -14,8 +14,7 @@ import HeaderAvatarItem from "./HeaderAvatarItem";
 import GroupTabs from "./GroupTabs";
 import BackButton from "~/components/BackButton";
 import ActionMenu from "~/components/ActionMenu";
-import { useGroupManageMenu } from "~/pages/Group/hooks/useGroupManageMenu";
-import GroupManageDialogs from "./GroupManageDialogs";
+import { GroupManageDialogs, useGroupManageMenu } from "~/components/GroupManage";
 
 function GroupHeader({
   group,
