@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-CbXtAM7H.js";import{c as t}from"./index-BgicfKuo.js";var n=e(t(),1);function r({children:e}){return typeof document>`u`?null:(0,n.createPortal)(e,document.body)}export{r as t};
