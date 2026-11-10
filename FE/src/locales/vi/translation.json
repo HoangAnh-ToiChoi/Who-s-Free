@@ -111,7 +111,8 @@
     "notMemberTitle": "Bạn chưa phải thành viên nhóm này",
     "notMemberDesc": "Hãy nhờ trưởng nhóm gửi lời mời để xem lịch trình và nhập lịch rảnh.",
     "statusOpen": "Đang mở",
-    "statusFinalized": "Đã chốt"
+    "statusFinalized": "Đã chốt",
+    "roleOwner": "Owner"
   },
   "createGroupModal": {
     "title": "Tạo nhóm mới",
@@ -469,5 +470,54 @@
     "save": "Lưu",
     "placeholder": "vd: Nhớ mang laptop, ưu tiên buổi tối...",
     "saveFailed": "Không lưu được ghi chú, thử lại nhé."
+  },
+  "manage": {
+    "menu": "Tùy chọn",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "save": "Lưu thay đổi",
+    "saving": "Đang lưu...",
+    "keep": "Giữ lại",
+    "failed": "Không thực hiện được, thử lại nhé."
+  },
+  "sessionActions": {
+    "editTitle": "Sửa lịch trình",
+    "editSubtitle": "Đổi tên hoặc khoảng thời gian khảo sát.",
+    "titleLabel": "Tên lịch trình",
+    "dateLabel": "Khoảng thời gian khảo sát",
+    "finalizedDateLocked": "Lịch đã chốt nên không đổi được khoảng ngày. Hãy huỷ chốt trước.",
+    "deleteTitle": "Xóa lịch trình \"{{title}}\"?",
+    "deleteDesc": "Toàn bộ lịch rảnh thành viên đã nhập trong lịch trình này sẽ bị xóa và không khôi phục được.",
+    "deleteConfirm": "Xóa lịch trình"
+  },
+  "groupActions": {
+    "menu": "Tùy chọn nhóm",
+    "edit": "Sửa nhóm",
+    "delete": "Xóa nhóm",
+    "editTitle": "Sửa thông tin nhóm",
+    "editSubtitle": "Đổi tên nhóm hoặc số thành viên tối đa.",
+    "nameLabel": "Tên nhóm",
+    "capacityLabel": "Sức chứa",
+    "capacityTooSmall": "Nhóm đang có {{count}} thành viên",
+    "deleteTitle": "Xóa nhóm \"{{name}}\"?",
+    "deleteDesc": "Mọi lịch trình, lịch rảnh và thành viên của nhóm sẽ bị xóa vĩnh viễn.",
+    "deleteTypeHint": "Gõ lại tên nhóm để xác nhận:",
+    "deleteConfirm": "Xóa vĩnh viễn"
+  },
+  "memberActions": {
+    "menu": "Tùy chọn thành viên",
+    "promote": "Nâng lên Lead",
+    "remove": "Xóa khỏi nhóm",
+    "leave": "Rời nhóm",
+    "promoteTitle": "Nâng {{name}} lên Lead?",
+    "promoteDesc": "Lead được tạo, sửa, xóa lịch trình, chốt lịch, mời và xóa thành viên. Sau khi nâng sẽ KHÔNG thể hạ xuống Member được nữa.",
+    "promoteConfirm": "Nâng lên Lead",
+    "removeTitle": "Xóa {{name}} khỏi nhóm?",
+    "removeDesc": "Lịch rảnh của người này trong các lịch trình chưa chốt cũng sẽ bị xóa.",
+    "removeConfirm": "Xóa khỏi nhóm",
+    "leaveTitle": "Rời nhóm \"{{name}}\"?",
+    "leaveDesc": "Lịch rảnh của bạn trong các lịch trình chưa chốt sẽ bị xóa. Muốn quay lại cần được mời lần nữa.",
+    "leaveConfirm": "Rời nhóm",
+    "lockedLead": "Lead không thể bị hạ quyền"
   }
 }

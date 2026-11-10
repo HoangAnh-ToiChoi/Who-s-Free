@@ -102,6 +102,13 @@ export const sessionService = {
     return await http.post(`/sessions/${sessionId}/finalize`, payload);
   },
 
+  /** Sửa tên và/hoặc khoảng ngày { title?, startDate?, endDate?, dateRange? }. Trả về session đã cập nhật. */
+  async updateSession(sessionId, payload) {
+    const session = await http.patch(`/sessions/${sessionId}`, payload);
+    invalidateCached(calendarKey(sessionId));
+    return session;
+  },
+
   /** Lead sửa ghi chú phiên ("" = xoá). Trả về session đã cập nhật. */
   async updateSessionNote(sessionId, note) {
     const session = await http.patch(`/sessions/${sessionId}/note`, { note });

@@ -41,6 +41,11 @@ class SessionController extends BaseController {
     return res.send(buffer);
   });
 
+  updateSession = asyncHandler(async (req, res) => {
+    const session = await sessionService.updateSession(req.params.id, req.user?.id, req.body);
+    return this.sendSuccess(res, session, "Đã cập nhật phiên khảo sát");
+  });
+
   updateNote = asyncHandler(async (req, res) => {
     const session = await sessionService.updateNote(req.params.id, req.user?.id, req.body?.note);
     return this.sendSuccess(res, session, "Đã cập nhật ghi chú");

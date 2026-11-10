@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+/** Sức chứa nhóm tối đa (FE chọn 5/10/20/30). */
+export const MAX_GROUP_CAPACITY = 30;
+
 /**
  * Validation Schemas cho Module Nhóm (Group & Members)
  */
@@ -16,7 +19,7 @@ export const createGroupSchema = z
       .number({ invalid_type_error: "Sức chứa phải là số nguyên" })
       .int("Sức chứa phải là số nguyên")
       .min(2, "Sức chứa tối thiểu 2 người")
-      .max(100, "Sức chứa tối đa 100 người")
+      .max(MAX_GROUP_CAPACITY, `Sức chứa tối đa ${MAX_GROUP_CAPACITY} người`)
       .optional()
       .default(10),
     color: z.string().trim().optional().default("indigo"),
@@ -34,7 +37,7 @@ export const updateGroupSchema = z
       .number({ invalid_type_error: "Sức chứa phải là số nguyên" })
       .int("Sức chứa phải là số nguyên")
       .min(2, "Sức chứa tối thiểu 2 người")
-      .max(100, "Sức chứa tối đa 100 người")
+      .max(MAX_GROUP_CAPACITY, `Sức chứa tối đa ${MAX_GROUP_CAPACITY} người`)
       .optional(),
     color: z.string().trim().optional(),
     icon: z.string().trim().optional(),
@@ -83,3 +86,8 @@ export default {
   createInvitationSchema,
 };
 
+
+/** Chỉ cho nâng lên lead; không có chiều hạ quyền. */
+export const promoteMemberSchema = z
+  .object({ role: z.literal("lead", { errorMap: () => ({ message: "Chỉ hỗ trợ nâng thành viên lên Lead" }) }) })
+  .strict("Không được phép gửi các trường không hợp lệ");

@@ -29,3 +29,21 @@ export function getNoteError(note) {
   if (note.trim().length > MAX_NOTE_LENGTH) return `Ghi chú tối đa ${MAX_NOTE_LENGTH} ký tự`;
   return null;
 }
+
+export const MAX_TITLE_LENGTH = 150;
+
+/**
+ * Sửa phiên: tên (tuỳ chọn) và/hoặc khoảng ngày (gửi đủ startDate + endDate).
+ * Giữ nguyên ngày bắt đầu thì được phép ở quá khứ (phiên đang diễn ra), đổi sang ngày mới thì không.
+ */
+export function getSessionUpdateError(payload = {}, current = {}, today = new Date()) {
+  const { title, startDate, endDate } = payload;
+  if (title === undefined && startDate === undefined && endDate === undefined) return "Không có thông tin cần cập nhật";
+  if (title !== undefined) {
+    if (typeof title !== "string" || !title.trim()) return "Tên phiên không được để trống";
+    if (title.trim().length > MAX_TITLE_LENGTH) return `Tên phiên tối đa ${MAX_TITLE_LENGTH} ký tự`;
+  }
+  if (startDate === undefined && endDate === undefined) return null;
+  const pastCheckFrom = startDate === current.start_date ? new Date(toUtcMs(startDate)) : today;
+  return getDateWindowError({ startDate, endDate }, pastCheckFrom);
+}

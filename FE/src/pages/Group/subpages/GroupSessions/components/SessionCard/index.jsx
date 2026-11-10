@@ -2,7 +2,8 @@ import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Calendar,
-  MoreHorizontal,
+  Pencil,
+  Trash2,
   ArrowRight,
   ChevronRight,
   Star,
@@ -10,6 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import ActionMenu from "~/components/ActionMenu";
 import { cn } from "~/lib/utils";
 import { calcPercentage } from "~/utils";
 import { createCompositeSlug } from "~/utils/slugify";
@@ -45,7 +47,7 @@ function getSessionTheme(tagColor) {
   }
 }
 
-function SessionCard({ session }) {
+function SessionCard({ session, canManage = false, onEdit, onDelete }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { groupId } = useParams();
@@ -66,18 +68,15 @@ function SessionCard({ session }) {
   const openMatrix = () => navigate(matrixUrl, { state: { session } });
   const isFinalized = session.status === "finalized";
 
-  // Chưa có menu: chỉ chặn click lan ra thẻ. Dùng ở 2 chỗ (mobile cạnh tên, desktop cạnh nhãn danh mục).
-  const optionsButton = (className) => (
-    <button
-      type="button"
-      onClick={(e) => e.stopPropagation()}
-      className={cn("flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors", className)}
-      title={t("common.moreOptions")}
-      aria-label={t("common.moreOptions")}
-    >
-      <MoreHorizontal size={16} />
-    </button>
-  );
+  const menuItems = [
+    { key: "edit", label: t("manage.edit"), icon: Pencil, onSelect: onEdit },
+    { key: "delete", label: t("manage.delete"), icon: Trash2, onSelect: onDelete, danger: true },
+  ];
+  // Render 2 chỗ: desktop cạnh nhãn danh mục, mobile cạnh tên
+  const optionsMenu = (className) =>
+    canManage && (
+      <ActionMenu items={menuItems} label={t("manage.menu")} className={className} buttonClassName="h-7 w-7" />
+    );
 
   // Mobile: thẻ gọn (tên · ngày + trạng thái · tiến độ), bấm cả thẻ để mở lịch. Desktop (sm+): giữ thẻ đầy đủ.
   return (
@@ -90,7 +89,7 @@ function SessionCard({ session }) {
           <span className={cn("rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wider whitespace-nowrap uppercase select-none", theme.badge)}>
             {session.tag}
           </span>
-          {optionsButton()}
+          {optionsMenu()}
         </div>
 
         <h3 className="line-clamp-1 text-[15px] font-bold text-slate-900 transition-colors group-hover:text-indigo-600 sm:mt-3 sm:min-h-[24px] sm:text-base">
@@ -160,7 +159,7 @@ function SessionCard({ session }) {
         </div>
       </div>
 
-      {optionsButton("self-start sm:hidden")}
+      {optionsMenu("self-start sm:hidden")}
       <ChevronRight size={18} className="shrink-0 text-slate-300 sm:hidden" />
 
       {/* CTA (desktop) - cao cố định chống giật, hover thẻ thì chuyển style primary */}

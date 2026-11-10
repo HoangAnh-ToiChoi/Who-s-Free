@@ -1,27 +1,38 @@
 import { useState } from "react";
-import { Shield, User } from "lucide-react";
+import { Crown, LogOut, Shield, ShieldPlus, User, UserMinus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import ActionMenu from "~/components/ActionMenu";
+
+const ROLE_BADGE = {
+  owner: { icon: Crown, className: "border-amber-200/70 bg-amber-50 text-amber-700" },
+  lead: { icon: Shield, className: "border-indigo-200/60 bg-indigo-50 text-indigo-600" },
+};
 
 /**
- * MemberCard - Component hiển thị thông tin 1 thành viên trong nhóm
- *
- * Trách nhiệm duy nhất (SRP):
- *   - Hiển thị ảnh đại diện (avatar với fallback chữ cái nếu ảnh rỗng/lỗi)
- *   - Hiển thị tên đầy đủ của thành viên
- *   - Hiển thị nhãn "Lead" nhỏ ở dưới tên nếu thành viên là Lead/Owner
- *   - Hiển thị email thành viên
+ * permissions: { isSelf, canPromote, canRemove, canLeave } — tính sẵn ở cha theo luật BE.
+ * Lead không có mục hạ quyền: BE chỉ hỗ trợ nâng một chiều.
  */
-function MemberCard({ member }) {
+function MemberCard({ member, role = "member", permissions = {}, isManager = false, onAction }) {
   const { t } = useTranslation();
   const [imageError, setImageError] = useState(false);
 
   const name = member?.name || t("groupDetail.roleMember", { defaultValue: "Thành viên" });
   const initial = name.charAt(0).toUpperCase() || "U";
   const hasAvatar = Boolean(member?.avatarUrl) && !imageError;
+  const badge = ROLE_BADGE[role];
+  const BadgeIcon = badge?.icon;
+  const badgeLabel = role === "owner"
+    ? t("groupDetail.roleOwner", { defaultValue: "Owner" })
+    : t("groupDetail.roleLead", { defaultValue: "Lead" });
+
+  const menuItems = [
+    { key: "promote", label: t("memberActions.promote"), icon: ShieldPlus, hidden: !permissions.canPromote, onSelect: () => onAction?.("promote", member) },
+    { key: "remove", label: t("memberActions.remove"), icon: UserMinus, danger: true, hidden: !permissions.canRemove, onSelect: () => onAction?.("remove", member) },
+    { key: "leave", label: t("memberActions.leave"), icon: LogOut, danger: true, hidden: !permissions.canLeave, onSelect: () => onAction?.("leave", member) },
+  ];
 
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all hover:border-slate-300 hover:shadow-sm">
-      {/* 1. Ảnh đại diện kèm Fallback Avatar */}
+    <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all hover:border-slate-300 hover:shadow-sm">
       {hasAvatar ? (
         <img
           src={member.avatarUrl}
@@ -38,29 +49,31 @@ function MemberCard({ member }) {
         </div>
       )}
 
-      {/* 2. Thông tin Tên & Lead nhỏ ở dưới */}
       <div className="min-w-0 flex-1">
         <h4 className="text-sm font-semibold text-slate-900 truncate tracking-tight">
           {name}
         </h4>
 
-        {/* Lead nhỏ ở dưới tên */}
-        {member?.isLead && (
+        {badge && (
           <div className="mt-0.5 flex items-center">
-            <span className="inline-flex items-center gap-1 rounded-md border border-indigo-200/60 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 shadow-2xs">
-              <Shield size={10} className="text-indigo-600 shrink-0" />
-              <span>{t("groupDetail.roleLead", { defaultValue: "Lead" })}</span>
+            <span
+              title={role === "lead" && isManager ? t("memberActions.lockedLead") : undefined}
+              className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold shadow-2xs ${badge.className}`}
+            >
+              <BadgeIcon size={10} className="shrink-0" />
+              <span>{badgeLabel}</span>
             </span>
           </div>
         )}
 
-        {/* Email nếu có */}
         {member?.email && (
           <p className="mt-0.5 text-[11px] text-slate-400 truncate">
             {member.email}
           </p>
         )}
       </div>
+
+      <ActionMenu items={menuItems} label={t("memberActions.menu")} className="-mr-1.5 self-start" />
     </div>
   );
 }
