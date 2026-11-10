@@ -132,6 +132,8 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, member
         onToday={goToToday}
         weekOffset={weekOffset}
         onClearAll={clearAllSlots}
+        touchDragPreview={isDragging && dragPreview?.isTouch ? dragPreview : null}
+        weekDays={weekDays}
       />
 
       <SaveStatusIndicator status={saveStatus} onRetry={retrySave} />
@@ -170,7 +172,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, sessionStartDate, member
           }}
         />
 
-        {isDragging && dragPreview && (
+        {isDragging && dragPreview && !dragPreview.isTouch && (
           <DragRangeIndicator dragPreview={dragPreview} weekDays={weekDays} />
         )}
 
