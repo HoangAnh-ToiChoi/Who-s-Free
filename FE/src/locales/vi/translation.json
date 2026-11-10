@@ -461,5 +461,13 @@
     "failed": "Chưa lưu được thay đổi của bạn.",
     "locked": "Lịch vừa được trưởng nhóm chốt — thay đổi cuối của bạn chưa được lưu.",
     "retry": "Thử lại"
+  },
+  "sessionNote": {
+    "title": "Ghi chú của trưởng nhóm",
+    "add": "Thêm ghi chú",
+    "edit": "Sửa ghi chú",
+    "save": "Lưu",
+    "placeholder": "vd: Nhớ mang laptop, ưu tiên buổi tối...",
+    "saveFailed": "Không lưu được ghi chú, thử lại nhé."
   }
 }

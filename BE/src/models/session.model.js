@@ -63,6 +63,14 @@ class SessionModel {
     return rows?.[0] ?? null;
   }
 
+  static async updateNote(id, note) {
+    const { rowCount } = await query(
+      "UPDATE public.sessions SET description = $2, updated_at = NOW() WHERE id = $1;",
+      [id, note],
+    );
+    return rowCount > 0;
+  }
+
   /** Đánh dấu session đã chốt với khung giờ được chọn (chỉ khi chưa chốt). */
   static async finalize(id, { date, startMinutes, endMinutes, note, finalizedBy }) {
     const { rows } = await query(

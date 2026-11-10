@@ -109,6 +109,15 @@ function SessionCard({ session }) {
           </span>
         </div>
 
+        {/* Ghi chú của trưởng nhóm: 1 dòng trong cặp dấu nháy (rê chuột / trang ma trận xem đầy đủ) */}
+        {session.description && (
+          <p title={session.description} className="mt-2 flex items-start rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-medium text-sky-800">
+            <span>"</span>
+            <span className="min-w-0 truncate">{session.description}</span>
+            <span>"</span>
+          </p>
+        )}
+
         {/* Số phản hồi & thanh tiến độ */}
         <div className="mt-2.5 sm:mt-4">
           <div className="flex items-center justify-between text-xs font-semibold">

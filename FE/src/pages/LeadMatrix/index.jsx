@@ -11,6 +11,7 @@ import { useMemberFilter } from "./hooks/useMemberFilter";
 import { useLeadExport } from "./hooks/useLeadExport";
 import { useFinalizeActions } from "./hooks/useFinalizeActions";
 import FinalizeModal from "./components/FinalizeModal";
+import { SessionNoteEditButton } from "~/components/SessionNote";
 import MatrixGate from "~/components/MatrixGate";
 import ConfirmModal from "~/components/Modals/ConfirmModal";
 import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
@@ -118,6 +119,7 @@ export function LeadMatrixContent({ readOnly = false }) {
       {/* Header session */}
       <LeadMatrixHeader
         session={currentSession}
+        onNoteSaved={updateCurrentSession}
         hideSwitch={readOnly || Boolean(finalized)}
         finalized={finalized}
         readOnly={readOnly}
@@ -128,15 +130,25 @@ export function LeadMatrixContent({ readOnly = false }) {
         <p role="alert" className="mb-2 text-xs font-semibold text-rose-600">{finalizeActions.error}</p>
       )}
 
-      {/* Member Filter Bar — mobile xếp sau thanh Hôm nay/Chốt lịch (order) */}
-      <div className="max-sm:order-1">
-      <MemberFilterBar
-        activePreset={activePreset}
-        allMembers={allMembers}
-        selectedMemberIds={selectedMemberIds}
-        onPresetChange={setPreset}
-        onToggleMember={toggleMember}
-      />
+      {/* Member Filter Bar — mobile xếp sau thanh Hôm nay/Chốt lịch (order); desktop: nút ghi chú bên phải, ngay trên Xuất file/Chốt lịch */}
+      <div className="flex items-center gap-2 max-sm:order-1">
+        <div className="min-w-0 flex-1">
+          <MemberFilterBar
+            activePreset={activePreset}
+            allMembers={allMembers}
+            selectedMemberIds={selectedMemberIds}
+            onPresetChange={setPreset}
+            onToggleMember={toggleMember}
+          />
+        </div>
+        {!readOnly && (
+          <SessionNoteEditButton
+            className="mr-1 max-sm:hidden"
+            sessionId={currentSession?.id}
+            note={currentSession?.description || ""}
+            onSaved={updateCurrentSession}
+          />
+        )}
       </div>
 
       {/* Grid Toolbar — chế độ Lead: nút Xuất file */}
