@@ -1,7 +1,7 @@
 import http from "~/utils/http";
 import { extractIdFromSlug } from "~/utils/slugify";
 import { calculateSessionMetrics } from "~/utils/matrixCalculations";
-import { cachedFetch, peekCached } from "~/utils/prefetchCache";
+import { cachedFetch, invalidateCached, peekCached } from "~/utils/prefetchCache";
 import { availabilityService } from "~/service/availabilityService/availabilityService";
 
 const calendarKey = (id) => `session:${id}`;
@@ -100,6 +100,13 @@ export const sessionService = {
   /** Lead chốt lịch: { date: "YYYY-MM-DD", startMinutes, endMinutes, note } */
   async finalizeSession(sessionId, payload) {
     return await http.post(`/sessions/${sessionId}/finalize`, payload);
+  },
+
+  /** Lead sửa ghi chú phiên ("" = xoá). Trả về session đã cập nhật. */
+  async updateSessionNote(sessionId, note) {
+    const session = await http.patch(`/sessions/${sessionId}/note`, { note });
+    invalidateCached(calendarKey(sessionId));
+    return session;
   },
 
   async unfinalizeSession(sessionId) {

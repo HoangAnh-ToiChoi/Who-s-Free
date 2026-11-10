@@ -6,6 +6,7 @@ import { createCompositeSlug } from "~/utils/slugify";
 import FinalizedBanner from "~/pages/LeadMatrix/components/FinalizedBanner";
 import WeekNav from "~/pages/MemberMatrix/components/GridToolbar/WeekNav";
 import BackButton from "~/components/BackButton";
+import { SessionNoteBanner, SessionNoteEditButton } from "~/components/SessionNote";
 
 /**
  * LeadMatrixHeader - Header trang LeadMatrix cho Trưởng nhóm
@@ -13,7 +14,7 @@ import BackButton from "~/components/BackButton";
  * - Tên session + ref code
  * - Nút chuyển sang MemberMatrix (Nhập lịch của tôi)
  */
-function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readOnly = false, weekNav }) {
+function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readOnly = false, weekNav, onNoteSaved }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isLeadRoute = useLocation().pathname.includes("/lead-matrix");
@@ -25,9 +26,9 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
     : session?.slug || session?.id || "";
 
   return (
-    <div className="mb-1 sm:mb-2.5 flex flex-wrap min-h-9 shrink-0 items-center gap-x-3 gap-y-2 select-none md:grid md:grid-cols-[1fr_auto_1fr]">
+    <div className="mb-1 sm:mb-2.5 flex flex-wrap min-h-9 shrink-0 items-center gap-x-3 gap-y-2 select-none">
       {/* Breadcrumb: Back to group → Session title */}
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs md:flex-none">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
         <BackButton to={backUrl} label={t("groupDetail.backToGroup")} shortLabel={t("common.back")} />
         <span className="hidden shrink-0 text-slate-300 sm:inline">/</span>
         {/* Mobile: hàng đầu = [←] [‹ Hôm nay ›] [📅]; tên phiên ẩn để nhường chỗ */}
@@ -45,13 +46,20 @@ function LeadMatrixHeader({ session, hideSwitch = false, finalized = null, readO
         </div>
       </div>
 
-      {/* Nhãn lịch đã chốt: căn giữa header (màn hình hẹp thì xuống dòng riêng) */}
-      <div className="flex md:justify-center max-md:order-last max-md:w-full">
-        <FinalizedBanner finalized={finalized} readOnly={readOnly} />
-      </div>
+      {/* Hàng riêng, căn giữa: nhãn lịch đã chốt + ghi chú của trưởng nhóm (chỉ hiện khi có) */}
+      {(finalized || session?.description) && (
+        <div className="order-last flex w-full min-w-0 flex-wrap items-center justify-center gap-2">
+          <FinalizedBanner finalized={finalized} readOnly={readOnly} />
+          <SessionNoteBanner note={session?.description} />
+        </div>
+      )}
 
-      {/* Nút chuyển sang MemberMatrix */}
-      <div className="flex md:justify-end max-md:ml-auto">
+      {/* Nút ghi chú (lead) + chuyển sang MemberMatrix */}
+      <div className="ml-auto flex items-center gap-2">
+      {/* Mobile: nút ghi chú ở header; desktop nằm ngay trên Xuất file/Chốt lịch (LeadMatrix) */}
+      {!readOnly && (
+        <SessionNoteEditButton className="sm:hidden" sessionId={session?.id} note={session?.description || ""} onSaved={onNoteSaved} />
+      )}
       {!hideSwitch && (
       <Button
         type="button"

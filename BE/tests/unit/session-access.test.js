@@ -216,3 +216,42 @@ describe("AvailabilityService.getSessionAvailabilities", () => {
     await rejectsWith(availabilityService.getSessionAvailabilities("s404", "u1"), 404);
   });
 });
+
+describe("SessionService.updateNote", () => {
+  test("trưởng nhóm sửa ghi chú → lưu bản đã trim, trả session mới", async () => {
+    let saved;
+    stub(SessionModel, "findById", async () => session({ description: saved ?? "" }));
+    stub(GroupMemberModel, "findMember", memberOf({ lead: "lead" }));
+    stub(SessionModel, "updateNote", async (id, note) => { saved = note; return true; });
+    const result = await sessionService.updateNote("s1", "lead", "  Mang laptop nhé  ");
+    assert.equal(saved, "Mang laptop nhé");
+    assert.equal(result.description, "Mang laptop nhé");
+  });
+
+  test("chuỗi rỗng = xoá ghi chú", async () => {
+    let saved = "cũ";
+    stub(SessionModel, "findById", async () => session({ description: saved }));
+    stub(GroupMemberModel, "findMember", memberOf({ owner: "owner" }));
+    stub(SessionModel, "updateNote", async (id, note) => { saved = note; return true; });
+    await sessionService.updateNote("s1", "owner", "   ");
+    assert.equal(saved, "");
+  });
+
+  test("thành viên thường → 403, không ghi DB", async () => {
+    stub(SessionModel, "findById", async () => session());
+    stub(GroupMemberModel, "findMember", memberOf({ u1: "member" }));
+    stub(SessionModel, "updateNote", noCall("updateNote"));
+    await rejectsWith(sessionService.updateNote("s1", "u1", "x"), 403);
+  });
+
+  test("ghi chú sai kiểu hoặc quá 500 ký tự → 400, không chạm DB", async () => {
+    stub(SessionModel, "findById", noCall("findById"));
+    await rejectsWith(sessionService.updateNote("s1", "lead", 123), 400);
+    await rejectsWith(sessionService.updateNote("s1", "lead", "x".repeat(501)), 400);
+  });
+
+  test("không tìm thấy session → 404", async () => {
+    stub(SessionModel, "findById", async () => null);
+    await rejectsWith(sessionService.updateNote("s404", "lead", "x"), 404);
+  });
+});
