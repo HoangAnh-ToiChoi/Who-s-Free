@@ -4,15 +4,24 @@ import {
   getMondayOfWeek,
   calculateWeekDates,
   formatWeekRangeLabel,
+  parseISODate,
 } from "~/utils/dateUtils";
 
 /**
  * Hook quản lý riêng biệt việc chuyển mốc thời gian ngày tháng (Google Calendar Navigation)
  * Chỉ tập trung vào một nhiệm vụ: Điều hướng tuần, tính toán ngày động.
  * Dùng chung cho cả MemberMatrix và LeadMatrix.
+ * startDate ("YYYY-MM-DD", ngày bắt đầu khảo sát của phiên): mở đúng tuần chứa ngày đó; phiên cũ không có → tuần hiện tại.
  */
-export function useWeekNavigation(initialDate = new Date()) {
-  const [currentMonday, setCurrentMonday] = useState(() => getMondayOfWeek(initialDate));
+export function useWeekNavigation(startDate = null) {
+  const anchorMonday = () => getMondayOfWeek(startDate ? parseISODate(startDate) : new Date());
+  const [currentMonday, setCurrentMonday] = useState(anchorMonday);
+  // Session thường tải xong sau lần render đầu → khi startDate đổi thì nhảy tới tuần đó (cập nhật ngay trong render, không cần effect).
+  const [seenStartDate, setSeenStartDate] = useState(startDate);
+  if (startDate !== seenStartDate) {
+    setSeenStartDate(startDate);
+    if (startDate) setCurrentMonday(anchorMonday());
+  }
 
   // 7 ngày trong tuần được tự động tính toán
   const { i18n } = useTranslation();

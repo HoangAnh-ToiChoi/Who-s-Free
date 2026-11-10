@@ -101,6 +101,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     tag VARCHAR(100) DEFAULT 'CÔNG VIỆC & HỌC TẬP',
     tag_color VARCHAR(50) DEFAULT 'primary',
     date_range VARCHAR(150),
+    start_date DATE,
+    end_date DATE CHECK (end_date >= start_date),
     scheduled_time VARCHAR(150) DEFAULT 'Flexible Window',
     location VARCHAR(255) DEFAULT 'Quán Cafe / Trực tuyến',
     status VARCHAR(50) DEFAULT 'active_poll', -- 'active_poll' | 'finalized' | 'closed'

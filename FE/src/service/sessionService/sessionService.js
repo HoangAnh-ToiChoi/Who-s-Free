@@ -78,6 +78,8 @@ export const sessionService = {
       tag: payload.tag || "CÔNG VIỆC & HỌC TẬP",
       tagColor: payload.tagColor || "primary",
       dateRange: payload.dateRange,
+      startDate: payload.startDate,
+      endDate: payload.endDate,
       scheduledTime: payload.scheduledTime || "Flexible Window",
       location: payload.location || "Quán Cafe / Trực tuyến",
     });
