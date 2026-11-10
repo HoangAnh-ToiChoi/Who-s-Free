@@ -13,6 +13,9 @@ import { useCurrentUser } from "~/hooks";
 import HeaderAvatarItem from "./HeaderAvatarItem";
 import GroupTabs from "./GroupTabs";
 import BackButton from "~/components/BackButton";
+import ActionMenu from "~/components/ActionMenu";
+import { useGroupManageMenu } from "~/pages/Group/hooks/useGroupManageMenu";
+import GroupManageDialogs from "./GroupManageDialogs";
 
 function GroupHeader({
   group,
@@ -21,6 +24,7 @@ function GroupHeader({
   onTabChange,
   onOpenInvite,
   onOpenCreateCalendar,
+  onChanged,
 }) {
   const { t } = useTranslation();
   const { currentUser } = useCurrentUser();
@@ -31,6 +35,7 @@ function GroupHeader({
     (currentUser?.email ? currentUser.email.split("@")[0] : "");
   const normalizedUserRole = (group?.userRole || group?.role || "").toLowerCase();
   const canInvite = normalizedUserRole === "owner" || normalizedUserRole === "lead";
+  const manage = useGroupManageMenu(normalizedUserRole);
 
   const displayLeadName = group?.leadAdmin || currentUserName || "";
 
@@ -66,6 +71,7 @@ function GroupHeader({
         <button type="button" onClick={() => onTabChange?.("settings")} aria-label={t("groupDetail.tabSettings")} className="flex h-11 w-11 items-center justify-center text-slate-500">
           <Settings size={20} />
         </button>
+        <ActionMenu items={manage.items} label={t("groupActions.menu")} buttonClassName="h-11 w-11 rounded-xl text-slate-500" />
       </div>
 
       <div className="hidden items-center gap-1.5 text-xs sm:flex">
@@ -171,10 +177,18 @@ function GroupHeader({
             <span>{t("groupDetail.createCalendar")}</span>
           </Button>
           )}
+
+          <ActionMenu
+            items={manage.items}
+            label={t("groupActions.menu")}
+            className="hidden sm:block"
+            buttonClassName="h-9.5 w-9.5 rounded-xl border border-slate-200 bg-white text-slate-500 shadow-2xs hover:border-slate-300 hover:bg-slate-50"
+          />
         </div>
       </div>
 
       <GroupTabs tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
+      <GroupManageDialogs group={group} mode={manage.mode} onModeChange={manage.setMode} onChanged={onChanged} />
     </div>
   );
 }

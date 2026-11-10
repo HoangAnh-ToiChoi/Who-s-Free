@@ -19,13 +19,15 @@ export function useGroupDetail(groupId = "ws-1") {
   const [activeTab, setActiveTab] = useState("calendars");
 
   /**
-   * Tải đồng thời thông tin group và các sessions
+   * Tải thông tin group và các sessions. { silent: true }: làm mới sau khi sửa/xóa — không hiện skeleton, lỗi bỏ qua.
    */
-  const loadGroupData = useCallback(async () => {
+  const loadGroupData = useCallback(async ({ silent = false } = {}) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      setIsForbidden(false);
+      if (!silent) {
+        setIsLoading(true);
+        setError(null);
+        setIsForbidden(false);
+      }
 
       const groupRes = await groupService.getGroupById(groupId);
 
@@ -40,6 +42,7 @@ export function useGroupDetail(groupId = "ws-1") {
       setGroup(groupRes);
       setSessions(sessionsRes);
     } catch (err) {
+      if (silent) return;
       if (err?.status === 403) setIsForbidden(true);
       else setError(err?.message || "Failed to load group calendar sessions.");
     } finally {

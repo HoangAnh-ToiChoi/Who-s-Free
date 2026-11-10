@@ -124,9 +124,10 @@ class SessionModel {
     return rows || [];
   }
 
+  /** Xoá theo UUID (service đã tra session trước). So `id = $1 OR slug = $1` lỗi 500 vì Postgres không so uuid với text. */
   static async delete(id) {
-    if (!id) return false;
-    const sql = "DELETE FROM public.sessions WHERE id = $1 OR slug = $1 RETURNING id;";
+    if (!isUuid(id)) return false;
+    const sql = "DELETE FROM public.sessions WHERE id = $1 RETURNING id;";
     const { rows } = await query(sql, [id]);
     return (rows?.length ?? 0) > 0;
   }
