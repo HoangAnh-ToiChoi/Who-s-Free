@@ -12,3 +12,4 @@ export { default as useUserGroupRole } from "~/hooks/useUserGroupRole";
 export { default as useSessionFinalizeSync } from "~/hooks/useSessionFinalizeSync";
 export { default as useGoogleSignIn } from "~/hooks/useGoogleSignIn";
 export { default as useDayPager } from "~/hooks/useDayPager";
+export { default as useHorizontalScroll } from "~/hooks/useHorizontalScroll";

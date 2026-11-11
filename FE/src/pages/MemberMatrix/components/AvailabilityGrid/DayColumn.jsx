@@ -85,7 +85,7 @@ const DayColumn = memo(forwardRef(function DayColumn(
       {isDraggingOnThisDay && previewStyle && (
         <div
           style={previewStyle}
-          className="absolute left-1 right-1 z-20 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden backdrop-blur-2xs"
+          className="absolute left-1 right-1 z-20 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden transition-[top,height] duration-100 ease-out motion-reduce:transition-none"
         >
           {/* Mobile: cột hẹp nên ẩn chữ trong ô; giờ đang chọn hiện ở chip trên thanh công cụ */}
           <div className="flex items-center justify-between gap-1 max-sm:hidden">

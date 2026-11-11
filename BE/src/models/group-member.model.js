@@ -78,7 +78,7 @@ class GroupMemberModel {
     if (!isUuid(groupId) || !isUuid(userId)) return null;
 
     const sql = `
-      SELECT gm.*, u.email, u.full_name, u.avatar_url
+      SELECT gm.id, gm.group_id, gm.user_id, gm.role, gm.group_role, gm.joined_at, u.email, u.full_name, u.avatar_url
       FROM public.group_members gm
       LEFT JOIN public.users u ON gm.user_id = u.id
       WHERE gm.group_id = $1 AND gm.user_id = $2

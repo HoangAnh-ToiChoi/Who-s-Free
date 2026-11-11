@@ -50,7 +50,8 @@ export function useHeatmapMatrix(
     );
   }, [selectedMemberIds, sessionMembers]);
 
-  const totalMembers = filteredMembers.length;
+  // API trả cả người chưa nhập lịch (slots rỗng): mẫu số của heatmap chỉ tính người đã nhập lịch như trước
+  const totalMembers = filteredMembers.filter((m) => m.slots?.length > 0).length;
 
   // Tạo ma trận: 7 ngày x 48 block (30 phút) = 336 ô
   const matrix = useMemo(() => {

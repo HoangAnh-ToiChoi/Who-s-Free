@@ -313,7 +313,8 @@
     "noConflictSlots": "Không có khung giờ hạn chế nào",
     "allPresent": "Tất cả cùng rảnh",
     "availableMembersDesc": "{{count}}/{{total}} thành viên có mặt: {{names}}",
-    "missingMembersDesc": "Chỉ {{count}}/{{total}} người rảnh. Vắng: {{names}}"
+    "missingMembersDesc": "Chỉ {{count}}/{{total}} người rảnh. Vắng: {{names}}",
+    "notResponded": "chưa nhập lịch"
   },
   "placeholder": {
     "comingSoonTitle": "Tính năng đang được phát triển",
