@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import SlideIn from "~/components/SlideIn";
 import { useMatrixGate } from "~/hooks/useMatrixGate";
 
-const FRAME_CLASS = "mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 min-h-0 flex-1";
+const FRAME_CLASS = "mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 h-[calc(100dvh-72px)]";
 
 function MatrixSkeleton() {
   return (
