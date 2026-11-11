@@ -85,13 +85,6 @@ function GroupHeader({
               <Users size={12} className="text-slate-500" />
               <span>{t("groupDetail.membersCount", { count: group?.memberCount || 0 })}</span>
             </span>
-
-            {group?.cohort && (
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100/70 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                <span>{group.cohort}</span>
-              </span>
-            )}
           </div>
 
           {/* Group Title */}
