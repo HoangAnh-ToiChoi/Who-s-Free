@@ -84,7 +84,13 @@ function MatrixGate({ withMyAvailability = false, children }) {
   if (status === "loading") return showSkeleton ? <MatrixSkeleton /> : null;
   if (status === "error") return <MatrixLoadError onRetry={retry} />;
 
-  return <SlideIn direction="up">{children}</SlideIn>;
+  // Lớp hiệu ứng nằm giữa <main> và khung ma trận: phải tham gia chuỗi flex (min-h-0 flex-1) thì khung mới bị giới hạn
+  // bằng chiều cao màn hình và lưới lịch mới có thanh cuộn riêng.
+  return (
+    <SlideIn direction="up" className="flex min-h-0 flex-1 flex-col">
+      {children}
+    </SlideIn>
+  );
 }
 
 export default MatrixGate;
