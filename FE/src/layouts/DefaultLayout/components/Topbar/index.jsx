@@ -27,22 +27,23 @@ function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex items-center border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-10 py-3.5 shadow-xs">
+    <header className="sticky top-0 z-50 relative flex items-center border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-10 py-3.5 shadow-xs">
       {/* Left — Logo */}
       <div className="flex items-center shrink-0">
         <AppLogo />
       </div>
 
-      {/* Center — SearchBar (ẩn trên mobile) */}
-      <div className="hidden md:flex flex-1 items-center justify-center">
+      {/* Center — SearchBar (ẩn trên mobile). Từ xl căn giữa tuyệt đối theo header: nằm trong khoảng trống giữa logo (hẹp)
+          và cụm nút phải (rộng) thì tâm ô tìm kiếm lệch trái so với giữa màn hình. md–lg: vẫn nằm trong khoảng trống để không đè nút (1024px không đủ chỗ). */}
+      <div className="hidden md:flex min-w-0 flex-1 items-center justify-center px-4 xl:px-0 xl:pointer-events-none xl:absolute xl:inset-0">
         <SearchBar
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      {/* Spacer trên mobile để đẩy right section sang phải */}
-      <div className="flex-1 md:hidden" />
+      {/* Spacer đẩy cụm phải sang phải: mobile (không có SearchBar) và xl+ (SearchBar đã nằm tuyệt đối) */}
+      <div className="flex-1 md:hidden xl:block" />
 
       {/* Right — Workspace Selector, Language Toggle, Bell, Avatar */}
       <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">

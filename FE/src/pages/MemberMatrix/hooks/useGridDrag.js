@@ -68,15 +68,11 @@ export function useGridDrag({
       rafRef.current = requestAnimationFrame(() => {
         const next = computeDragUpdate(e, dragState, columnRefs.current || [], existingSlots);
         if (!next) return;
-        const stepChanged =
-          next.currentDayIndex !== dragState.currentDayIndex || next.currentMinutes !== dragState.currentMinutes;
-        // Cảm ứng: không có nhãn bám ngón tay nên chỉ vẽ lại khi qua mốc 30 phút / sang ngày khác
-        // (vẽ lại cả lưới mỗi px làm máy Android tầm trung bị khựng) + rung nhẹ báo đã qua mốc.
-        if (dragState.isTouch) {
-          if (!stepChanged) return;
-          navigator.vibrate?.(8);
-        }
-        setDragState((prev) => (prev ? { ...prev, ...next, cursorX: e.clientX, cursorY: e.clientY } : null));
+        // Chỉ vẽ lại khi qua mốc 30 phút / sang ngày khác (vẽ lại lưới mỗi px làm khựng). Nhãn nổi của chuột
+        // tự bám con trỏ (DragRangeIndicator) nên không cần đưa vị trí con trỏ vào state.
+        if (next.currentDayIndex === dragState.currentDayIndex && next.currentMinutes === dragState.currentMinutes) return;
+        if (dragState.isTouch) navigator.vibrate?.(8);
+        setDragState((prev) => (prev ? { ...prev, ...next } : null));
       });
     };
 

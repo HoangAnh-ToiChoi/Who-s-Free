@@ -50,3 +50,14 @@ test("cảm ứng: chạm hơi lệch lên trên vạch 11:00 vẫn bắt đầu
   assert.equal(touchYOffsetToMinutes(line11 + HALF_HOUR_HEIGHT / 2), 660); // giữa ô 11:00–11:30
   assert.equal(touchYOffsetToMinutes(line11 - HALF_HOUR_HEIGHT / 2), 630); // giữa ô 10:30–11:00 vẫn là 10:30
 });
+
+import { indicatorPosition } from "../src/pages/MemberMatrix/hooks/gridDragMath.js";
+
+test("nhãn kéo: bên phải con trỏ khi đủ chỗ, sát mép phải thì lật sang trái và không tràn màn hình", () => {
+  assert.deepEqual(indicatorPosition(100, 300, 200, 1280), { x: 116, y: 250 });
+  const nearRight = indicatorPosition(1200, 300, 420, 1280); // nhãn nhiều ngày dài 420px
+  assert.equal(nearRight.x, 1200 - 16 - 420);
+  assert.ok(nearRight.x + 420 <= 1280 - 8);
+  assert.equal(indicatorPosition(20, 30, 600, 500).x, 8); // màn hẹp hơn nhãn: bám mép trái
+  assert.equal(indicatorPosition(100, 30, 200, 1280).y, 12);
+});

@@ -77,3 +77,16 @@ export function buildDragCompletion(dragState, columns, containerEl, existingSlo
     containerRect: containerEl.getBoundingClientRect(),
   };
 }
+
+const GAP_PX = 16;
+const EDGE_PX = 8;
+
+/** Vị trí nhãn cạnh con trỏ: mặc định bên phải-phía trên; sát mép phải thì lật sang trái, không bao giờ ra ngoài màn hình. */
+export function indicatorPosition(cursorX, cursorY, width, viewportWidth) {
+  const fitsRight = cursorX + GAP_PX + width <= viewportWidth - EDGE_PX;
+  const left = fitsRight ? cursorX + GAP_PX : cursorX - GAP_PX - width;
+  return {
+    x: Math.max(EDGE_PX, Math.min(left, viewportWidth - EDGE_PX - width)),
+    y: Math.max(12, cursorY - 50),
+  };
+}
