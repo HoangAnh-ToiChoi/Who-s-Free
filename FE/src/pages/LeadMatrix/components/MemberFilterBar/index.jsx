@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
+import { useHorizontalScroll } from "~/hooks";
 import MemberChip from "./MemberChip";
 
 // Từ 7 người trở lên chỉ hiện ảnh (không tên) để cả nhóm nằm trên 1 hàng; nhóm nhỏ hiện cả tên cho dễ đọc
@@ -9,7 +10,8 @@ const isMobile = () => window.matchMedia("(max-width: 639px)").matches;
 
 /**
  * MemberFilterBar - Thanh lọc thành viên cho LeadMatrix: nút preset (Tất cả, Ban lãnh đạo) + dải thành viên.
- * Dải thành viên luôn 1 hàng (cuộn ngang khi nhiều, mép phải mờ dần báo còn nữa) thay vì xuống nhiều hàng.
+ * Dải thành viên luôn 1 hàng thay vì xuống nhiều hàng: cuộn ngang (lăn chuột cũng cuộn ngang), mép nào còn người
+ * bị khuất thì mờ dần, cuộn tới tận cùng phía đó thì hết mờ.
  * members: thành viên cần hiện theo chế độ (Ban lãnh đạo → chỉ owner/lead, người khác ẩn hẳn).
  * Mobile: chỉ 1 nút "Ban lãnh đạo" bật/tắt (tắt = tất cả); ẩn nút "Tất cả" và dải thành viên để nhường chỗ cho lưới.
  */
@@ -17,6 +19,8 @@ function MemberFilterBar({ activePreset, members, selectedMemberIds, onPresetCha
   const { t } = useTranslation();
   const selected = useMemo(() => new Set(selectedMemberIds), [selectedMemberIds]);
   const compact = members.length >= COMPACT_FROM;
+  const { attach, atStart, atEnd } = useHorizontalScroll();
+  const fade = `linear-gradient(to right, ${atStart ? "black" : "transparent"}, black 24px, black calc(100% - 24px), ${atEnd ? "black" : "transparent"})`;
 
   const presetLabels = {
     all: t("leadMatrix.filterAll"),
@@ -51,8 +55,12 @@ function MemberFilterBar({ activePreset, members, selectedMemberIds, onPresetCha
       <span className="h-5 w-px shrink-0 bg-slate-200 max-sm:hidden" aria-hidden="true" />
 
       {/* 1 hàng, cuộn ngang; padding dọc để vòng chọn (ring) của ảnh không bị cắt */}
-      <div className="min-w-0 flex-1 overflow-x-auto py-1 max-sm:hidden [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] [&::-webkit-scrollbar]:hidden">
-        <div className={cn("flex w-max items-center pr-6", compact ? "gap-1.5 pl-0.5" : "gap-2")}>
+      <div
+        ref={attach}
+        style={{ maskImage: fade, WebkitMaskImage: fade }}
+        className="min-w-0 flex-1 overflow-x-auto py-1 max-sm:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <div className={cn("flex w-max items-center px-1", compact ? "gap-1.5" : "gap-2")}>
           {members.map((member) => (
             <MemberChip
               key={member.memberId}
