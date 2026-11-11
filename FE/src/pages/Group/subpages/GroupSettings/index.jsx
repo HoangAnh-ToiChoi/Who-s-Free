@@ -48,11 +48,6 @@ function GroupSettings({ group, onChanged }) {
           </div>
         )}
 
-        <div>
-          <label className="text-xs font-semibold text-slate-600">{t("groupDetail.cohortLabel")}</label>
-          <div className={`${FIELD_CLASS} sm:max-w-xs`}>{group?.cohort || "N/A"}</div>
-        </div>
-
         {group?.description && (
           <div>
             <label className="text-xs font-semibold text-slate-600">{t("groupDetail.descriptionLabel")}</label>
