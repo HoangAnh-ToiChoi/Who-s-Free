@@ -113,7 +113,6 @@ function Group() {
                     onTabChange={setActiveTab}
                     onOpenInvite={() => setIsInviteModalOpen(true)}
                     onOpenCreateCalendar={canCreateCalendar ? () => setIsCreateCalendarOpen(true) : null}
-                    onChanged={refreshGroup}
                   />
                 </SlideIn>
 
@@ -157,7 +156,7 @@ function Group() {
           {/* Subpage 3: Settings */}
           {activeTab === "settings" && (
             <SlideIn key="settings" index={1} direction="up">
-              <GroupSettings group={group} />
+              <GroupSettings group={group} onChanged={refreshGroup} />
             </SlideIn>
           )}
 
