@@ -40,13 +40,8 @@ export function LeadMatrixContent({ readOnly = false }) {
 
   const sessionId = currentSession?.id;
 
-  const {
-    activePreset,
-    selectedMemberIds,
-    allMembers,
-    setPreset,
-    toggleMember,
-  } = useMemberFilter(sessionId);
+  const { activePreset, selectedMemberIds, allMembers, visibleMembers, respondedMembers, setPreset, toggleMember } =
+    useMemberFilter(sessionId);
 
   const { matrix, totalMembers, getCell } = useHeatmapMatrix(
     selectedMemberIds,
@@ -86,10 +81,8 @@ export function LeadMatrixContent({ readOnly = false }) {
     exportToXlsx(sessionId, currentSession?.slug || "lich");
   }, [exportToXlsx, sessionId, currentSession?.slug]);
 
-  const leadStats = {
-    selectedCount: selectedMemberIds.length,
-    totalMembers,
-  };
+  // "Đang lọc X / Y": Y là toàn bộ thành viên nhóm (kể cả người chưa nhập lịch), không phải mẫu số của heatmap
+  const leadStats = { selectedCount: selectedMemberIds.length, totalMembers: allMembers.length };
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 min-h-0 flex-1 flex flex-col overflow-hidden relative">
@@ -135,7 +128,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         <div className="min-w-0 flex-1">
           <MemberFilterBar
             activePreset={activePreset}
-            allMembers={allMembers}
+            members={visibleMembers}
             selectedMemberIds={selectedMemberIds}
             onPresetChange={setPreset}
             onToggleMember={toggleMember}
@@ -189,7 +182,7 @@ export function LeadMatrixContent({ readOnly = false }) {
             matrix={matrix}
             weekDays={weekDays}
             totalMembers={totalMembers}
-            allMembers={allMembers}
+            allMembers={respondedMembers}
             onSelectSlot={handleSelectSlot}
           />
         </div>

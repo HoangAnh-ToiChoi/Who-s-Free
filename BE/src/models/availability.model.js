@@ -98,27 +98,16 @@ class AvailabilityModel {
   }
 
   /**
-   * Lấy toàn bộ slots của tất cả thành viên trong session,
-   * JOIN với users và group_members để lấy tên, role, avatar.
-   * Service sẽ group lại theo user_id.
+   * Toàn bộ slot của một session, KHÔNG join: tên/vai trò/ảnh lấy từ danh sách thành viên nhóm và ghép bằng code
+   * ở service (trước đây join 3 bảng và lặp lại thông tin người dùng trên từng dòng slot). Dùng idx_avail_slots_session_user.
    */
   static async findAllBySession(sessionId) {
     if (!sessionId) return [];
-    const sql = `
-      SELECT
-        avs.*,
-        gm.role,
-        gm.group_role,
-        u.full_name AS member_name,
-        u.avatar_url
-      FROM public.availability_slots avs
-      JOIN public.sessions s ON s.id = avs.session_id
-      JOIN public.users u ON u.id = avs.user_id
-      JOIN public.group_members gm ON gm.user_id = avs.user_id AND gm.group_id = s.group_id
-      WHERE avs.session_id = $1
-      ORDER BY avs.user_id, avs.day_index, avs.start_minutes;
-    `;
-    const { rows } = await query(sql, [sessionId]);
+    const { rows } = await query(
+      `SELECT ${SLOT_COLUMNS} FROM public.availability_slots
+       WHERE session_id = $1 ORDER BY user_id, day_index, start_minutes;`,
+      [sessionId]
+    );
     return rows || [];
   }
 }

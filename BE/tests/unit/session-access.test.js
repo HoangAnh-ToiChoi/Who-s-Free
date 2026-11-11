@@ -195,19 +195,35 @@ describe("AvailabilityService.getSessionAvailabilities", () => {
   const slotRow = { id: "r1", session_id: "s1", user_id: "u1", member_name: "An", role: "member", group_role: "core",
     avatar_url: null, day_index: 0, date_str: "2026-11-02", start_minutes: 480, end_minutes: 540, label: "Available", note: "" };
 
-  test("thành viên → nhóm slot theo user", async () => {
+  const memberRow = (userId, role, name) => ({ user_id: userId, role, group_role: "core", full_name: name, avatar_url: null });
+
+  test("thành viên → nhóm slot theo user, tên/vai trò lấy từ danh sách thành viên", async () => {
     stub(SessionModel, "findById", async () => session());
     stub(GroupMemberModel, "findMember", memberOf({ u1: "member" }));
+    stub(GroupMemberModel, "getGroupMembers", async () => [memberRow("u1", "member", "An")]);
     stub(AvailabilityModel, "findAllBySession", async () => [slotRow, { ...slotRow, id: "r2", start_minutes: 600 }]);
     const result = await availabilityService.getSessionAvailabilities("s1", "u1");
     assert.equal(result.length, 1);
     assert.equal(result[0].slots.length, 2);
+    assert.equal(result[0].memberName, "An");
+  });
+
+  test("trả đủ mọi thành viên (chưa nhập lịch → slots rỗng); bỏ slot của người đã rời nhóm", async () => {
+    stub(SessionModel, "findById", async () => session());
+    stub(GroupMemberModel, "findMember", memberOf({ u1: "member" }));
+    stub(GroupMemberModel, "getGroupMembers", async () => [
+      memberRow("lead", "owner", "Lead"), memberRow("u1", "member", "An"), memberRow("u3", "member", "Ba"),
+    ]);
+    stub(AvailabilityModel, "findAllBySession", async () => [slotRow, { ...slotRow, id: "x", user_id: "left-user" }]);
+    const result = await availabilityService.getSessionAvailabilities("s1", "u1");
+    assert.deepEqual(result.map((m) => [m.memberName, m.slots.length]), [["Lead", 0], ["An", 1], ["Ba", 0]]);
   });
 
   test("không phải thành viên → 403, không đọc lịch", async () => {
     stub(SessionModel, "findById", async () => session());
     stub(GroupMemberModel, "findMember", memberOf({}));
     stub(AvailabilityModel, "findAllBySession", noCall("findAllBySession"));
+    stub(GroupMemberModel, "getGroupMembers", noCall("getGroupMembers"));
     await rejectsWith(availabilityService.getSessionAvailabilities("s1", "u2"), 403);
   });
 

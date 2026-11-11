@@ -1,4 +1,5 @@
 import AvailabilityModel from "../models/availability.model.js";
+import GroupMemberModel from "../models/group-member.model.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
@@ -54,25 +55,25 @@ class AvailabilityService {
     return toPublicUserAvailability({ sessionId, userId, slots: saved });
   }
 
+  /**
+   * Lịch rảnh của MỌI thành viên nhóm (người chưa nhập lịch có slots rỗng) — để màn Lead hiện đủ thành viên.
+   * Hai truy vấn nhẹ chạy song song (thành viên nhóm + slot của phiên) rồi ghép bằng code; slot của người đã rời nhóm bị bỏ.
+   */
   async getSessionAvailabilities(sessionId, userId, roleFilter = "all") {
     requireSessionAndUser(sessionId, userId);
     const { session } = await requireSessionMember(sessionId, userId);
-    const rows = await AvailabilityModel.findAllBySession(session.id);
+    const [memberRows, slotRows] = await Promise.all([
+      GroupMemberModel.getGroupMembers(session.group_id),
+      AvailabilityModel.findAllBySession(session.id),
+    ]);
 
-    const byUser = new Map();
-    for (const row of rows) {
-      if (!byUser.has(row.user_id)) {
-        byUser.set(row.user_id, {
-          userId: row.user_id,
-          memberName: row.member_name,
-          role: row.role,
-          groupRole: row.group_role,
-          avatarUrl: row.avatar_url,
-          slots: [],
-        });
-      }
-      byUser.get(row.user_id).slots.push(row);
-    }
+    const byUser = new Map(
+      memberRows.map((m) => [
+        m.user_id,
+        { userId: m.user_id, memberName: m.full_name, role: m.role, groupRole: m.group_role, avatarUrl: m.avatar_url, slots: [] },
+      ])
+    );
+    for (const slot of slotRows) byUser.get(slot.user_id)?.slots.push(slot);
 
     let members = Array.from(byUser.values());
     if (roleFilter && roleFilter !== "all") {
