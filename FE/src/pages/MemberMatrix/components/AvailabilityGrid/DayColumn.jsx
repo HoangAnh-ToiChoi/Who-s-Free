@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, memo } from "react";
 import { cn } from "~/lib/utils";
 import SlotCard from "./SlotCard";
 import OutOfWindowOverlay from "~/components/OutOfWindowOverlay";
@@ -15,18 +15,8 @@ import {
  * - Weekend tint nhẹ phân biệt ngày làm việc và cuối tuần
  * - Vạch chỉ giờ thực tế (Current Time Red Line) trên cột Today
  */
-const DayColumn = forwardRef(function DayColumn(
-  {
-    day,
-    hours,
-    daySlots,
-    dragPreview,
-    activeSlotId,
-    onMouseDown,
-    touchHandlers,
-    onSlotClick,
-    onResizeStart,
-  },
+const DayColumn = memo(forwardRef(function DayColumn(
+  { index, day, hours, daySlots, dragPreview, activeSlotId, onStartDrag, touch, onSlotClick },
   ref
 ) {
   const isOutOfWindow = day.inWindow === false;
@@ -54,7 +44,12 @@ const DayColumn = forwardRef(function DayColumn(
   return (
     <div
       ref={ref}
-      {...(!isOutOfWindow && { onMouseDown, ...touchHandlers })}
+      {...(!isOutOfWindow && {
+        onMouseDown: (e) => onStartDrag(index, e),
+        onTouchStart: (e) => touch.onTouchStart(index, e),
+        onTouchMove: touch.onTouchMove,
+        onTouchEnd: touch.onTouchEnd,
+      })}
       className={cn(
         "relative border-r border-slate-200/90 last:border-r-0 cursor-crosshair select-none transition-colors [-webkit-touch-callout:none]",
         isWeekend && "bg-slate-50/40",
@@ -90,7 +85,7 @@ const DayColumn = forwardRef(function DayColumn(
       {isDraggingOnThisDay && previewStyle && (
         <div
           style={previewStyle}
-          className="absolute left-1 right-1 z-20 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden backdrop-blur-2xs transition-all duration-75"
+          className="absolute left-1 right-1 z-20 rounded-xl border-2 border-solid border-indigo-600 bg-indigo-500/30 px-2 py-1 pointer-events-none shadow-lg flex flex-col justify-between overflow-hidden backdrop-blur-2xs"
         >
           {/* Mobile: cột hẹp nên ẩn chữ trong ô; giờ đang chọn hiện ở chip trên thanh công cụ */}
           <div className="flex items-center justify-between gap-1 max-sm:hidden">
@@ -124,11 +119,10 @@ const DayColumn = forwardRef(function DayColumn(
           slot={slot}
           isActive={activeSlotId === slot.id}
           onClick={(e) => onSlotClick(slot, e)}
-          onResizeStart={onResizeStart}
         />
       ))}
     </div>
   );
-});
+}));
 
 export default DayColumn;

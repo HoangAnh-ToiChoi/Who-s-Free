@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { yOffsetToMinutes } from "~/utils/timeUtils";
+import { yOffsetToMinutes, touchYOffsetToMinutes } from "~/utils/timeUtils";
 import { isMinuteInAnySlot } from "~/utils/slotCollision";
 import { computeDragUpdate, buildDragCompletion } from "./gridDragMath";
 
@@ -32,7 +32,8 @@ export function useGridDrag({
 
       const rect = colEl.getBoundingClientRect();
       const offsetY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
-      const originMinutes = yOffsetToMinutes(offsetY);
+      const isTouch = e.pointerType === "touch";
+      const originMinutes = (isTouch ? touchYOffsetToMinutes : yOffsetToMinutes)(offsetY);
 
       // Thuật toán: Nếu điểm bấm chuột nằm bên trong slot đã có -> Chặn không cho kéo tạo mới!
       if (isMinuteInAnySlot(dayIndex, originMinutes, existingSlots)) {
@@ -50,7 +51,7 @@ export function useGridDrag({
         currentMinutes: originMinutes + 30,
         cursorX: e.clientX,
         cursorY: e.clientY,
-        isTouch: e.pointerType === "touch",
+        isTouch,
         isDragging: true,
       });
     },
@@ -67,6 +68,14 @@ export function useGridDrag({
       rafRef.current = requestAnimationFrame(() => {
         const next = computeDragUpdate(e, dragState, columnRefs.current || [], existingSlots);
         if (!next) return;
+        const stepChanged =
+          next.currentDayIndex !== dragState.currentDayIndex || next.currentMinutes !== dragState.currentMinutes;
+        // Cảm ứng: không có nhãn bám ngón tay nên chỉ vẽ lại khi qua mốc 30 phút / sang ngày khác
+        // (vẽ lại cả lưới mỗi px làm máy Android tầm trung bị khựng) + rung nhẹ báo đã qua mốc.
+        if (dragState.isTouch) {
+          if (!stepChanged) return;
+          navigator.vibrate?.(8);
+        }
         setDragState((prev) => (prev ? { ...prev, ...next, cursorX: e.clientX, cursorY: e.clientY } : null));
       });
     };

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import GridHeader from "./GridHeader";
 import TimeColumn from "./TimeColumn";
 import DayColumn from "./DayColumn";
@@ -10,6 +11,8 @@ const isSlotInDay = (day) => (slot) =>
  * Header ngày (sticky top) và cột giờ (sticky left) nằm chung khung với lưới nên khi vuốt ngang
  * trên mobile cột giờ vẫn đứng yên, cuộn dọc thì header vẫn ở trên. Mobile: mỗi màn 3 ngày,
  * snap theo mép ngày; desktop (md+): đủ 7 ngày như cũ.
+ * Mọi prop của DayColumn đều giữ ổn định giữa các lần render (DayColumn là memo): khi đang kéo,
+ * chỉ cột nằm trong vùng kéo nhận dragPreview mới → các cột khác không vẽ lại.
  */
 function GridScrollArea({
   scrollRef,
@@ -24,6 +27,15 @@ function GridScrollArea({
   touch,
   onSlotClick,
 }) {
+  const slotsByDay = useMemo(
+    () => weekDays.map((day) => [...slots.filter(isSlotInDay(day)), ...draftSlots.filter(isSlotInDay(day))]),
+    [weekDays, slots, draftSlots]
+  );
+  const setColumnRef = useMemo(
+    () => weekDays.map((_, idx) => (el) => (columnRefs.current[idx] = el)),
+    [weekDays, columnRefs]
+  );
+
   return (
     <div
       ref={scrollRef}
@@ -36,24 +48,20 @@ function GridScrollArea({
           <TimeColumn hours={hours} />
 
           {weekDays.map((day, idx) => {
-            const inDay = isSlotInDay(day);
+            const inDrag = dragPreview && idx >= dragPreview.startDayIndex && idx <= dragPreview.endDayIndex;
             return (
               <DayColumn
                 key={day.dateStr}
-                ref={(el) => (columnRefs.current[idx] = el)}
+                ref={setColumnRef[idx]}
+                index={idx}
                 day={day}
                 hours={hours}
-                daySlots={[...slots.filter(inDay), ...draftSlots.filter(inDay)]}
-                dragPreview={dragPreview}
+                daySlots={slotsByDay[idx]}
+                dragPreview={inDrag ? dragPreview : null}
                 activeSlotId={activeSlotId}
-                onMouseDown={(e) => onStartDrag(idx, e)}
-                touchHandlers={{
-                  onTouchStart: (e) => touch.onTouchStart(idx, e),
-                  onTouchMove: touch.onTouchMove,
-                  onTouchEnd: touch.onTouchEnd,
-                }}
+                onStartDrag={onStartDrag}
+                touch={touch}
                 onSlotClick={onSlotClick}
-                onResizeStart={() => {}}
               />
             );
           })}

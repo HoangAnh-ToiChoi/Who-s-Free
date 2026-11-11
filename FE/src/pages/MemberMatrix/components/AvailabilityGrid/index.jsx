@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useEffect } from "react";
+import { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import GridToolbar from "../GridToolbar";
 import GridScrollArea from "./GridScrollArea";
 import DragRangeIndicator from "./DragRangeIndicator";
@@ -103,7 +103,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, on
   const touchDrag = useTouchDragStart(startDrag);
 
   // Khi click vào một slot đã có để mở popover chỉnh sửa
-  const handleSlotClick = (slot, e) => {
+  const handleSlotClick = useCallback((slot, e) => {
     e.stopPropagation();
     // Hủy bỏ draft chưa lưu nếu có
     setDraftSlots([]);
@@ -119,7 +119,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, on
       anchorRect: slotCardEl.getBoundingClientRect(),
       containerRect: containerEl.getBoundingClientRect(),
     });
-  };
+  }, [openPopover]);
 
   return (
     <div className="flex flex-col h-full gap-1.5 sm:gap-2.5 flex-1 min-h-0">
