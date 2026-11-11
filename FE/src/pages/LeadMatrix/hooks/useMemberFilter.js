@@ -3,6 +3,9 @@ import { availabilityService as calendarService } from "~/service/availabilitySe
 
 const isLeader = (member) => member.role === "owner" || member.role === "lead";
 const hasResponded = (member) => Array.isArray(member.slots) && member.slots.length > 0;
+// Điện thoại mặc định xem Ban lãnh đạo (màn hẹp, thanh lọc chỉ hiện owner/lead); máy tính mặc định Tất cả
+const defaultPreset = () =>
+  typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches ? "leadership" : "all";
 
 /**
  * useMemberFilter - Lọc thành viên cho LeadMatrix. API trả về MỌI thành viên nhóm (người chưa nhập lịch có slots rỗng).
@@ -16,7 +19,7 @@ const hasResponded = (member) => Array.isArray(member.slots) && member.slots.len
  * phân tích khung giờ, để người chưa nhập lịch không bị tính là "vắng").
  */
 export function useMemberFilter(sessionId) {
-  const [activePreset, setActivePreset] = useState("all");
+  const [activePreset, setActivePreset] = useState(defaultPreset);
   const [allMembers, setAllMembers] = useState(() => calendarService.peekSessionAvailabilities(sessionId) ?? []);
   const [customSelectedIds, setCustomSelectedIds] = useState(() =>
     (calendarService.peekSessionAvailabilities(sessionId) ?? []).map((m) => m.memberId)
