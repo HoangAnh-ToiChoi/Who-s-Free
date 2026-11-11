@@ -1,7 +1,7 @@
 import BodyPortal from "~/components/BodyPortal";
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, Eye } from "lucide-react";
 import { cn } from "~/lib/utils";
 import {
   minutesToTimeString,
@@ -154,6 +154,11 @@ function SlotPopover({
             placeholder={t("slotPopover.notePlaceholder")}
             className="w-full rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:outline-none transition-colors resize-none"
           />
+          {/* Ghi chú hiện cho trưởng nhóm ở màn Lead: báo trước để member không bất ngờ */}
+          <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+            <Eye size={12} className="shrink-0" />
+            {t("slotPopover.noteVisibleToLead")}
+          </p>
         </div>
 
         {/* Error message / Notice section (thay the cho Visible to Maya Lin) */}

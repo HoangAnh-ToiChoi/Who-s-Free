@@ -97,6 +97,10 @@ export function useHeatmapMatrix(
               name: member.memberName,
               avatarUrl: member.avatarUrl,
               role: member.role,
+              // Ghi chú của member cho slot này + khung giờ gốc (1 slot trải nhiều ô 30 phút)
+              note: slot.note || "",
+              slotStart: slot.startMinutes,
+              slotEnd: slot.endMinutes,
             });
           }
         }

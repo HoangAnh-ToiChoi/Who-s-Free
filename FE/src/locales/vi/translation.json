@@ -267,7 +267,8 @@
     "deleteConfirmTitle": "Xóa khung giờ này?",
     "deleteConfirmDesc": "Khung giờ rảnh này sẽ bị xóa khỏi lịch của bạn.",
     "deleteConfirm": "Xóa",
-    "deleteKeep": "Giữ lại"
+    "deleteKeep": "Giữ lại",
+    "noteVisibleToLead": "Trưởng nhóm sẽ thấy ghi chú này"
   },
   "gridToolbar": {
     "today": "Hôm nay",

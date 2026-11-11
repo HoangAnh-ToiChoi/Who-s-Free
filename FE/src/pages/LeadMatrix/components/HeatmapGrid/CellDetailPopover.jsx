@@ -85,7 +85,10 @@ function CellDetailPopover({
             return (
               <div
                 key={m.id}
-                className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-2 py-1.5"
+                className={cn(
+                  "flex gap-2 rounded-lg border border-emerald-100 bg-emerald-50/70 px-2 py-1.5",
+                  m.note ? "items-start" : "items-center"
+                )}
               >
                 {m.avatarUrl ? (
                   <img
@@ -113,6 +116,14 @@ function CellDetailPopover({
                   <p className="text-[10px] text-slate-500">
                     {m.role || "Thành viên"}
                   </p>
+                  {m.note && (
+                    <p className="mt-1 border-l-2 border-emerald-400 pl-1.5 text-[11px] leading-snug text-slate-700 break-words">
+                      "{m.note}"{" "}
+                      <span className="whitespace-nowrap text-slate-400">
+                        · {minutesToTimeString(m.slotStart)}–{minutesToTimeString(m.slotEnd)}
+                      </span>
+                    </p>
+                  )}
                 </div>
                 <span className="shrink-0 rounded-md bg-emerald-100/80 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
                   {t("leadMatrix.statusFree")}

@@ -267,7 +267,8 @@
     "deleteConfirmTitle": "Delete this time slot?",
     "deleteConfirmDesc": "This free time slot will be removed from your schedule.",
     "deleteConfirm": "Delete",
-    "deleteKeep": "Keep"
+    "deleteKeep": "Keep",
+    "noteVisibleToLead": "The group lead will see this note"
   },
   "gridToolbar": {
     "today": "Today",
