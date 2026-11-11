@@ -1,83 +1,78 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
 
+const isLeader = (member) => member.role === "owner" || member.role === "lead";
+const hasResponded = (member) => Array.isArray(member.slots) && member.slots.length > 0;
+
 /**
- * useMemberFilter - Hook quản lý lọc thành viên cho LeadMatrix
- * Tự động tải danh sách thành viên thực tế từ db.json theo sessionId.
+ * useMemberFilter - Lọc thành viên cho LeadMatrix. API trả về MỌI thành viên nhóm (người chưa nhập lịch có slots rỗng).
  *
- * Hỗ trợ 3 chế độ lọc:
- * 1. All — Hiển thị tất cả thành viên
- * 2. Leadership — Chỉ hiển thị leadership (Lead Admin, Vice Lead)
- * 3. Custom — Bấm chọn/bỏ chọn từng member riêng lẻ
+ * 3 chế độ:
+ * 1. all — tất cả thành viên
+ * 2. leadership — chỉ owner/lead (vai trò thật trong nhóm); các thành viên khác bị ẨN khỏi thanh lọc, không làm mờ
+ * 3. custom — bấm chọn/bỏ chọn từng người (người bị bỏ chọn vẫn hiện, làm mờ, để bấm chọn lại)
+ *
+ * Trả thêm: visibleMembers (thành viên hiện trên thanh lọc theo chế độ), respondedMembers (đã nhập lịch — dùng cho
+ * phân tích khung giờ, để người chưa nhập lịch không bị tính là "vắng").
  */
 export function useMemberFilter(sessionId) {
   const [activePreset, setActivePreset] = useState("all");
-  const [allMembers, setAllMembers] = useState(
-    () => calendarService.peekSessionAvailabilities(sessionId) ?? []
-  );
+  const [allMembers, setAllMembers] = useState(() => calendarService.peekSessionAvailabilities(sessionId) ?? []);
   const [customSelectedIds, setCustomSelectedIds] = useState(() =>
     (calendarService.peekSessionAvailabilities(sessionId) ?? []).map((m) => m.memberId)
   );
 
   useEffect(() => {
     let isMounted = true;
-    async function loadMembers() {
-      if (!sessionId) {
-        setAllMembers([]);
-        setCustomSelectedIds([]);
-        return;
-      }
-      try {
-        const avails = await calendarService.getSessionAvailabilities(sessionId);
-        if (isMounted && Array.isArray(avails)) {
-          setAllMembers(avails);
-          setCustomSelectedIds(avails.map((m) => m.memberId));
-        }
-      } catch (err) {
-        console.warn("Could not load member filter availabilities:", err);
-      }
-    }
-    loadMembers();
+    if (!sessionId) return undefined;
+    calendarService
+      .getSessionAvailabilities(sessionId)
+      .then((avails) => {
+        if (!isMounted || !Array.isArray(avails)) return;
+        setAllMembers(avails);
+        setCustomSelectedIds(avails.map((m) => m.memberId));
+      })
+      .catch(() => {});
     return () => {
       isMounted = false;
     };
   }, [sessionId]);
 
-  // Danh sách member ID đã lọc
-  const selectedMemberIds = useMemo(() => {
-    switch (activePreset) {
-      case "leadership":
-        return allMembers
-          .filter((m) => m.groupRole === "leadership")
-          .map((m) => m.memberId);
-      case "custom":
-        return customSelectedIds;
-      case "all":
-      default:
-        return allMembers.map((m) => m.memberId);
-    }
-  }, [activePreset, allMembers, customSelectedIds]);
+  const visibleMembers = useMemo(
+    () => (activePreset === "leadership" ? allMembers.filter(isLeader) : allMembers),
+    [activePreset, allMembers]
+  );
 
-  // Chuyển preset filter
+  const selectedMemberIds = useMemo(() => {
+    if (activePreset === "custom") return customSelectedIds;
+    return visibleMembers.map((m) => m.memberId);
+  }, [activePreset, visibleMembers, customSelectedIds]);
+
+  const respondedMembers = useMemo(() => allMembers.filter(hasResponded), [allMembers]);
+
   const setPreset = useCallback((preset) => {
     setActivePreset(preset);
-  }, []);
+    if (preset === "all") setCustomSelectedIds(allMembers.map((m) => m.memberId));
+  }, [allMembers]);
 
-  // Chọn/bỏ chọn 1 member ở custom mode
-  const toggleMember = useCallback((memberId) => {
-    setActivePreset("custom");
-    setCustomSelectedIds((prev) => {
-      if (prev.includes(memberId)) {
-        return prev.filter((id) => id !== memberId);
-      }
-      return [...prev, memberId];
-    });
-  }, []);
+  // Chọn/bỏ chọn 1 người: bắt đầu từ những người đang được chọn của chế độ hiện tại
+  const toggleMember = useCallback(
+    (memberId) => {
+      setCustomSelectedIds((prev) => {
+        const base = activePreset === "custom" ? prev : selectedMemberIds;
+        return base.includes(memberId) ? base.filter((id) => id !== memberId) : [...base, memberId];
+      });
+      setActivePreset("custom");
+    },
+    [activePreset, selectedMemberIds]
+  );
 
   return {
     activePreset,
     selectedMemberIds,
     allMembers,
+    visibleMembers,
+    respondedMembers,
     setPreset,
     toggleMember,
   };

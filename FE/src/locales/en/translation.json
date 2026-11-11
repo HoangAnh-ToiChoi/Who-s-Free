@@ -313,7 +313,8 @@
     "noConflictSlots": "No limited availability slots",
     "allPresent": "All available",
     "availableMembersDesc": "{{count}}/{{total}} members available: {{names}}",
-    "missingMembersDesc": "Only {{count}}/{{total}} available. Missing: {{names}}"
+    "missingMembersDesc": "Only {{count}}/{{total}} available. Missing: {{names}}",
+    "notResponded": "no availability yet"
   },
   "placeholder": {
     "comingSoonTitle": "Feature Coming Soon",
