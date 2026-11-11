@@ -40,3 +40,13 @@ test("buildDragCompletion: chạm không kéo → khoảng 30 phút", () => {
   const drag = { originDayIndex: 2, currentDayIndex: 2, originMinutes: 600, currentMinutes: 600 };
   assert.equal(buildDragCompletion(drag, columns, container, []).endMinutes, 630);
 });
+
+import { touchYOffsetToMinutes, yOffsetToMinutes, HALF_HOUR_HEIGHT } from "../src/utils/timeUtils.js";
+
+test("cảm ứng: chạm hơi lệch lên trên vạch 11:00 vẫn bắt đầu từ 11:00; chuột giữ nguyên cách tính cũ", () => {
+  const line11 = 22 * HALF_HOUR_HEIGHT; // vạch 11:00 tính từ 00:00
+  assert.equal(touchYOffsetToMinutes(line11 - 5), 660);
+  assert.equal(yOffsetToMinutes(line11 - 5), 630);
+  assert.equal(touchYOffsetToMinutes(line11 + HALF_HOUR_HEIGHT / 2), 660); // giữa ô 11:00–11:30
+  assert.equal(touchYOffsetToMinutes(line11 - HALF_HOUR_HEIGHT / 2), 630); // giữa ô 10:30–11:00 vẫn là 10:30
+});

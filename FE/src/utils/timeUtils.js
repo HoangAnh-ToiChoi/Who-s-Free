@@ -71,6 +71,15 @@ export function yOffsetToMinutes(offsetY) {
   return Math.min(Math.max(START_HOUR * 60, minutes), (END_HOUR + 1) * 60);
 }
 
+// Cảm ứng: ngón tay che điểm chạm và nhãn giờ nằm ngay trên vạch, nên chạm hơi lệch LÊN TRÊN vạch (≤ 1/4 ô)
+// vẫn tính là bắt đầu từ vạch đó (giữ ở "11:00" → 11:00, không phải 10:30).
+export const TOUCH_SNAP_PX = HALF_HOUR_HEIGHT / 4;
+
+/** Như yOffsetToMinutes nhưng cho điểm bắt đầu kéo bằng cảm ứng (hút về vạch giờ ngay bên dưới). */
+export function touchYOffsetToMinutes(offsetY) {
+  return yOffsetToMinutes(offsetY + TOUCH_SNAP_PX);
+}
+
 /**
  * Tạo danh sách các khung giờ cho dropdown START & END
  * @param {number} startHour

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { createTouchHold } from "~/utils/touchHold";
 
 /**
@@ -34,5 +34,6 @@ export function useTouchDragStart(startDrag) {
 
   const onTouchEnd = useCallback(() => holdRef.current?.end(), []);
 
-  return { onTouchStart, onTouchMove, onTouchEnd };
+  // Giữ nguyên object giữa các lần render để DayColumn (memo) không vẽ lại vô ích
+  return useMemo(() => ({ onTouchStart, onTouchMove, onTouchEnd }), [onTouchStart, onTouchMove, onTouchEnd]);
 }
