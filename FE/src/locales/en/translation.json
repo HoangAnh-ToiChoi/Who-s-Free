@@ -478,8 +478,7 @@
     "save": "Save changes",
     "saving": "Saving...",
     "keep": "Keep",
-    "failed": "Something went wrong, please try again.",
-    "saved": "Saved"
+    "failed": "Something went wrong, please try again."
   },
   "sessionActions": {
     "editTitle": "Edit schedule",
@@ -503,9 +502,7 @@
     "deleteTitle": "Delete \"{{name}}\"?",
     "deleteDesc": "All schedules, availability and members of this group will be deleted permanently.",
     "deleteTypeHint": "Type the group name to confirm:",
-    "deleteConfirm": "Delete forever",
-    "dangerZone": "Danger zone",
-    "currentMembers": "{{count}} members now"
+    "deleteConfirm": "Delete forever"
   },
   "memberActions": {
     "menu": "Member options",
