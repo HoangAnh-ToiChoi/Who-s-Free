@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import SlideIn from "~/components/SlideIn";
 import { useMatrixGate } from "~/hooks/useMatrixGate";
 
-const FRAME_CLASS = "mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 h-[calc(100dvh-72px)]";
+const FRAME_CLASS = "mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 min-h-0 flex-1";
 
 function MatrixSkeleton() {
   return (
@@ -84,7 +84,13 @@ function MatrixGate({ withMyAvailability = false, children }) {
   if (status === "loading") return showSkeleton ? <MatrixSkeleton /> : null;
   if (status === "error") return <MatrixLoadError onRetry={retry} />;
 
-  return <SlideIn direction="up">{children}</SlideIn>;
+  // Lớp hiệu ứng nằm giữa <main> và khung ma trận: phải tham gia chuỗi flex (min-h-0 flex-1) thì khung mới bị giới hạn
+  // bằng chiều cao màn hình và lưới lịch mới có thanh cuộn riêng.
+  return (
+    <SlideIn direction="up" className="flex min-h-0 flex-1 flex-col">
+      {children}
+    </SlideIn>
+  );
 }
 
 export default MatrixGate;

@@ -45,7 +45,7 @@ function MatrixContent() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-2 py-2 sm:px-6 sm:py-4 lg:px-8 h-[calc(100dvh-72px)] flex flex-col overflow-hidden">
+    <div className="mx-auto w-full max-w-7xl px-2 py-2 sm:px-6 sm:py-4 lg:px-8 min-h-0 flex-1 flex flex-col overflow-hidden">
       {/* Header session với link quay lại nhóm & nút chuyển đổi chế độ */}
       <MatrixHeader session={currentSession} />
 

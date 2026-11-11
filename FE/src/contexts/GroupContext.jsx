@@ -83,8 +83,7 @@ export function GroupProvider({ children }) {
         const query = searchQuery.toLowerCase();
         const matchName = g.name.toLowerCase().includes(query);
         const matchDesc = g.description?.toLowerCase().includes(query);
-        const matchCohort = g.cohort?.toLowerCase().includes(query);
-        return matchName || matchDesc || matchCohort;
+        return matchName || matchDesc;
       }
 
       return true;

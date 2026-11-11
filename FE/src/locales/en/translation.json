@@ -78,7 +78,6 @@
     "groupInfo": "Group Details",
     "groupName": "Group Name",
     "groupSlug": "Identifier (Slug)",
-    "cohortLabel": "Cohort / Term",
     "capacityLabel": "Maximum Capacity",
     "roleLabel": "Your Role",
     "descriptionLabel": "Description",
@@ -478,7 +477,8 @@
     "save": "Save changes",
     "saving": "Saving...",
     "keep": "Keep",
-    "failed": "Something went wrong, please try again."
+    "failed": "Something went wrong, please try again.",
+    "saved": "Saved"
   },
   "sessionActions": {
     "editTitle": "Edit schedule",
@@ -502,7 +502,9 @@
     "deleteTitle": "Delete \"{{name}}\"?",
     "deleteDesc": "All schedules, availability and members of this group will be deleted permanently.",
     "deleteTypeHint": "Type the group name to confirm:",
-    "deleteConfirm": "Delete forever"
+    "deleteConfirm": "Delete forever",
+    "dangerZone": "Danger zone",
+    "currentMembers": "{{count}} members now"
   },
   "memberActions": {
     "menu": "Member options",

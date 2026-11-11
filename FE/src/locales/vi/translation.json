@@ -78,7 +78,6 @@
     "groupInfo": "Thông tin nhóm",
     "groupName": "Tên nhóm",
     "groupSlug": "Mã định danh (Slug)",
-    "cohortLabel": "Kỳ / Cohort",
     "capacityLabel": "Sức chứa tối đa",
     "roleLabel": "Vai trò của bạn",
     "descriptionLabel": "Mô tả nhóm",
@@ -478,7 +477,8 @@
     "save": "Lưu thay đổi",
     "saving": "Đang lưu...",
     "keep": "Giữ lại",
-    "failed": "Không thực hiện được, thử lại nhé."
+    "failed": "Không thực hiện được, thử lại nhé.",
+    "saved": "Đã lưu"
   },
   "sessionActions": {
     "editTitle": "Sửa lịch trình",
@@ -502,7 +502,9 @@
     "deleteTitle": "Xóa nhóm \"{{name}}\"?",
     "deleteDesc": "Mọi lịch trình, lịch rảnh và thành viên của nhóm sẽ bị xóa vĩnh viễn.",
     "deleteTypeHint": "Gõ lại tên nhóm để xác nhận:",
-    "deleteConfirm": "Xóa vĩnh viễn"
+    "deleteConfirm": "Xóa vĩnh viễn",
+    "dangerZone": "Vùng nguy hiểm",
+    "currentMembers": "Đang có {{count}} thành viên"
   },
   "memberActions": {
     "menu": "Tùy chọn thành viên",

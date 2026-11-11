@@ -81,16 +81,11 @@ function GroupCard({ group, to = `/groups/${group.id}`, onClick }) {
           <ChevronRight size={18} className="shrink-0 text-slate-400 md:hidden" aria-hidden="true" />
         </div>
 
-        {/* Group Name & Cohort */}
+        {/* Group Name */}
         <div className="mt-4 hidden md:block">
           <h3 className="text-lg font-bold text-slate-900 transition-colors group-hover:text-indigo-600 line-clamp-1">
             {group.name}
           </h3>
-          {group.cohort && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
-              {group.cohort}
-            </p>
-          )}
         </div>
 
         {/* Description */}
