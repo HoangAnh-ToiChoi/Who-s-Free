@@ -13,12 +13,14 @@ const isMobile = () => window.matchMedia("(max-width: 639px)").matches;
  * Dải thành viên luôn 1 hàng thay vì xuống nhiều hàng: cuộn ngang (lăn chuột cũng cuộn ngang), mép nào còn người
  * bị khuất thì mờ dần, cuộn tới tận cùng phía đó thì hết mờ.
  * members: thành viên cần hiện theo chế độ (Ban lãnh đạo → chỉ owner/lead, người khác ẩn hẳn).
- * Mobile: chỉ 1 nút "Ban lãnh đạo" bật/tắt (tắt = tất cả); ẩn nút "Tất cả" và dải thành viên để nhường chỗ cho lưới.
+ * Mobile: chỉ 1 nút "Ban lãnh đạo" bật/tắt (tắt = tất cả, ẩn dải thành viên để nhường chỗ cho lưới);
+ * bật thì hiện ảnh + tên owner/lead cạnh nút để biết đang xem lịch của ai.
  */
 function MemberFilterBar({ activePreset, members, selectedMemberIds, onPresetChange, onToggleMember }) {
   const { t } = useTranslation();
   const selected = useMemo(() => new Set(selectedMemberIds), [selectedMemberIds]);
   const compact = members.length >= COMPACT_FROM;
+  const leadershipOn = activePreset === "leadership";
   const { attach, atStart, atEnd } = useHorizontalScroll();
   const fade = `linear-gradient(to right, ${atStart ? "black" : "transparent"}, black 24px, black calc(100% - 24px), ${atEnd ? "black" : "transparent"})`;
 
@@ -52,13 +54,16 @@ function MemberFilterBar({ activePreset, members, selectedMemberIds, onPresetCha
         ))}
       </div>
 
-      <span className="h-5 w-px shrink-0 bg-slate-200 max-sm:hidden" aria-hidden="true" />
+      <span className={cn("h-5 w-px shrink-0 bg-slate-200", !leadershipOn && "max-sm:hidden")} aria-hidden="true" />
 
       {/* 1 hàng, cuộn ngang; padding dọc để vòng chọn (ring) của ảnh không bị cắt */}
       <div
         ref={attach}
         style={{ maskImage: fade, WebkitMaskImage: fade }}
-        className="min-w-0 flex-1 overflow-x-auto py-1 max-sm:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className={cn(
+          "min-w-0 flex-1 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          !leadershipOn && "max-sm:hidden"
+        )}
       >
         <div className={cn("flex w-max items-center px-1", compact ? "gap-1.5" : "gap-2")}>
           {members.map((member) => (
