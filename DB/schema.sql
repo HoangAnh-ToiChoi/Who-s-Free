@@ -14,14 +14,22 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     avatar_url TEXT,
-    refresh_token TEXT,
-    refresh_token_created_at TIMESTAMPTZ,
     notifications_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_refresh_token ON users(refresh_token);
+-- Phiên đăng nhập theo thiết bị: tối đa 1 phiên / (người dùng, loại thiết bị), hạn 15 ngày từ lần dùng cuối
+CREATE TABLE IF NOT EXISTS refresh_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    device_kind VARCHAR(10) NOT NULL CHECK (device_kind IN ('mobile', 'tablet', 'desktop')),
+    token_hash TEXT NOT NULL UNIQUE,
+    user_agent VARCHAR(300),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT refresh_sessions_user_device_key UNIQUE (user_id, device_kind)
+);
 
 -- ==============================================================================
 -- 3. BẢNG GROUPS (Không gian làm việc / Nhóm)
@@ -168,6 +176,7 @@ CREATE INDEX IF NOT EXISTS idx_group_invitations_email ON group_invitations(emai
 
 -- Kích hoạt RLS trên tất cả các bảng nghiệp vụ
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE refresh_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_invites ENABLE ROW LEVEL SECURITY;

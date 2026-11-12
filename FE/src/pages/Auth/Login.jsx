@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
@@ -11,6 +11,7 @@ import { getSafeReturnUrl } from "~/utils/safeReturnUrl";
 import GoogleSignInButton from "~/pages/Auth/components/GoogleSignInButton";
 import InviteFullNameField from "~/pages/Auth/components/InviteFullNameField";
 import { useInviteAccountStatus } from "~/hooks/useInviteAccountStatus";
+import { peekSessionNotice, clearSessionNotice } from "~/service/authService/authService";
 
 function Login() {
   const { t } = useTranslation();
@@ -37,6 +38,9 @@ function Login() {
     form: location.state?.formError || null,
   }));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Lý do bị đăng xuất (vd thiết bị cùng loại vừa đăng nhập): hiện một lần rồi xoá
+  const [sessionNotice] = useState(peekSessionNotice);
+  useEffect(clearSessionNotice, []);
 
   const validate = () => {
     const newErrors = {};
@@ -104,6 +108,15 @@ function Login() {
           className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-xs font-medium text-emerald-800"
         >
           {t("auth.registerSuccess")}
+        </div>
+      )}
+
+      {sessionNotice === "SESSION_REVOKED" && (
+        <div
+          role="status"
+          className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs font-medium text-amber-800"
+        >
+          {t("auth.sessionRevoked")}
         </div>
       )}
 

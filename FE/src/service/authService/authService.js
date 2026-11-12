@@ -20,6 +20,34 @@ export { getStoredUser, setStoredUser };
 let inFlightGetMe = null;
 let authStateVersion = 0;
 
+const SESSION_NOTICE_KEY = "auth_session_notice";
+
+/** Ghi lý do phiên kết thúc để màn đăng nhập báo cho người dùng (vd bị thiết bị cùng loại thay). */
+export function setSessionNotice(code) {
+  try {
+    sessionStorage.setItem(SESSION_NOTICE_KEY, code);
+  } catch {
+    // sessionStorage bị chặn (chế độ riêng tư): bỏ qua thông báo
+  }
+}
+
+/** Đọc lý do phiên kết thúc (không xoá — gọi clearSessionNotice sau khi đã hiện). */
+export function peekSessionNotice() {
+  try {
+    return sessionStorage.getItem(SESSION_NOTICE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clearSessionNotice() {
+  try {
+    sessionStorage.removeItem(SESSION_NOTICE_KEY);
+  } catch {
+    // sessionStorage bị chặn: không có gì để xoá
+  }
+}
+
 export function clearStoredAuth() {
   authStateVersion += 1;
   inFlightGetMe = null;
