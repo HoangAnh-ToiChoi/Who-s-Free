@@ -52,7 +52,7 @@ function Section({ icon: Icon, tone, title, members, responded, emptyText, roleL
 
 /**
  * MemberResponsePanel - Cột phải màn Lead: ai đã chọn lịch, ai chưa (ảnh + tên), để Lead biết cần nhắc ai.
- * responded / pending: lấy từ useMemberFilter (cùng nguồn với thanh lọc Ban lãnh đạo / thành viên).
+ * responded / pending: lấy từ useSessionMembers (cùng nguồn với dải xem thành viên).
  */
 function MemberResponsePanel({ responded = [], pending = [] }) {
   const { t } = useTranslation();

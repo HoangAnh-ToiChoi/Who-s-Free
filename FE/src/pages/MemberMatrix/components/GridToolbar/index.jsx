@@ -63,7 +63,7 @@ function GridToolbar({
             </span>
             <span className="hidden sm:inline rounded-full bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-semibold text-indigo-700">
               {stats?.label ||
-                t("leadMatrix.membersCountFiltered", {
+                t("leadMatrix.membersResponded", {
                   selected: stats?.selectedCount ?? stats?.count ?? 0,
                   total: stats?.totalMembers ?? stats?.count ?? 0,
                 })}
