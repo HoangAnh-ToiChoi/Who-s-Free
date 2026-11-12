@@ -120,6 +120,9 @@ CREATE TABLE IF NOT EXISTS sessions (
     finalized_start_minutes SMALLINT,
     finalized_end_minutes SMALLINT,
     export_note TEXT,
+    -- Trưởng nhóm đang mở bảng Chốt lịch: thành viên khác không lưu được lịch cho tới finalizing_until
+    finalizing_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    finalizing_until TIMESTAMPTZ,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

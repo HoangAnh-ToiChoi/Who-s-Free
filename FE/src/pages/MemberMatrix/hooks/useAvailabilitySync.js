@@ -7,7 +7,7 @@ const SAVE_DEBOUNCE_MS = 300;
 
 /**
  * Đồng bộ slot lên server: UI đã vẽ trước (lạc quan), hook này gửi bản MỚI NHẤT sau 300ms và giữ trạng thái thật.
- * status: idle | saving | saved | retrying | failed | locked.
+ * status: idle | saving | saved | retrying | failed | locked | finalizing.
  * Server từ chối vì phiên đã chốt → ghi đè UI/cache bằng slot server gửi kèm (onServerSlots) rồi gọi onLocked.
  */
 export function useAvailabilitySync({ sessionId, memberId, cacheKey, onServerSlots, onLocked }) {
@@ -44,13 +44,13 @@ export function useAvailabilitySync({ sessionId, memberId, cacheKey, onServerSlo
       }
     } catch (error) {
       const kind = classifySaveError(error);
-      if (kind === "locked") {
+      if (kind === "locked" || kind === "finalizing") {
         pendingRef.current = null;
         attemptRef.current = 0;
         const serverSlots = Array.isArray(error?.details?.slots) ? error.details.slots : [];
         setCachedSlots(cacheKey, memberId, serverSlots);
         callbacksRef.current.onServerSlots?.(serverSlots);
-        setStatus("locked");
+        setStatus(kind);
         callbacksRef.current.onLocked?.();
         return;
       }

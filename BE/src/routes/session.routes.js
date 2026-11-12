@@ -13,6 +13,9 @@ router.post("/", AuthMiddleware.authenticate, sessionController.createSession);
 router.patch("/:id", AuthMiddleware.authenticate, sessionController.updateSession);
 router.patch("/:id/note", AuthMiddleware.authenticate, sessionController.updateNote);
 router.post("/:id/finalize", AuthMiddleware.authenticate, sessionController.finalizeSession);
+// Trưởng nhóm mở (và gia hạn) / đóng bảng Chốt lịch: tạm khoá thành viên khác sửa lịch
+router.post("/:id/finalizing", AuthMiddleware.authenticate, sessionController.startFinalizing);
+router.delete("/:id/finalizing", AuthMiddleware.authenticate, sessionController.stopFinalizing);
 router.post("/:id/unfinalize", AuthMiddleware.authenticate, sessionController.unfinalizeSession);
 router.get("/:id/export.xlsx", AuthMiddleware.authenticate, sessionController.exportSchedule);
 router.delete("/:id", AuthMiddleware.authenticate, sessionController.deleteSession);

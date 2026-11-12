@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { query } from "../configs/db.config.js";
+import { query, withTransaction } from "../configs/db.config.js";
+import AvailabilityModel from "./availability.model.js";
 import { generateUniqueSlug } from "../utils/slugify.js";
 import { isUuid } from "../utils/uuid.js";
 
@@ -85,18 +86,52 @@ class SessionModel {
     return rows?.[0]?.n ?? 0;
   }
 
-  /** Đánh dấu session đã chốt với khung giờ được chọn (chỉ khi chưa chốt). */
-  static async finalize(id, { date, startMinutes, endMinutes, note, finalizedBy }) {
-    const { rows } = await query(
+  /**
+   * Chốt lịch trong MỘT transaction: khoá dòng session (FOR UPDATE) trước, rồi mới đọc lịch nhóm và kiểm tra,
+   * nên không lần lưu lịch nào chen vào giữa bước kiểm tra và bước ghi (lần lưu khoá FOR SHARE → phải chờ).
+   * @param {(scheduleRows: object[]) => boolean} canFinalize - kiểm tra nghiệp vụ (ở service) trên lịch mới nhất
+   * @returns {Promise<"ok"|"already_finalized"|"invalid">}
+   */
+  static async finalizeLocked(id, { date, startMinutes, endMinutes, note, finalizedBy }, canFinalize) {
+    return withTransaction(async (client) => {
+      const { rows } = await client.query("SELECT status FROM public.sessions WHERE id = $1 FOR UPDATE;", [id]);
+      if (!rows[0] || rows[0].status === "finalized") return "already_finalized";
+      if (!canFinalize(await AvailabilityModel.findForSchedule(id, client))) return "invalid";
+      await client.query(
+        `UPDATE public.sessions
+         SET status = 'finalized', finalized_at = NOW(), finalized_by = $2,
+             finalized_date = $3, finalized_start_minutes = $4, finalized_end_minutes = $5,
+             export_note = $6, finalizing_by = NULL, finalizing_until = NULL, updated_at = NOW()
+         WHERE id = $1;`,
+        [id, finalizedBy, date, startMinutes, endMinutes, note || null],
+      );
+      return "ok";
+    });
+  }
+
+  /**
+   * Đánh dấu trưởng nhóm đang chốt (mở bảng Chốt lịch) tới NOW() + minutes; gọi lại để gia hạn.
+   * Không ghi đè khi một người KHÁC đang chốt và chưa hết hạn. Trả về true nếu đánh dấu được.
+   */
+  static async startFinalizing(id, userId, minutes) {
+    const { rowCount } = await query(
       `UPDATE public.sessions
-       SET status = 'finalized', finalized_at = NOW(), finalized_by = $2,
-           finalized_date = $3, finalized_start_minutes = $4, finalized_end_minutes = $5,
-           export_note = $6, updated_at = NOW()
+       SET finalizing_by = $2, finalizing_until = NOW() + make_interval(mins => $3)
        WHERE id = $1 AND status <> 'finalized'
-       RETURNING id;`,
-      [id, finalizedBy, date, startMinutes, endMinutes, note || null],
+         AND (finalizing_until IS NULL OR finalizing_until <= NOW() OR finalizing_by = $2);`,
+      [id, userId, minutes],
     );
-    return (rows?.length ?? 0) > 0;
+    return rowCount === 1;
+  }
+
+  /** Bỏ đánh dấu đang chốt (chỉ người đang chốt mới bỏ được). */
+  static async stopFinalizing(id, userId) {
+    const { rowCount } = await query(
+      `UPDATE public.sessions SET finalizing_by = NULL, finalizing_until = NULL
+       WHERE id = $1 AND finalizing_by = $2;`,
+      [id, userId],
+    );
+    return rowCount === 1;
   }
 
   static async unfinalize(id) {
