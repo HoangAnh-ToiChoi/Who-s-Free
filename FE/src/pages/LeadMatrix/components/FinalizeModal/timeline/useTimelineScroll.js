@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { wheelToHorizontal } from "~/hooks/useHorizontalScroll";
 
 const EDGE_PX = 2;
@@ -20,8 +20,9 @@ export function useTimelineScroll({ hours, labelWidth, minPx }) {
   const [view, setView] = useState({ available: 0, atStart: true, atEnd: true });
   const [isPanning, setIsPanning] = useState(false);
 
-  // Một lần đo cho cả bề rộng khả dụng (co giãn) lẫn vị trí mép (nút ‹ ›): khi cuộn và khi đổi kích thước
-  useEffect(() => {
+  // Một lần đo cho cả bề rộng khả dụng (co giãn) lẫn vị trí mép (nút ‹ ›): khi cuộn và khi đổi kích thước.
+  // Đo ngay trước lần vẽ đầu (layout effect) để bảng hiện đúng bề rộng luôn, không co giãn lại sau khi đã hiện (giật).
+  useLayoutEffect(() => {
     if (!el) return undefined;
     const update = () => {
       const next = {
@@ -34,6 +35,7 @@ export function useTimelineScroll({ hours, labelWidth, minPx }) {
         prev.available === next.available && prev.atStart === next.atStart && prev.atEnd === next.atEnd ? prev : next
       );
     };
+    update();
     const resize = new ResizeObserver(update);
     resize.observe(el);
     if (el.firstElementChild) resize.observe(el.firstElementChild);

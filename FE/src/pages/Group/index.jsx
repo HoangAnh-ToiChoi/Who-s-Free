@@ -105,7 +105,7 @@ function Group() {
             const { activeSessionsCount, turnoutRate } = calculateGroupMetrics(sessions, group);
             return (
               <>
-                <SlideIn direction="up">
+                <SlideIn>
                   <GroupHeader
                     group={group}
                     sessionsCount={activeSessionsCount}
@@ -120,7 +120,7 @@ function Group() {
                 {/* Mobile: thống kê lên trước danh sách lịch trình (order-first) */}
                 {activeTab === "calendars" && (
                   <div className="flex flex-col">
-                    <SlideIn key="calendars" index={1} direction="up">
+                    <SlideIn key="calendars" index={1}>
                       <GroupSessions
                         sessions={sessions}
                         onOpenCreateModal={canCreateCalendar ? () => setIsCreateCalendarOpen(true) : null}
@@ -129,7 +129,7 @@ function Group() {
                       />
                     </SlideIn>
                     <div className="max-sm:order-first">
-                    <SlideIn index={2} direction="up">
+                    <SlideIn index={2}>
                       <GroupMetricsBar
                         activeSessionsCount={activeSessionsCount}
                         turnoutRate={turnoutRate}
@@ -145,7 +145,7 @@ function Group() {
 
           {/* Subpage 2: Members */}
           {activeTab === "members" && (
-            <SlideIn key="members" index={1} direction="up">
+            <SlideIn key="members" index={1}>
               <GroupMembers
                 group={group}
                 onOpenInvite={() => setIsInviteModalOpen(true)}
@@ -155,7 +155,7 @@ function Group() {
 
           {/* Subpage 3: Settings */}
           {activeTab === "settings" && (
-            <SlideIn key="settings" index={1} direction="up">
+            <SlideIn key="settings" index={1}>
               <GroupSettings group={group} onChanged={refreshGroup} />
             </SlideIn>
           )}
