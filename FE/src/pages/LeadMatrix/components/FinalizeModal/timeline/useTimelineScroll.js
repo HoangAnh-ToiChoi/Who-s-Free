@@ -1,49 +1,49 @@
 import { useCallback, useEffect, useState } from "react";
-import useHorizontalScroll, { wheelToHorizontal } from "~/hooks/useHorizontalScroll";
+import { wheelToHorizontal } from "~/hooks/useHorizontalScroll";
 
+const EDGE_PX = 2;
 const PAN_SLOP_PX = 4;
 const STEP_HOURS = 3;
+// Trạng thái nắm kéo theo khối cuộn (handler gắn trên chính khối đó → e.currentTarget), không cần ref
 const panState = new WeakMap();
 
 /**
  * Cuộn ngang bảng giờ của timeline cho dễ dùng trên laptop (điện thoại vuốt sẵn):
- * 1. Co giãn: mỗi giờ rộng vừa đủ để cả khoảng giờ nằm gọn trong khung; chỉ khi quá hẹp (< minPx) mới cho cuộn.
- * 2. scrollByStep(±1): nút ◀ ▶ trượt êm STEP_HOURS giờ; atStart/atEnd để làm mờ nút ở mép.
- * 3. pan: nhấn giữ chuột ở chỗ trống / hàng giờ rồi kéo để trượt bảng (không áp dụng trên thanh chọn giờ và nút bấm).
- * 4. headerRef: lăn chuột khi con trỏ ở hàng giờ trên cùng → cuộn ngang (chỗ khác vẫn cuộn dọc như thường).
+ * - Co giãn: mỗi giờ rộng vừa để cả khoảng giờ nằm gọn trong khung; chỉ khi hẹp hơn minPx mới phải cuộn.
+ * - scrollByStep(±1): nút ‹ › trượt êm 3 giờ; atStart/atEnd để làm mờ nút ở mép.
+ * - pan: nhấn giữ chuột ở bất kỳ chỗ nào trong bảng rồi kéo để trượt — trừ đoạn giờ / tay nắm ([data-select]) và nút.
+ * - headerRef: lăn chuột trên hàng giờ trên cùng → cuộn ngang (chỗ khác vẫn cuộn dọc như thường).
  */
 export function useTimelineScroll({ hours, labelWidth, minPx }) {
-  const { attach, atStart, atEnd } = useHorizontalScroll({ wheel: false });
   const [el, setEl] = useState(null);
-  const [available, setAvailable] = useState(0);
+  const [header, setHeader] = useState(null);
+  const [view, setView] = useState({ available: 0, atStart: true, atEnd: true });
+  const [isPanning, setIsPanning] = useState(false);
 
-  const setScrollEl = useCallback(
-    (node) => {
-      setEl(node);
-      attach(node);
-    },
-    [attach]
-  );
-
+  // Một lần đo cho cả bề rộng khả dụng (co giãn) lẫn vị trí mép (nút ‹ ›): khi cuộn và khi đổi kích thước
   useEffect(() => {
     if (!el) return undefined;
-    // Làm tròn xuống để tổng bề rộng không vượt khung (tránh thừa 1px gây thanh cuộn)
-    const measure = () => setAvailable(Math.floor(el.clientWidth - labelWidth));
-    const resize = new ResizeObserver(measure);
+    const update = () => {
+      const next = {
+        // Làm tròn xuống để tổng bề rộng không vượt khung (thừa 1px là hiện thanh cuộn)
+        available: Math.floor(el.clientWidth - labelWidth),
+        atStart: el.scrollLeft <= EDGE_PX,
+        atEnd: el.scrollLeft + el.clientWidth >= el.scrollWidth - EDGE_PX,
+      };
+      setView((prev) =>
+        prev.available === next.available && prev.atStart === next.atStart && prev.atEnd === next.atEnd ? prev : next
+      );
+    };
+    const resize = new ResizeObserver(update);
     resize.observe(el);
-    return () => resize.disconnect();
+    if (el.firstElementChild) resize.observe(el.firstElementChild);
+    el.addEventListener("scroll", update, { passive: true });
+    return () => {
+      resize.disconnect();
+      el.removeEventListener("scroll", update);
+    };
   }, [el, labelWidth]);
 
-  const pxPerHour = Math.max(minPx, hours > 0 && available > 0 ? Math.floor((available / hours) * 10) / 10 : minPx);
-  const canScroll = !(atStart && atEnd);
-
-  const scrollByStep = useCallback(
-    (dir) => el?.scrollBy({ left: dir * STEP_HOURS * pxPerHour, behavior: "smooth" }),
-    [el, pxPerHour]
-  );
-
-  // 4. Lăn chuột trên hàng giờ = cuộn ngang
-  const [header, setHeader] = useState(null);
   useEffect(() => {
     if (!header || !el) return undefined;
     const onWheel = (e) => wheelToHorizontal(e, el);
@@ -51,12 +51,16 @@ export function useTimelineScroll({ hours, labelWidth, minPx }) {
     return () => header.removeEventListener("wheel", onWheel);
   }, [header, el]);
 
-  // 3. Nhấn giữ rồi kéo để trượt bảng (chuột); cảm ứng đã có vuốt sẵn của trình duyệt.
-  // Trạng thái kéo lưu theo phần tử (panState), handler gắn trên chính khối cuộn nên dùng e.currentTarget.
-  const [isPanning, setIsPanning] = useState(false);
+  const fit = hours > 0 && view.available > 0 ? Math.floor((view.available / hours) * 10) / 10 : 0;
+  const pxPerHour = Math.max(minPx, fit);
+
+  const scrollByStep = useCallback(
+    (dir) => el?.scrollBy({ left: dir * STEP_HOURS * pxPerHour, behavior: "smooth" }),
+    [el, pxPerHour]
+  );
+
   const onPointerDown = useCallback((e) => {
-    if (e.pointerType !== "mouse" || e.button !== 0) return;
-    if (e.target.closest("button, [data-select-bar]")) return;
+    if (e.pointerType !== "mouse" || e.button !== 0 || e.target.closest("button, [data-select]")) return;
     panState.set(e.currentTarget, { x: e.clientX, left: e.currentTarget.scrollLeft, moved: false });
   }, []);
   const onPointerMove = useCallback((e) => {
@@ -64,8 +68,8 @@ export function useTimelineScroll({ hours, labelWidth, minPx }) {
     const pan = panState.get(node);
     if (!pan) return;
     const dx = e.clientX - pan.x;
-    if (!pan.moved && Math.abs(dx) < PAN_SLOP_PX) return;
     if (!pan.moved) {
+      if (Math.abs(dx) < PAN_SLOP_PX) return;
       pan.moved = true;
       node.setPointerCapture?.(e.pointerId);
       setIsPanning(true);
@@ -78,13 +82,13 @@ export function useTimelineScroll({ hours, labelWidth, minPx }) {
   }, []);
 
   return {
-    setScrollEl,
+    setScrollEl: setEl,
     scrollEl: el,
     headerRef: setHeader,
     pxPerHour,
-    canScroll,
-    atStart,
-    atEnd,
+    canScroll: !(view.atStart && view.atEnd),
+    atStart: view.atStart,
+    atEnd: view.atEnd,
     scrollByStep,
     isPanning,
     pan: { onPointerDown, onPointerMove, onPointerUp: endPan, onPointerCancel: endPan },

@@ -1,3 +1,5 @@
+import { hasResponded } from "./members.js";
+
 // Tính toán cho timeline chọn giờ trong modal Chốt lịch (kiểu Timeline của Jira). Module thuần để test.
 
 export const STEP = 30;
@@ -29,7 +31,7 @@ function mergeIntervals(list) {
  * @param {Array<{ memberId, memberName, avatarUrl, slots }>} members
  */
 export function buildTimelineDays(cells, members) {
-  const responded = members.filter((m) => m.slots?.length > 0);
+  const responded = members.filter(hasResponded);
   const byDate = new Map();
   for (const cell of cells) {
     if (!byDate.has(cell.date)) byDate.set(cell.date, []);

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { cn } from "~/lib/utils";
 import MemberAvatar from "../MemberAvatar";
+import { hasResponded } from "~/utils/members";
 
 /**
  * MemberChip - Một thành viên trên thanh lọc. memo + onToggle(memberId) ổn định → bấm chọn 1 người chỉ vẽ lại chip đó.
@@ -9,7 +10,7 @@ import MemberAvatar from "../MemberAvatar";
  */
 function MemberChip({ member, isSelected, compact, notRespondedLabel, onToggle }) {
   const name = member.memberName || "Thành viên";
-  const responded = member.slots?.length > 0;
+  const responded = hasResponded(member);
   const title = responded ? name : `${name} · ${notRespondedLabel}`;
   return (
     <button

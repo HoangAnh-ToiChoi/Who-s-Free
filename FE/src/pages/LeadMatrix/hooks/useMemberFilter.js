@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
+import { isNarrowScreen } from "~/utils/viewport";
+import { hasResponded } from "~/utils/members";
 
 const isLeader = (member) => member.role === "owner" || member.role === "lead";
-const hasResponded = (member) => Array.isArray(member.slots) && member.slots.length > 0;
 // Điện thoại mặc định xem Ban lãnh đạo (màn hẹp, thanh lọc chỉ hiện owner/lead); máy tính mặc định Tất cả
-const defaultPreset = () =>
-  typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches ? "leadership" : "all";
+const defaultPreset = () => (isNarrowScreen() ? "leadership" : "all");
 
 /**
  * useMemberFilter - Lọc thành viên cho LeadMatrix. API trả về MỌI thành viên nhóm (người chưa nhập lịch có slots rỗng).

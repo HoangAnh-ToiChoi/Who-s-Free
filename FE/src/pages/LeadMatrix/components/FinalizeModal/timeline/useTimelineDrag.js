@@ -13,22 +13,24 @@ function begin(dragRef, e, state) {
 }
 
 /**
- * Chọn khung giờ trên thanh tổng của một ngày:
+ * Chọn khung giờ trên thanh tổng của một ngày (chỉ bắt đầu trên một đoạn có người; chỗ trống để dành cho nắm kéo bảng):
  * - Chạm / bấm một đoạn → chọn cả đoạn (cùng số người).
- * - Chuột: nhấn rồi kéo → chọn từ ô bắt đầu tới ô đang trỏ (chỉ qua các ô nhóm đã chọn liên tiếp).
+ * - Chuột: nhấn trên một đoạn rồi kéo → chọn từ ô đó tới ô đang trỏ (chỉ qua các ô nhóm đã chọn liên tiếp).
  * - Hai tay nắm ở hai đầu khung đang chọn: kéo để chỉnh (chuột và cảm ứng). Vuốt trên thanh vẫn là cuộn ngang.
  * Bước 30 phút; luật kéo giống luật BE kiểm tra khi chốt (rangeWithinRun).
  */
-export function useTimelineDrag({ day, cellKeys, range, pxPerHour, selection, onSelect }) {
+export function useTimelineDrag({ day, cellKeys, axis, selection, onSelect }) {
+  const { range, pxPerHour } = axis;
   const dragRef = useRef(null); // { anchor, startX, moved, mode: "bar" | "handle", pointerType }
 
   const onBarPointerDown = useCallback(
     (e) => {
       if (e.button > 0) return;
       const anchor = minutesFor(e, e.currentTarget, pxPerHour, range);
+      if (!cellKeys.has(`${day.date}|${anchor}`)) return;
       begin(dragRef, e, { mode: "bar", anchor, el: e.currentTarget });
     },
-    [pxPerHour, range]
+    [cellKeys, day.date, pxPerHour, range]
   );
 
   const onHandlePointerDown = useCallback(
@@ -58,10 +60,7 @@ export function useTimelineDrag({ day, cellKeys, range, pxPerHour, selection, on
   const onPointerUp = useCallback(() => {
     const drag = dragRef.current;
     dragRef.current = null;
-    if (drag && drag.mode === "bar" && !drag.moved) {
-      const seg = segmentAt(day, drag.anchor);
-      if (seg) onSelect(seg);
-    }
+    if (drag?.mode === "bar" && !drag.moved) onSelect(segmentAt(day, drag.anchor));
   }, [day, onSelect]);
 
   // Trình duyệt giành lấy cử chỉ để cuộn (pointercancel): không coi là chạm chọn

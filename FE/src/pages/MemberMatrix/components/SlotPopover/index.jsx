@@ -10,9 +10,9 @@ import {
 } from "~/utils/timeUtils";
 import TimePicker from "./TimePicker";
 import SlotPopoverFooter from "./SlotPopoverFooter";
+import { isNarrowScreen } from "~/utils/viewport";
 
 // Mobile (< sm): popover neo theo slot hay bị lọt xuống đáy và bị cắt → hiện dạng tấm cố định ở đáy màn hình.
-const isNarrowScreen = () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
 
 /**
  * SlotPopover - Popover nhỏ neo trực tiếp vào khối thời gian

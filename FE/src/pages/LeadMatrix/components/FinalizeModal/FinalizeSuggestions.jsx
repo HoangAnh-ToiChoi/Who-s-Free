@@ -4,6 +4,7 @@ import { TrendingUp, UserX } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { formatDateLabel, formatRange } from "~/utils/finalizeCandidates";
 import { rankSuggestions } from "~/utils/finalizeSuggestions";
+import { hasResponded } from "~/utils/members";
 
 const TABS = [
   { key: "optimal", icon: TrendingUp, labelKey: "finalize.tabOptimal" },
@@ -19,7 +20,7 @@ function FinalizeSuggestions({ cells, members, selection, onPick }) {
   const [tab, setTab] = useState("optimal");
 
   const { names, total, suggestions } = useMemo(() => {
-    const responded = members.filter((m) => m.slots?.length > 0);
+    const responded = members.filter(hasResponded);
     return {
       names: new Map(members.map((m) => [m.memberId, m.memberName || "Thành viên"])),
       total: responded.length,
@@ -31,7 +32,7 @@ function FinalizeSuggestions({ cells, members, selection, onPick }) {
   const describe = (run) => {
     if (tab === "optimal") return t("finalize.availableNames", { names: nameList(run.memberIds) });
     const present = new Set(run.memberIds);
-    const missing = members.filter((m) => m.slots?.length > 0 && !present.has(m.memberId)).map((m) => m.memberId);
+    const missing = members.filter((m) => hasResponded(m) && !present.has(m.memberId)).map((m) => m.memberId);
     return t("finalize.missingNames", { names: nameList(missing) });
   };
   const isPicked = (run) =>
