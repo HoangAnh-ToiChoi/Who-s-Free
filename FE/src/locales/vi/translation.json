@@ -447,7 +447,7 @@
     "finalizingBanner": "Trưởng nhóm đang cân nhắc chốt lịch. Vui lòng liên hệ trưởng nhóm để có thể trao đổi.",
     "finalizingByOther": "Một trưởng nhóm khác đang chốt lịch này. Hãy thử lại sau ít phút.",
     "timelineTitle": "Lịch nhóm đã chọn",
-    "timelineHint": "Bấm một đoạn trên dòng của ngày để chọn nhanh, hoặc nhấn rồi kéo; kéo hai tay nắm để chỉnh. Xem giờ khác: Shift + lăn chuột, vuốt touchpad hoặc kéo thanh cuộn dưới bảng.",
+    "timelineHint": "Bấm một đoạn trên dòng của ngày để chọn nhanh, hoặc nhấn rồi kéo; kéo hai tay nắm để chỉnh. Xem giờ khác: nút ◀ ▶, lăn chuột trên hàng giờ, hoặc nắm kéo chỗ trống trong bảng.",
     "timelineHintTouch": "Chạm một đoạn trên dòng của ngày để chọn, kéo hai tay nắm để chỉnh; vuốt ngang để xem giờ khác.",
     "timelineColumn": "Ngày / thành viên",
     "zoomFree": "Giờ rảnh",
@@ -456,7 +456,9 @@
     "absent": "vắng",
     "legendFew": "Ít người",
     "legendAll": "Cả nhóm ({{count}})",
-    "timelineColumnShort": "Ngày"
+    "timelineColumnShort": "Ngày",
+    "scrollEarlier": "Xem giờ sớm hơn",
+    "scrollLater": "Xem giờ muộn hơn"
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"

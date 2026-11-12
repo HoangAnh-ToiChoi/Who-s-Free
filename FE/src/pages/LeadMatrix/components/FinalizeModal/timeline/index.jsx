@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { formatMinutes } from "~/utils/finalizeCandidates";
 import { buildTimelineDays, presentMemberIds, timelineRange } from "~/utils/finalizeTimeline";
 import TimelineDayBlock from "./TimelineDayBlock";
+import { useTimelineScroll } from "./useTimelineScroll";
 
 const isCompact = () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
 const busiestDate = (days) => {
@@ -26,13 +28,15 @@ const LEGEND = ["bg-indigo-100", "bg-indigo-200", "bg-indigo-400", "bg-indigo-50
 function FinalizeTimeline({ cells, members, selection, onSelect }) {
   const { t } = useTranslation();
   const [compact] = useState(isCompact);
-  const pxPerHour = compact ? 44 : 56;
   const labelWidth = compact ? 112 : 176;
   const [mode, setMode] = useState("free");
 
   const days = useMemo(() => buildTimelineDays(cells, members), [cells, members]);
   const total = days[0]?.rows.length ?? 0;
   const range = useMemo(() => timelineRange(days, mode), [days, mode]);
+  // Mỗi giờ rộng vừa khung (không phải cuộn); quá hẹp thì giữ tối thiểu và cho cuộn ngang
+  const { setScrollEl, scrollEl, headerRef, pxPerHour, canScroll, atStart, atEnd, scrollByStep, isPanning, pan } =
+    useTimelineScroll({ hours: (range.end - range.start) / 60, labelWidth, minPx: compact ? 44 : 40 });
   const cellKeys = useMemo(() => new Set(cells.map((c) => `${c.date}|${c.start}`)), [cells]);
   const present = useMemo(() => presentMemberIds(cells, selection), [cells, selection]);
   const width = ((range.end - range.start) / 60) * pxPerHour;
@@ -49,20 +53,18 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
       return next;
     });
 
-  const scrollRef = useRef(null);
-
   // Tự cuộn tới khung đang chọn khi nó nằm ngoài vùng đang thấy (vd bấm một gợi ý), hoặc lúc mở tới lúc đông người
   // nhất của ngày đang mở. Đang kéo chọn trong vùng nhìn thấy thì không cuộn (tránh lệch giờ dưới con trỏ).
   const openDay = days.find((d) => isOpen(d.date));
   const focusStart = selection?.start ?? openDay?.segments.reduce((a, b) => (b.count > a.count ? b : a)).start;
   const focusEnd = selection?.end ?? focusStart;
   useEffect(() => {
-    const el = scrollRef.current;
+    const el = scrollEl;
     if (focusStart == null || !el) return;
     // Phần giờ nhìn thấy = bề rộng khung trừ cột tên đang ghim bên trái
     const visible = x(focusStart) >= el.scrollLeft && x(focusEnd) <= el.scrollLeft + el.clientWidth - labelWidth;
     if (!visible) el.scrollTo({ left: Math.max(0, x(focusStart) - pxPerHour), behavior: "smooth" });
-  }, [focusStart, focusEnd, x, pxPerHour, labelWidth]);
+  }, [focusStart, focusEnd, x, pxPerHour, labelWidth, scrollEl]);
 
   const hours = [];
   for (let m = range.start; m <= range.end; m += 60) hours.push(m);
@@ -71,6 +73,27 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
     <div>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-slate-600">{t("finalize.timelineTitle")}</p>
+        <div className="flex items-center gap-1.5">
+        {canScroll && (
+          <div className="flex rounded-lg bg-slate-100 p-0.5">
+            {[
+              [-1, ChevronLeft, atStart, "finalize.scrollEarlier"],
+              [1, ChevronRight, atEnd, "finalize.scrollLater"],
+            ].map(([dir, Icon, disabled, label]) => (
+              <button
+                key={dir}
+                type="button"
+                disabled={disabled}
+                onClick={() => scrollByStep(dir)}
+                aria-label={t(label)}
+                title={t(label)}
+                className="flex h-6 w-7 cursor-pointer items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-white disabled:cursor-default disabled:text-slate-300 disabled:hover:bg-transparent"
+              >
+                <Icon size={15} />
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex rounded-lg bg-slate-100 p-0.5" role="group">
           {["free", "full"].map((key) => (
             <button
@@ -87,10 +110,18 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
             </button>
           ))}
         </div>
+        </div>
       </div>
       <p className="mt-0.5 text-[11px] text-slate-400">{t(compact ? "finalize.timelineHintTouch" : "finalize.timelineHint")}</p>
 
-      <div ref={scrollRef} className="mt-2 overflow-x-auto overflow-y-hidden rounded-xl border border-slate-200">
+      <div
+        ref={setScrollEl}
+        {...pan}
+        className={cn(
+          "mt-2 overflow-x-auto overflow-y-hidden rounded-xl border border-slate-200",
+          canScroll && !compact && (isPanning ? "cursor-grabbing select-none" : "cursor-grab")
+        )}
+      >
         <div className="relative min-w-full" style={{ width: labelWidth + width }}>
           <div aria-hidden="true" className="pointer-events-none absolute inset-0">
             {hours.map((m) => (
@@ -98,7 +129,7 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
             ))}
           </div>
 
-          <div className="relative flex h-8 border-b border-slate-200 bg-slate-50">
+          <div ref={headerRef} className="relative flex h-8 border-b border-slate-200 bg-slate-50">
             <div
               style={{ width: labelWidth }}
               className="sticky left-0 z-20 flex shrink-0 items-center truncate border-r border-slate-200 bg-slate-50 px-2 text-[10px] font-bold tracking-wider whitespace-nowrap text-slate-400 uppercase sm:px-3"

@@ -447,7 +447,7 @@
     "finalizingBanner": "The lead is finalizing the schedule. Please contact the lead to discuss changes.",
     "finalizingByOther": "Another lead is finalizing this schedule. Please try again in a few minutes.",
     "timelineTitle": "Group availability",
-    "timelineHint": "Click a segment on a day row to select it, or press and drag; drag the handles to adjust. Other hours: Shift + scroll, swipe the touchpad or drag the scrollbar below.",
+    "timelineHint": "Click a segment on a day row to select it, or press and drag; drag the handles to adjust. Other hours: ◀ ▶ buttons, scroll over the hour row, or grab and drag an empty area.",
     "timelineHintTouch": "Tap a segment on a day row to select it, drag the handles to adjust; swipe sideways for other hours.",
     "timelineColumn": "Day / member",
     "zoomFree": "Free hours",
@@ -456,7 +456,9 @@
     "absent": "missing",
     "legendFew": "Few",
     "legendAll": "Everyone ({{count}})",
-    "timelineColumnShort": "Day"
+    "timelineColumnShort": "Day",
+    "scrollEarlier": "Earlier hours",
+    "scrollLater": "Later hours"
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"
