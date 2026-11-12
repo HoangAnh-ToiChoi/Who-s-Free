@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "~/lib/utils";
-import { formatDateLabel, formatMinutes, formatRange } from "~/utils/finalizeCandidates";
-import { heatLevel, shortDateLabel } from "~/utils/finalizeTimeline";
+import { formatDateLabel } from "~/utils/finalizeCandidates";
+import { formatSpan, heatLevel, shortDateLabel } from "~/utils/finalizeTimeline";
 import MemberAvatar from "../../MemberAvatar";
 import { useTimelineDrag } from "./useTimelineDrag";
+import TimelineSelection from "./TimelineSelection";
 
 // Cùng thang màu với heatmap: càng đông người càng đậm
 const LEVEL_CLASS = [
@@ -14,7 +15,7 @@ const LEVEL_CLASS = [
   "bg-indigo-500 text-white",
   "bg-indigo-600 text-white",
 ];
-const LABEL_MIN_PX = 64;
+const LABEL_MIN_PX = 48;
 const COUNT_MIN_PX = 18;
 // Ô tên ghim bên trái (như cột đầu Excel), nền che phần giờ chạy bên dưới; viền dưới đặt trên ô (không trên dòng)
 // để dải chọn không lọt qua khe viền khi cuộn ngang
@@ -29,7 +30,7 @@ function spanLabel(segments) {
     if (last && last[1] === seg.start) last[1] = seg.end;
     else spans.push([seg.start, seg.end]);
   }
-  return spans.map(([s, e]) => `${formatMinutes(s)}–${formatMinutes(e)}`).join(", ");
+  return spans.map(([s, e]) => formatSpan(s, e)).join(", ");
 }
 
 /** Bo góc đầu/cuối mỗi khoảng liền nhau (các đoạn sát nhau ghép thành một thanh liền). */
@@ -50,7 +51,7 @@ function DayBar({ day, total, axis, sel, drag }) {
           <div
             key={seg.start}
             data-select
-            title={`${formatRange(seg.start, seg.end)} · ${seg.count}/${total}`}
+            title={`${formatSpan(seg.start, seg.end)} · ${seg.count}/${total}`}
             className={cn(
               "absolute top-2.5 flex h-6 cursor-pointer items-center justify-center text-[11px] font-bold",
               LEVEL_CLASS[heatLevel(seg.count, total)],
@@ -63,28 +64,7 @@ function DayBar({ day, total, axis, sel, drag }) {
         );
       })}
 
-      {sel && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-2 h-7 rounded-md border-2 border-indigo-950"
-          style={{ left: x(sel.start), width: x(sel.end) - x(sel.start) }}
-        />
-      )}
-      {sel &&
-        ["start", "end"].map((edge) => (
-          <div
-            key={edge}
-            data-select
-            role="slider"
-            aria-label={edge === "start" ? "Giờ bắt đầu" : "Giờ kết thúc"}
-            aria-valuenow={sel[edge]}
-            {...drag.handle(edge)}
-            className="absolute top-1/2 z-10 flex h-9 w-6 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize touch-none items-center justify-center"
-            style={{ left: x(sel[edge]) }}
-          >
-            <span className="h-6 w-2 rounded-full border-2 border-indigo-600 bg-white shadow-sm" />
-          </div>
-        ))}
+      {sel && <TimelineSelection sel={sel} x={x} drag={drag} />}
     </div>
   );
 }
@@ -116,10 +96,11 @@ function MemberRow({ row, axis, hasSelection, isPresent }) {
           return (
             <div
               key={s}
+              title={formatSpan(s, e)}
               className="absolute top-1.5 flex h-5 items-center overflow-hidden rounded-md border border-indigo-300 bg-indigo-50 px-1.5 text-[10px] font-semibold whitespace-nowrap text-indigo-700"
               style={{ left: x(s) + 1, width: w - 2 }}
             >
-              {w >= LABEL_MIN_PX && formatRange(s, e)}
+              {w >= LABEL_MIN_PX && formatSpan(s, e)}
             </div>
           );
         })}

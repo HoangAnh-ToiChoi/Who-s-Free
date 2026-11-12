@@ -1,4 +1,5 @@
 import { hasResponded } from "./members.js";
+import { formatMinutes } from "./finalizeCandidates.js";
 
 // Tính toán cho timeline chọn giờ trong modal Chốt lịch (kiểu Timeline của Jira). Module thuần để test.
 
@@ -10,6 +11,9 @@ export function shortDateLabel(dateStr) {
   const [y, m, d] = String(dateStr).split("-").map(Number);
   return `${SHORT_WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${d}/${m}`;
 }
+
+/** "9:00–12:00" */
+export const formatSpan = (start, end) => `${formatMinutes(start)}–${formatMinutes(end)}`;
 
 /** Gộp các khoảng [start, end) chồng hoặc nối nhau. */
 function mergeIntervals(list) {
@@ -26,7 +30,7 @@ function mergeIntervals(list) {
 /**
  * Dữ liệu từng ngày cho timeline.
  * - segments: các đoạn liền nhau cùng SỐ người rảnh (thanh tổng của ngày, đậm nhạt theo số người)
- * - rows: mọi thành viên đã nhập lịch, kèm các khoảng rảnh của họ trong ngày đó (có thể rỗng)
+ * - rows: chỉ những thành viên có chọn giờ trong ngày đó, kèm các khoảng rảnh của họ (người vắng ghi ở dòng tóm tắt)
  * @param {Array<{ date, start, end, count }>} cells - từ buildSelectedCells, đã sắp theo ngày/giờ
  * @param {Array<{ memberId, memberName, avatarUrl, slots }>} members
  */
@@ -44,16 +48,18 @@ export function buildTimelineDays(cells, members) {
   return [...byDate.entries()].map(([date, segments]) => ({
     date,
     segments,
-    rows: responded.map((m) => ({
-      memberId: m.memberId,
-      name: m.memberName || "Thành viên",
-      avatarUrl: m.avatarUrl,
-      intervals: mergeIntervals(
-        m.slots
-          .filter((s) => String(s.dateStr || "").slice(0, 10) === date)
-          .map((s) => [s.startMinutes, s.endMinutes])
-      ),
-    })),
+    rows: responded
+      .map((m) => ({
+        memberId: m.memberId,
+        name: m.memberName || "Thành viên",
+        avatarUrl: m.avatarUrl,
+        intervals: mergeIntervals(
+          m.slots
+            .filter((s) => String(s.dateStr || "").slice(0, 10) === date)
+            .map((s) => [s.startMinutes, s.endMinutes])
+        ),
+      }))
+      .filter((row) => row.intervals.length > 0),
   }));
 }
 
