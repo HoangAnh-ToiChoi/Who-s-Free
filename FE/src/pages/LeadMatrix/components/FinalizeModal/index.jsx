@@ -6,6 +6,8 @@ import { Button } from "~/components/ui/button";
 import { formatDateLabel, formatMinutes } from "~/utils/finalizeCandidates";
 import FinalizeSuggestions from "./FinalizeSuggestions";
 import FinalizeTimeline from "./timeline";
+import FinalizeSkeleton from "./FinalizeSkeleton";
+import SlideIn from "~/components/SlideIn";
 import { presentMemberIds } from "~/utils/finalizeTimeline";
 import { hasResponded } from "~/utils/members";
 
@@ -94,20 +96,23 @@ function FinalizeModal({ open, onOpenChange, cells, members, isLoading, isSubmit
       maxWidth="sm:max-w-[920px]"
     >
       {isLoading ? (
-        <p className="mt-5 text-sm text-slate-500">{t("finalize.loading")}</p>
+        <FinalizeSkeleton />
       ) : cells.length === 0 ? (
-        <p className="mt-5 rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-600">{t("finalize.noRuns")}</p>
+        <SlideIn>
+          <p className="mt-5 rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-600">{t("finalize.noRuns")}</p>
+        </SlideIn>
       ) : (
-        // key theo danh sách ô để form khởi tạo lại mỗi lần mở với dữ liệu mới
-        <FinalizeForm
-          key={cells.map((c) => `${c.date}${c.start}${c.count}`).join("|")}
-          cells={cells}
-          members={members}
-          isSubmitting={isSubmitting}
-          error={error}
-          onClose={() => onOpenChange(false)}
-          onSubmit={onSubmit}
-        />
+        // key theo danh sách ô để form khởi tạo lại (và trượt lên lại) mỗi lần mở với dữ liệu mới
+        <SlideIn key={cells.map((c) => `${c.date}${c.start}${c.count}`).join("|")}>
+          <FinalizeForm
+            cells={cells}
+            members={members}
+            isSubmitting={isSubmitting}
+            error={error}
+            onClose={() => onOpenChange(false)}
+            onSubmit={onSubmit}
+          />
+        </SlideIn>
       )}
     </BaseModal>
   );

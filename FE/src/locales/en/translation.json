@@ -416,7 +416,6 @@
     "exportDone": "Group schedule Excel file downloaded.",
     "modalTitle": "Finalize schedule",
     "modalSubtitle": "Pick a time window within the hours the group selected.",
-    "loading": "Loading the group's time windows...",
     "noRuns": "Nobody has picked any availability yet, so the schedule can't be finalized.",
     "note": "Note at the bottom of the Excel sheet (optional)",
     "notePlaceholder": "e.g. Everyone please bring a camera",

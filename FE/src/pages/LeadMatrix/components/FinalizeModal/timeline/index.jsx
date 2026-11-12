@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { isNarrowScreen } from "~/utils/viewport";
@@ -58,13 +58,17 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
   const openDay = days.find((d) => isOpen(d.date));
   const focusStart = selection?.start ?? (openDay && peakOf(openDay).start);
   const focusEnd = selection?.end ?? focusStart;
+  // Lần đầu (vừa mở bảng) nhảy thẳng tới chỗ cần xem; các lần sau mới lướt êm (tránh bảng tự trượt ngay khi hiện)
+  const positionedRef = useRef(false);
   useEffect(() => {
     if (focusStart == null || !scrollEl) return;
     const { x } = axis;
     const left = scrollEl.scrollLeft;
     if (x(focusStart) < left || x(focusEnd) > left + scrollEl.clientWidth - labelWidth) {
-      scrollEl.scrollTo({ left: Math.max(0, x(focusStart) - pxPerHour), behavior: "smooth" });
+      const behavior = positionedRef.current ? "smooth" : "auto";
+      scrollEl.scrollTo({ left: Math.max(0, x(focusStart) - pxPerHour), behavior });
     }
+    positionedRef.current = true;
   }, [focusStart, focusEnd, axis, pxPerHour, labelWidth, scrollEl]);
 
   return (

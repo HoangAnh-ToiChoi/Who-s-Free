@@ -416,7 +416,6 @@
     "exportDone": "Đã tải file Excel lịch của nhóm.",
     "modalTitle": "Chốt lịch",
     "modalSubtitle": "Chọn một khung giờ nằm trong các giờ nhóm đã chọn.",
-    "loading": "Đang tải các khung giờ của nhóm...",
     "noRuns": "Chưa có ai chọn giờ rảnh nên chưa thể chốt lịch.",
     "note": "Ghi chú cuối bảng Excel (tuỳ chọn)",
     "notePlaceholder": "Ví dụ: Mọi người nhớ mang máy ảnh",
