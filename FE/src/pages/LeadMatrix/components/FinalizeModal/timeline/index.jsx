@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { isNarrowScreen } from "~/utils/viewport";
+import { hasResponded } from "~/utils/members";
 import { buildTimelineDays, presentMemberIds, timelineRange } from "~/utils/finalizeTimeline";
 import TimelineToolbar from "./TimelineToolbar";
 import TimelineAxis from "./TimelineAxis";
@@ -24,7 +25,7 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
   const [mode, setMode] = useState("free");
 
   const days = useMemo(() => buildTimelineDays(cells, members), [cells, members]);
-  const total = days[0]?.rows.length ?? 0;
+  const total = useMemo(() => members.filter(hasResponded).length, [members]);
   const range = useMemo(() => timelineRange(days, mode), [days, mode]);
   const { setScrollEl, scrollEl, headerRef, pxPerHour, canScroll, atStart, atEnd, scrollByStep, isPanning, pan } =
     useTimelineScroll({ hours: (range.end - range.start) / 60, labelWidth, minPx: compact ? 44 : 40 });
@@ -42,14 +43,15 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
   const cellKeys = useMemo(() => new Set(cells.map((c) => `${c.date}|${c.start}`)), [cells]);
   const present = useMemo(() => presentMemberIds(cells, selection), [cells, selection]);
 
-  const [openDates, setOpenDates] = useState(() => new Set([selection?.date ?? busiestDate(days)]));
-  const isOpen = (date) => openDates.has(date) || selection?.date === date;
-  const toggle = (date) =>
-    setOpenDates((prev) => {
-      const next = new Set(prev);
-      if (!next.delete(date)) next.add(date);
-      return next;
-    });
+  // Mỗi lúc chỉ mở MỘT ngày: ngày đang chọn giờ (chọn sang ngày khác thì tự chuyển), hoặc ngày vừa bấm mở
+  const [openDate, setOpenDate] = useState(() => selection?.date ?? busiestDate(days));
+  const [seenSelDate, setSeenSelDate] = useState(selection?.date);
+  if (selection?.date !== seenSelDate) {
+    setSeenSelDate(selection?.date);
+    if (selection) setOpenDate(selection.date);
+  }
+  const isOpen = (date) => date === openDate;
+  const toggle = (date) => setOpenDate((prev) => (prev === date ? null : date));
 
   // Tự cuộn tới khung đang chọn (vd bấm gợi ý) hoặc lúc đông người nhất của ngày đang mở — chỉ khi nó nằm ngoài
   // phần đang thấy (bề rộng khung trừ cột tên ghim), để đang kéo chọn thì bảng không trượt dưới con trỏ.

@@ -21,7 +21,7 @@ const members = [
 const cells = buildSelectedCells(members);
 const keys = new Set(cells.map((c) => `${c.date}|${c.start}`));
 
-test("buildTimelineDays: khoảng 14:00–19:00 là các đoạn liền theo số người, mỗi ngày đủ hàng thành viên đã nhập lịch", () => {
+test("buildTimelineDays: khoảng 14:00–19:00 là các đoạn liền theo số người, mỗi ngày chỉ có người chọn giờ ngày đó", () => {
   const days = buildTimelineDays(cells, members);
   assert.deepEqual(days.map((d) => d.date), ["2026-11-12", "2026-11-13"]);
   assert.deepEqual(days[0].segments, [
@@ -30,7 +30,7 @@ test("buildTimelineDays: khoảng 14:00–19:00 là các đoạn liền theo s�
     { start: 1020, end: 1140, count: 1 },
   ]);
   assert.deepEqual(days[0].rows.map((r) => [r.name, r.intervals]), [["An", [[840, 1140]]], ["Bình", [[900, 1020]]]]);
-  assert.deepEqual(days[1].rows.map((r) => r.intervals), [[], [[540, 600]]]);
+  assert.deepEqual(days[1].rows.map((r) => [r.name, r.intervals]), [["Bình", [[540, 600]]]]);
 });
 
 test("timelineRange: khung rảnh làm tròn giờ chẵn, hoặc cả ngày", () => {
