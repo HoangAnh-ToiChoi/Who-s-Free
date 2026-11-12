@@ -406,7 +406,8 @@
     "connecting": "Connecting...",
     "connectingHint": "The system is checking, please wait a moment…",
     "inviteCreateNote": "This email doesn't have an account yet. Enter your name and create a password to join the group.",
-    "inviteCreatePassword": "Create a password"
+    "inviteCreatePassword": "Create a password",
+    "sessionRevoked": "Your account just signed in on another device of the same type, so this device was signed out. Please sign in again."
   },
   "finalize": {
     "button": "Finalize",

@@ -2,7 +2,9 @@ import { createContext, useState, useEffect, useCallback, useRef } from "react";
 import authService, {
   getStoredUser,
   clearStoredAuth,
+  setSessionNotice,
 } from "~/service/authService/authService";
+import { onSessionEnded } from "~/utils/backendApi";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
@@ -43,6 +45,18 @@ export function AuthProvider({ children }) {
       isMounted = false;
     };
   }, []);
+
+  // Phiên kết thúc giữa chừng (vd tài khoản vừa đăng nhập trên thiết bị khác cùng loại) → về màn đăng nhập
+  useEffect(
+    () =>
+      onSessionEnded((code) => {
+        authRevision.current += 1;
+        if (code === "SESSION_REVOKED") setSessionNotice(code);
+        clearStoredAuth();
+        setUser(null);
+      }),
+    []
+  );
 
   const verifyAuthenticatedUser = useCallback(async () => {
     authRevision.current += 1;

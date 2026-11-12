@@ -37,21 +37,21 @@ test("TokenService.generateRefreshToken generates high-entropy random non-repeat
   assert.equal(tokens.size, iterations);
 });
 
-test("TokenService.isRefreshTokenExpired validates 5-day expiration TTL accurately", () => {
+test("TokenService.isRefreshTokenExpired validates 15-day (since last use) expiration TTL accurately", () => {
   const now = Date.now();
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
   // Vừa tạo -> Chưa hết hạn
   assert.equal(TokenService.isRefreshTokenExpired(new Date(now)), false);
 
-  // Tạo 4 ngày trước -> Chưa hết hạn
-  assert.equal(TokenService.isRefreshTokenExpired(new Date(now - 4 * ONE_DAY_MS)), false);
+  // Dùng lần cuối 6 ngày trước (trước đây là quá hạn 5 ngày) -> Chưa hết hạn
+  assert.equal(TokenService.isRefreshTokenExpired(new Date(now - 6 * ONE_DAY_MS)), false);
 
-  // Tạo 4 ngày 23 giờ trước -> Chưa hết hạn
-  assert.equal(TokenService.isRefreshTokenExpired(new Date(now - (4 * ONE_DAY_MS + 23 * 3600 * 1000))), false);
+  // 14 ngày 23 giờ -> Chưa hết hạn
+  assert.equal(TokenService.isRefreshTokenExpired(new Date(now - (14 * ONE_DAY_MS + 23 * 3600 * 1000))), false);
 
-  // Tạo 5 ngày + 1 giây trước -> Hết hạn
-  assert.equal(TokenService.isRefreshTokenExpired(new Date(now - (5 * ONE_DAY_MS + 1000))), true);
+  // 15 ngày + 1 giây -> Hết hạn
+  assert.equal(TokenService.isRefreshTokenExpired(new Date(now - (15 * ONE_DAY_MS + 1000))), true);
 
   // Tạo 30 ngày trước -> Hết hạn
   assert.equal(TokenService.isRefreshTokenExpired(new Date(now - 30 * ONE_DAY_MS)), true);
@@ -87,7 +87,7 @@ test("TokenService.cookieOptions and clearAuthCookies configure secure cookies",
   assert.equal(refreshOpts.httpOnly, true);
   assert.equal(refreshOpts.sameSite, "lax");
   assert.equal(refreshOpts.path, "/");
-  assert.equal(refreshOpts.maxAge, 5 * 24 * 60 * 60 * 1000); // 5 ngày
+  assert.equal(refreshOpts.maxAge, 15 * 24 * 60 * 60 * 1000); // 15 ngày
 });
 
 test("TokenService.cookieOptions giữ sameSite lax ở production (cookie first-party qua Vercel rewrite)", () => {

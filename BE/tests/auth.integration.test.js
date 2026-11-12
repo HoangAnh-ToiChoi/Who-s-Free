@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, afterEach, before, beforeEach, mock, test } from "node:test";
 import { once } from "node:events";
 import jwt from "jsonwebtoken";
+import { installFakeRefreshSessions } from "./helpers/fakeRefreshSessions.js";
 
 const TEST_JWT_SECRET = "auth-integration-test-secret-at-least-32-characters";
 const TEST_REFRESH_SECRET = "auth-integration-refresh-secret-at-least-32-characters";
@@ -20,7 +21,8 @@ let supabaseAdmin;
 let AuthService;
 let RecoveryService;
 let UserModel;
-let TokenModel;
+let RefreshSessionModel;
+let sessions;
 let TokenService;
 let pool;
 let server;
@@ -121,7 +123,10 @@ before(async () => {
   ({ default: AuthService } = await import("../src/services/auth.service.js"));
   ({ default: RecoveryService } = await import("../src/services/recovery.service.js"));
   ({ default: UserModel } = await import("../src/models/user.model.js"));
-  ({ default: TokenModel } = await import("../src/models/token.model.js"));
+  ({ default: RefreshSessionModel } = await import("../src/models/refresh-session.model.js"));
+  sessions = installFakeRefreshSessions(RefreshSessionModel, (id) => ({
+    id, email: TEST_EMAIL, full_name: "Auth Test", avatar_url: null, created_at: TEST_USER.created_at,
+  }));
   ({ default: TokenService } = await import("../src/services/token.service.js"));
 
   server = app.listen(0, "127.0.0.1");
@@ -130,6 +135,7 @@ before(async () => {
 });
 
 after(async () => {
+  sessions.restore();
   await new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve()))
   );
@@ -137,7 +143,7 @@ after(async () => {
 
 beforeEach(() => {
   AuthService.otpStore.clear();
-  if (TokenModel?._inMemoryTokens) TokenModel._inMemoryTokens.clear();
+  sessions.rows.clear();
   if (RecoveryService?.consumedResetTokens) RecoveryService.consumedResetTokens.clear();
   setDefaultAuthMocks();
 });
@@ -212,13 +218,11 @@ test("login sets httpOnly refresh cookie and returns an access token in JSON", a
   assert.match(cookies.join(";"), /refresh_token=rt_.*HttpOnly/i);
   assert.equal(jwt.verify(data.data.accessToken, TEST_JWT_SECRET).sub, TEST_USER.id);
 
-  // Kiểm tra refresh token được lưu trữ cho user
-  const storedUser = await UserModel.findById(TEST_USER.id);
-  const storedToken =
-    TokenModel._inMemoryTokens.get(TEST_USER.id)?.refreshToken ||
-    storedUser?.refresh_token;
-  assert.ok(storedToken);
-  assert.match(storedToken, /^(rt_|[\da-f]{64})/i);
+  // Refresh token được lưu (dạng băm) thành một phiên thiết bị; access token mang id phiên đó
+  const refreshToken = cookies.join(";").match(/refresh_token=(rt_[^;]+)/)[1];
+  const stored = sessions.findByToken(refreshToken);
+  assert.ok(stored);
+  assert.equal(jwt.verify(data.data.accessToken, TEST_JWT_SECRET).sid, stored.id);
 });
 
 test("login rejects invalid credentials without issuing cookies", async () => {
@@ -277,7 +281,7 @@ test("refresh rejects a missing refresh cookie and clears auth cookies", async (
 
 test("refresh rotates both access token and refresh token in DB and cookies (RTR)", async () => {
   const initialRefreshToken = TokenService.generateRefreshToken();
-  await TokenModel.updateRefreshToken(TEST_USER.id, initialRefreshToken);
+  sessions.seed(TEST_USER.id, initialRefreshToken);
 
   const { response, data } = await post(
     "/api/auth/refresh",
@@ -298,16 +302,13 @@ test("refresh rotates both access token and refresh token in DB and cookies (RTR
   assert.notEqual(newRefreshToken, initialRefreshToken);
 
   // Token cũ bị vô hiệu hóa trong DB (Replay Attack Prevention)
-  const oldUser = await TokenModel.findByRefreshToken(initialRefreshToken);
-  assert.equal(oldUser, null);
+  assert.equal(sessions.findByToken(initialRefreshToken), null);
 
   // Token mới đã được cập nhật vào DB
-  const newUser = await TokenModel.findByRefreshToken(newRefreshToken);
-  assert.ok(newUser);
-  assert.equal(newUser.id, TEST_USER.id);
+  assert.equal(sessions.findByToken(newRefreshToken)?.userId, TEST_USER.id);
 });
 
-test("refresh rejects unknown and expired (> 5 days) refresh cookies", async () => {
+test("refresh rejects unknown and expired (> 15 days unused) refresh cookies", async () => {
   const unknownToken = await post(
     "/api/auth/refresh",
     {},
@@ -315,12 +316,9 @@ test("refresh rejects unknown and expired (> 5 days) refresh cookies", async () 
   );
   assert.equal(unknownToken.response.status, 401);
 
-  // Giả lập token đã tạo từ 6 ngày trước (> 5 ngày)
+  // Phiên không dùng 16 ngày (> 15 ngày)
   const expiredToken = TokenService.generateRefreshToken();
-  TokenModel._inMemoryTokens.set(TEST_USER.id, {
-    refreshToken: expiredToken,
-    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
-  });
+  sessions.seed(TEST_USER.id, expiredToken, { lastUsedAt: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000) });
 
   const expired = await post(
     "/api/auth/refresh",
@@ -471,7 +469,7 @@ test("reset password updates the Supabase user when a verified reset token is su
 
 test("logout clears access and refresh cookies and revokes token from DB", async () => {
   const userRefreshToken = TokenService.generateRefreshToken();
-  await TokenModel.updateRefreshToken(TEST_USER.id, userRefreshToken);
+  sessions.seed(TEST_USER.id, userRefreshToken);
 
   const { response, data } = await post(
     "/api/auth/logout",
@@ -482,8 +480,7 @@ test("logout clears access and refresh cookies and revokes token from DB", async
   assert.equal(data.success, true);
 
   // Refresh token đã bị thu hồi khỏi DB
-  const revokedUser = await TokenModel.findByRefreshToken(userRefreshToken);
-  assert.equal(revokedUser, null);
+  assert.equal(sessions.findByToken(userRefreshToken), null);
 
   const cookies = response.headers.getSetCookie().join(";");
   assert.match(cookies, /access_token=.*Expires=Thu, 01 Jan 1970/i);
@@ -543,4 +540,54 @@ test("Google callback requires a code and sets session cookies on success", asyn
   assert.equal(response.headers.get("location"), "http://localhost:5173/auth/success");
   assert.match(response.headers.getSetCookie().join(";"), /access_token=.*HttpOnly/i);
   assert.match(response.headers.getSetCookie().join(";"), /refresh_token=rt_.*HttpOnly/i);
+});
+
+const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1";
+const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36";
+const WINDOWS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36 coc_coc_browser/120.0";
+
+async function loginWith(userAgent) {
+  const { response, data } = await post(
+    "/api/auth/login",
+    { email: TEST_EMAIL, password: "StrongPassword123!" },
+    { headers: { "user-agent": userAgent } }
+  );
+  assert.equal(response.status, 200);
+  const refreshToken = response.headers.getSetCookie().join(";").match(/refresh_token=(rt_[^;]+)/)[1];
+  return { accessToken: data.data.accessToken, refreshToken };
+}
+
+test("devices: phone and computer stay signed in together; a second phone replaces the first phone", async () => {
+  const phoneA = await loginWith(IPHONE);
+  const computer = await loginWith(WINDOWS);
+  assert.equal(sessions.rows.size, 2);
+
+  const phoneB = await loginWith(ANDROID);
+  assert.equal(sessions.rows.size, 2);
+  assert.deepEqual([...sessions.rows.values()].map((r) => r.kind).sort(), ["desktop", "mobile"]);
+
+  // Điện thoại A bị đá: access token bị từ chối ngay, refresh token không dùng được nữa
+  const me = await request("/api/auth/me", { headers: { authorization: `Bearer ${phoneA.accessToken}` } });
+  assert.equal(me.response.status, 401);
+  assert.equal(me.data.error, "SESSION_REVOKED");
+  const refreshA = await post("/api/auth/refresh", {}, { headers: { cookie: `refresh_token=${phoneA.refreshToken}` } });
+  assert.equal(refreshA.response.status, 401);
+
+  // Máy tính và điện thoại B vẫn dùng bình thường
+  for (const device of [computer, phoneB]) {
+    const ok = await request("/api/auth/me", { headers: { authorization: `Bearer ${device.accessToken}` } });
+    assert.equal(ok.response.status, 200);
+  }
+});
+
+test("devices: logout only signs out the current device", async () => {
+  const phone = await loginWith(IPHONE);
+  const computer = await loginWith(WINDOWS);
+
+  await post("/api/auth/logout", {}, { headers: { cookie: `refresh_token=${phone.refreshToken}` } });
+
+  const phoneMe = await request("/api/auth/me", { headers: { authorization: `Bearer ${phone.accessToken}` } });
+  assert.equal(phoneMe.response.status, 401);
+  const computerMe = await request("/api/auth/me", { headers: { authorization: `Bearer ${computer.accessToken}` } });
+  assert.equal(computerMe.response.status, 200);
 });

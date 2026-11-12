@@ -406,7 +406,8 @@
     "connecting": "Đang kết nối...",
     "connectingHint": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…",
     "inviteCreateNote": "Email này chưa có tài khoản. Nhập họ tên và tạo mật khẩu để tham gia nhóm.",
-    "inviteCreatePassword": "Tạo mật khẩu"
+    "inviteCreatePassword": "Tạo mật khẩu",
+    "sessionRevoked": "Tài khoản của bạn vừa đăng nhập trên một thiết bị khác cùng loại nên phiên trên thiết bị này đã kết thúc. Vui lòng đăng nhập lại."
   },
   "finalize": {
     "button": "Chốt lịch",

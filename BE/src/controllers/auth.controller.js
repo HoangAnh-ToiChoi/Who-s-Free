@@ -5,6 +5,7 @@ import TokenService from "../services/token.service.js";
 import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { getSafeReturnUrl } from "../utils/safeReturnUrl.js";
+import { deviceFromRequest } from "../utils/deviceKind.js";
 
 /**
  * AuthController - HTTP Layer tiếp nhận request và trả response cho module Auth
@@ -34,7 +35,7 @@ class AuthController extends BaseController {
    */
   register = asyncHandler(async (req, res) => {
     const { email, password, fullName } = req.body;
-    const result = await this.authService.register({ email, password, fullName });
+    const result = await this.authService.register({ email, password, fullName }, deviceFromRequest(req));
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
     return this.sendCreated(
       res,
@@ -49,10 +50,10 @@ class AuthController extends BaseController {
    */
   login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    const { accessToken, refreshToken, user } = await this.authService.login({
-      email,
-      password,
-    });
+    const { accessToken, refreshToken, user } = await this.authService.login(
+      { email, password },
+      deviceFromRequest(req)
+    );
 
     TokenService.setAuthCookies(res, accessToken, refreshToken);
     return this.sendSuccess(
@@ -110,7 +111,7 @@ class AuthController extends BaseController {
       );
     }
 
-    const { accessToken, refreshToken } = await this.authService.handleGoogleCallback(code);
+    const { accessToken, refreshToken } = await this.authService.handleGoogleCallback(code, deviceFromRequest(req));
     TokenService.setAuthCookies(res, accessToken, refreshToken);
     return res.redirect(new URL(returnUrl, clientUrl).toString());
   });
@@ -123,7 +124,7 @@ class AuthController extends BaseController {
   googleSession = asyncHandler(async (req, res) => {
     const { accessToken } = req.body;
     // refreshToken từ FE (nếu có) bị bỏ qua — BE tự tạo refresh token mới
-    const result = await this.authService.handleGoogleSession(accessToken);
+    const result = await this.authService.handleGoogleSession(accessToken, deviceFromRequest(req));
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
     return this.sendSuccess(
       res,
@@ -165,12 +166,7 @@ class AuthController extends BaseController {
    * POST /api/auth/logout
    */
   logout = asyncHandler(async (req, res) => {
-    let userId = req.user?.id;
-    if (!userId && req.cookies?.refresh_token) {
-      const user = await this.authService.getUserByRefreshToken(req.cookies.refresh_token);
-      userId = user?.id;
-    }
-    await this.authService.logout(userId);
+    await this.authService.logout(req.cookies?.refresh_token);
     TokenService.clearAuthCookies(res);
     return this.sendSuccess(res, null, "Đăng xuất thành công");
   });
