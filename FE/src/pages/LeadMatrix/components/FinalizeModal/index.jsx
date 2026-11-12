@@ -7,6 +7,7 @@ import { formatDateLabel, formatMinutes } from "~/utils/finalizeCandidates";
 import FinalizeSuggestions from "./FinalizeSuggestions";
 import FinalizeTimeline from "./timeline";
 import { presentMemberIds } from "~/utils/finalizeTimeline";
+import { hasResponded } from "~/utils/members";
 
 function FinalizeForm({ cells, members, isSubmitting, error, onClose, onSubmit }) {
   const { t } = useTranslation();
@@ -17,7 +18,7 @@ function FinalizeForm({ cells, members, isSubmitting, error, onClose, onSubmit }
   const presence = useMemo(() => {
     const ids = presentMemberIds(cells, selection);
     return {
-      total: members.filter((m) => m.slots?.length > 0).length,
+      total: members.filter(hasResponded).length,
       names: members.filter((m) => ids.has(m.memberId)).map((m) => m.memberName),
     };
   }, [cells, members, selection]);

@@ -3,10 +3,10 @@ import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { useHorizontalScroll } from "~/hooks";
 import MemberChip from "./MemberChip";
+import { isNarrowScreen } from "~/utils/viewport";
 
 // Từ 7 người trở lên chỉ hiện ảnh (không tên) để cả nhóm nằm trên 1 hàng; nhóm nhỏ hiện cả tên cho dễ đọc
 const COMPACT_FROM = 7;
-const isMobile = () => window.matchMedia("(max-width: 639px)").matches;
 
 /**
  * MemberFilterBar - Thanh lọc thành viên cho LeadMatrix: nút preset (Tất cả, Ban lãnh đạo) + dải thành viên.
@@ -39,7 +39,7 @@ function MemberFilterBar({ activePreset, members, selectedMemberIds, onPresetCha
           <button
             key={key}
             type="button"
-            onClick={() => onPresetChange(key === "leadership" && activePreset === "leadership" && isMobile() ? "all" : key)}
+            onClick={() => onPresetChange(key === "leadership" && activePreset === "leadership" && isNarrowScreen() ? "all" : key)}
             aria-pressed={key === "leadership" ? activePreset === "leadership" : undefined}
             className={cn(
               "h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap",

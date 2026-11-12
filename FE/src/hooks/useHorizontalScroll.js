@@ -22,9 +22,8 @@ export function wheelToHorizontal(e, el) {
  *   tới mép thì nhường lại cho trang cuộn như bình thường. Touchpad cuộn ngang sẵn thì giữ nguyên.
  * - Trả về atStart/atEnd để vẽ vùng mờ ở mép: còn nội dung bị khuất phía nào thì mép đó mờ dần, cuộn tới tận cùng thì hết mờ.
  * Gắn bằng `attach` (callback ref) để listener có ngay khi phần tử xuất hiện; ResizeObserver tự đo lần đầu khi bắt đầu theo dõi.
- * wheel: false → chỉ theo dõi mép (vd bảng lớn: lăn chuột vẫn cuộn dọc như thường; tự gắn wheelToHorizontal ở chỗ cần).
  */
-export default function useHorizontalScroll({ wheel = true } = {}) {
+export default function useHorizontalScroll() {
   const [el, setEl] = useState(null);
   const [edges, setEdges] = useState({ atStart: true, atEnd: true });
 
@@ -40,7 +39,7 @@ export default function useHorizontalScroll({ wheel = true } = {}) {
     const onWheel = (e) => wheelToHorizontal(e, el);
     const onScroll = () => update(el);
     const resize = new ResizeObserver(() => update(el));
-    if (wheel) el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("scroll", onScroll, { passive: true });
     resize.observe(el);
     if (el.firstElementChild) resize.observe(el.firstElementChild);
@@ -49,7 +48,7 @@ export default function useHorizontalScroll({ wheel = true } = {}) {
       el.removeEventListener("scroll", onScroll);
       resize.disconnect();
     };
-  }, [el, update, wheel]);
+  }, [el, update]);
 
   return { attach: setEl, ...edges };
 }

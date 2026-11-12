@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { START_HOUR, END_HOUR } from "~/utils/timeUtils";
 import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
+import { hasResponded } from "~/utils/members";
 
 /**
  * useHeatmapMatrix - Hook tính toán ma trận mật độ rảnh (heatmap) cho LeadMatrix
@@ -51,7 +52,7 @@ export function useHeatmapMatrix(
   }, [selectedMemberIds, sessionMembers]);
 
   // API trả cả người chưa nhập lịch (slots rỗng): mẫu số của heatmap chỉ tính người đã nhập lịch như trước
-  const totalMembers = filteredMembers.filter((m) => m.slots?.length > 0).length;
+  const totalMembers = filteredMembers.filter(hasResponded).length;
 
   // Tạo ma trận: 7 ngày x 48 block (30 phút) = 336 ô
   const matrix = useMemo(() => {
