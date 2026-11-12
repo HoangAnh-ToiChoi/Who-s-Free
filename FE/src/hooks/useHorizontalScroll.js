@@ -3,6 +3,20 @@ import { useCallback, useEffect, useState } from "react";
 const EDGE_EPSILON_PX = 2;
 
 /**
+ * Lăn chuột dọc → cuộn ngang `el`. Chỉ chặn cuộn trang khi `el` còn chỗ để cuộn theo hướng đó;
+ * touchpad đang cuộn ngang sẵn thì để nguyên.
+ */
+export function wheelToHorizontal(e, el) {
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  const canScroll = e.deltaY > 0
+    ? el.scrollLeft + el.clientWidth < el.scrollWidth - EDGE_EPSILON_PX
+    : el.scrollLeft > EDGE_EPSILON_PX;
+  if (!canScroll) return;
+  e.preventDefault();
+  el.scrollLeft += e.deltaY;
+}
+
+/**
  * Dải cuộn ngang (vd thành viên trên thanh lọc):
  * - Lăn chuột dọc khi con trỏ đang trên dải → cuộn ngang. Chỉ chặn cuộn trang khi dải còn chỗ để cuộn theo hướng đó,
  *   tới mép thì nhường lại cho trang cuộn như bình thường. Touchpad cuộn ngang sẵn thì giữ nguyên.
@@ -22,15 +36,7 @@ export default function useHorizontalScroll() {
 
   useEffect(() => {
     if (!el) return undefined;
-    const onWheel = (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // touchpad đang cuộn ngang
-      const canScroll = e.deltaY > 0
-        ? el.scrollLeft + el.clientWidth < el.scrollWidth - EDGE_EPSILON_PX
-        : el.scrollLeft > EDGE_EPSILON_PX;
-      if (!canScroll) return;
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    };
+    const onWheel = (e) => wheelToHorizontal(e, el);
     const onScroll = () => update(el);
     const resize = new ResizeObserver(() => update(el));
     el.addEventListener("wheel", onWheel, { passive: false });

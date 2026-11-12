@@ -1,12 +1,13 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/AppError.js";
+import { REFRESH_TTL_DAYS } from "../models/refresh-session.model.js";
 
 /**
  * TokenService - Quản lý việc cấp phát và xác thực Token, cấu hình Cookie
  *
  * Trách nhiệm duy nhất (SRP):
- *   - Tạo Access Token (JWT 15m), Refresh Token (Mã ngẫu nhiên duy nhất 5 ngày)
+ *   - Tạo Access Token (JWT 15m, mang sid = id phiên thiết bị), Refresh Token (mã ngẫu nhiên, hạn 15 ngày từ lần dùng cuối)
  *   - Kiểm tra hạn dùng của Refresh Token và cấu hình cookie an toàn
  */
 class TokenService {
@@ -17,21 +18,23 @@ class TokenService {
   static ACCESS_TOKEN_EXPIRES = "15m"; // 15 phút
   static ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // 15 phút tính theo ms
 
-  static REFRESH_TOKEN_TTL_MS = 5 * 24 * 60 * 60 * 1000; // 5 ngày
-  static REFRESH_TOKEN_MAX_AGE = 5 * 24 * 60 * 60 * 1000; // 5 ngày tính theo ms
+  static REFRESH_TOKEN_TTL_MS = REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000; // 15 ngày từ lần dùng cuối
+  static REFRESH_TOKEN_MAX_AGE = this.REFRESH_TOKEN_TTL_MS; // cookie gia hạn lại mỗi lần làm mới
 
   static RESET_TOKEN_EXPIRES = "15m";
 
   /**
-   * Tạo JWT access token ngắn hạn (15 phút)
+   * Tạo JWT access token ngắn hạn (15 phút). sessionId (sid) gắn token với phiên thiết bị trong refresh_sessions,
+   * để khi phiên bị thay (thiết bị cùng loại đăng nhập) hoặc đăng xuất thì access token cũng hết hiệu lực.
    */
-  static generateAccessToken(user) {
+  static generateAccessToken(user, sessionId) {
     return jwt.sign(
       {
         sub: user.id,
         email: user.email,
         role: user.role || "member",
         token_type: "access",
+        ...(sessionId && { sid: sessionId }),
       },
       process.env.JWT_SECRET,
       {
@@ -86,15 +89,15 @@ class TokenService {
   }
 
   /**
-   * Kiểm tra xem Refresh Token lưu trong DB đã vượt quá 5 ngày chưa
-   * @param {string|Date} createdAt - Thời điểm lưu refresh token trong bảng users
+   * Refresh token đã quá hạn chưa (15 ngày không dùng)
+   * @param {string|Date} lastUsedAt - lần cuối phiên được tạo/làm mới (refresh_sessions.last_used_at)
    * @returns {boolean}
    */
-  static isRefreshTokenExpired(createdAt) {
-    if (!createdAt) return true;
-    const createdTime = new Date(createdAt).getTime();
-    if (Number.isNaN(createdTime)) return true;
-    return Date.now() - createdTime > this.REFRESH_TOKEN_TTL_MS;
+  static isRefreshTokenExpired(lastUsedAt) {
+    if (!lastUsedAt) return true;
+    const lastUsed = new Date(lastUsedAt).getTime();
+    if (Number.isNaN(lastUsed)) return true;
+    return Date.now() - lastUsed > this.REFRESH_TOKEN_TTL_MS;
   }
 
   /**

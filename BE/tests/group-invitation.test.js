@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { after, before, beforeEach, test } from "node:test";
 import { once } from "node:events";
+import { installFakeRefreshSessions } from "./helpers/fakeRefreshSessions.js";
 
 const OWNER_USER = {
   id: "10000000-0000-0000-0000-000000000001",
@@ -70,6 +71,7 @@ async function request(path, { method = "GET", body, token } = {}) {
   return { response, data };
 }
 
+let refreshSessions;
 before(async () => {
   process.env.NODE_ENV = "test";
   process.env.JWT_SECRET = "whosfree_super_secret_jwt_key_2026_dongianlaanhratdeptrai";
@@ -82,6 +84,8 @@ before(async () => {
   ({ default: UserModel } = await import("../src/models/user.model.js"));
   ({ default: TokenService } = await import("../src/services/token.service.js"));
   ({ default: EmailService } = await import("../src/services/email.service.js"));
+  const { default: RefreshSessionModel } = await import("../src/models/refresh-session.model.js");
+  refreshSessions = installFakeRefreshSessions(RefreshSessionModel, (id) => ({ id, ...usersById.get(id) }));
   sendGroupInvitationImplementation = EmailService.sendGroupInvitation;
 
   // Mock in-memory models cho test môi trường cô lập, hoàn toàn không gọi Supabase thật
@@ -109,6 +113,7 @@ before(async () => {
 });
 
 after(async () => {
+  refreshSessions.restore();
   await new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve()))
   );

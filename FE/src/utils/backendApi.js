@@ -26,6 +26,20 @@ const apiFetch = (url, init) => fetchWithWake(url, init, { healthUrl: HEALTH_URL
 let refreshInFlight = null;
 const REFRESH_RACE_RETRY_MS = 500;
 
+// Báo cho AuthContext khi phiên đăng nhập kết thúc giữa chừng (bị thiết bị cùng loại thay, hoặc làm mới thất bại)
+const sessionEndedListeners = new Set();
+
+/** Đăng ký nghe "phiên đăng nhập đã kết thúc"; listener nhận mã lỗi (vd SESSION_REVOKED). Trả về hàm huỷ đăng ký. */
+export function onSessionEnded(listener) {
+  sessionEndedListeners.add(listener);
+  return () => sessionEndedListeners.delete(listener);
+}
+
+function notifySessionEnded(code) {
+  tokenManager.clearAccessToken();
+  sessionEndedListeners.forEach((listener) => listener(code));
+}
+
 /** Địa chỉ kiểm tra máy chủ đã sẵn sàng (dùng để đánh thức / chờ). */
 export const backendHealthUrl = () => HEALTH_URL;
 
@@ -173,6 +187,12 @@ export async function backendRequest(
       }
     );
 
+    // Tài khoản vừa đăng nhập trên thiết bị khác cùng loại: phiên này đã bị thay, làm mới cũng không được
+    if (response.status === 401 && payload?.error === "SESSION_REVOKED") {
+      notifySessionEnded("SESSION_REVOKED");
+      throw error;
+    }
+
     if (response.status === 401 && !_retried && !isRefreshExempt(path)) {
       try {
         await requestTokenRefresh();
@@ -186,7 +206,8 @@ export async function backendRequest(
           _retried: true,
         });
       } catch (refreshError) {
-        tokenManager.clearAccessToken();
+        if (refreshError?.status === 401) notifySessionEnded(refreshError.code);
+        else tokenManager.clearAccessToken();
         throw refreshError;
       }
     }

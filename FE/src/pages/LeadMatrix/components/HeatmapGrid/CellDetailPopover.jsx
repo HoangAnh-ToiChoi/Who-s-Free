@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { minutesToTimeString } from "~/utils/timeUtils";
 import { cn } from "~/lib/utils";
+import { isNarrowScreen } from "~/utils/viewport";
 
 // Mobile (< sm): bấm ô là popover bật ngay tại chỗ, che lưới → hiện dạng tấm cố định ở đáy màn hình.
-const isNarrowScreen = () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
 
 /**
  * CellDetailPopover - Popover hiển thị chi tiết danh sách thành viên rảnh/bận

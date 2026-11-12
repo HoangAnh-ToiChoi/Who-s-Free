@@ -29,7 +29,6 @@ function MatrixLoadError({ onRetry }) {
   return (
     <div className={`${FRAME_CLASS} flex items-center justify-center`}>
       <SlideIn
-        direction="up"
         className="flex max-w-md flex-col items-center rounded-2xl border border-rose-200 bg-rose-50/50 p-8 text-center shadow-xs"
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
@@ -87,7 +86,7 @@ function MatrixGate({ withMyAvailability = false, children }) {
   // Lớp hiệu ứng nằm giữa <main> và khung ma trận: phải tham gia chuỗi flex (min-h-0 flex-1) thì khung mới bị giới hạn
   // bằng chiều cao màn hình và lưới lịch mới có thanh cuộn riêng.
   return (
-    <SlideIn direction="up" className="flex min-h-0 flex-1 flex-col">
+    <SlideIn className="flex min-h-0 flex-1 flex-col">
       {children}
     </SlideIn>
   );

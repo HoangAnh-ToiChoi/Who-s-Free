@@ -5,6 +5,7 @@ import TokenService from "../services/token.service.js";
 import UserModel from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { deviceFromRequest } from "../utils/deviceKind.js";
 
 /**
  * GroupInvitationController - HTTP Layer tiếp nhận request và phản hồi cho Lời mời
@@ -42,7 +43,7 @@ class GroupInvitationController extends BaseController {
     }
 
     const { password, fullName } = req.body;
-    const result = await this.authService.registerInvitedUser({ email, password, fullName });
+    const result = await this.authService.registerInvitedUser({ email, password, fullName }, deviceFromRequest(req));
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
     return this.sendCreated(res, { user: result.user, accessToken: result.accessToken }, "Tạo tài khoản thành công");
   });

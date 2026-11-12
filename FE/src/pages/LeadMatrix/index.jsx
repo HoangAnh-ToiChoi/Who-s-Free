@@ -4,10 +4,10 @@ import { CheckCircle2, LockOpen } from "lucide-react";
 import { useSessionResolver, useWeekNavigation, useSessionFinalizeSync } from "~/hooks";
 import LeadMatrixHeader from "./components/LeadMatrixHeader";
 import HeatmapGrid from "./components/HeatmapGrid";
-import MemberFilterBar from "./components/MemberFilterBar";
-import OptimalAnalysis from "./components/OptimalAnalysis";
+import MemberRoster from "./components/MemberRoster";
+import MemberResponsePanel from "./components/MemberResponsePanel";
 import { useHeatmapMatrix } from "./hooks/useHeatmapMatrix";
-import { useMemberFilter } from "./hooks/useMemberFilter";
+import { useSessionMembers } from "./hooks/useSessionMembers";
 import { useLeadExport } from "./hooks/useLeadExport";
 import { useFinalizeActions } from "./hooks/useFinalizeActions";
 import FinalizeModal from "./components/FinalizeModal";
@@ -22,9 +22,8 @@ import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
  * - Phân rã logic tính toán ra các custom hook chuyên biệt (bắt đầu bằng "use"):
  *   + useSessionResolver: Định danh phiên khảo sát
  *   + useWeekNavigation: Điều hướng tuần
- *   + useMemberFilter: Lọc thành viên
+ *   + useSessionMembers: Thành viên của phiên (dải xem thành viên chỉ để xem, không lọc lưới)
  *   + useHeatmapMatrix: Dữ liệu lưới heatmap
- *   + useOptimalAnalysis: Bảng xếp hạng khung giờ vàng & vùng xung đột
  *   + useLeadExport: Xử lý xuất file báo cáo
  * - LeadMatrix đóng vai trò Orchestrator kết nối và điều phối trạng thái hiển thị
  *
@@ -40,14 +39,8 @@ export function LeadMatrixContent({ readOnly = false }) {
 
   const sessionId = currentSession?.id;
 
-  const { activePreset, selectedMemberIds, allMembers, visibleMembers, respondedMembers, setPreset, toggleMember } =
-    useMemberFilter(sessionId);
-
-  const { matrix, totalMembers, getCell } = useHeatmapMatrix(
-    selectedMemberIds,
-    sessionId,
-    weekDays
-  );
+  const { view, setView, members, visibleMembers, respondedMembers, pendingMembers } = useSessionMembers(sessionId);
+  const { matrix, totalMembers, getCell } = useHeatmapMatrix(members, weekDays);
 
   const { exportNotice, exportError, isExporting, exportToXlsx } = useLeadExport();
   const finalizeActions = useFinalizeActions({
@@ -60,29 +53,14 @@ export function LeadMatrixContent({ readOnly = false }) {
 
   const finalized = currentSession?.status === "finalized" ? currentSession.finalized : null;
 
-  // State đồng bộ tương tác khi click vào ô trong bảng xếp hạng hoặc trên lưới
   const [selectedCell, setSelectedCell] = useState(null);
-
-  const handleSelectSlot = useCallback(
-    (dayIndex, blockStart, dayName) => {
-      const cell = getCell(dayIndex, blockStart);
-      setSelectedCell({
-        dayIndex,
-        blockStart,
-        dayName,
-        ...cell,
-        totalMembers,
-      });
-    },
-    [getCell, totalMembers]
-  );
 
   const handleExport = useCallback(() => {
     exportToXlsx(sessionId, currentSession?.slug || "lich");
   }, [exportToXlsx, sessionId, currentSession?.slug]);
 
-  // "Đang lọc X / Y": Y là toàn bộ thành viên nhóm (kể cả người chưa nhập lịch), không phải mẫu số của heatmap
-  const leadStats = { selectedCount: selectedMemberIds.length, totalMembers: allMembers.length };
+  // "X / Y thành viên đã chọn lịch": Y là cả nhóm (kể cả người chưa nhập lịch)
+  const leadStats = { selectedCount: respondedMembers.length, totalMembers: members.length };
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 min-h-0 flex-1 flex flex-col overflow-hidden relative">
@@ -123,16 +101,10 @@ export function LeadMatrixContent({ readOnly = false }) {
         <p role="alert" className="mb-2 text-xs font-semibold text-rose-600">{finalizeActions.error}</p>
       )}
 
-      {/* Member Filter Bar — mobile xếp sau thanh Hôm nay/Chốt lịch (order); desktop: nút ghi chú bên phải, ngay trên Xuất file/Chốt lịch */}
+      {/* Dải xem thành viên — mobile xếp sau thanh Hôm nay/Chốt lịch (order); desktop: nút ghi chú bên phải, ngay trên Xuất file/Chốt lịch */}
       <div className="flex items-center gap-2 max-sm:order-1">
         <div className="min-w-0 flex-1">
-          <MemberFilterBar
-            activePreset={activePreset}
-            members={visibleMembers}
-            selectedMemberIds={selectedMemberIds}
-            onPresetChange={setPreset}
-            onToggleMember={toggleMember}
-          />
+          <MemberRoster view={view} members={visibleMembers} onViewChange={setView} />
         </div>
         {!readOnly && (
           <SessionNoteEditButton
@@ -176,15 +148,9 @@ export function LeadMatrixContent({ readOnly = false }) {
           />
         </div>
 
-        {/* Sidebar Analysis */}
+        {/* Cột phải: ai đã chọn lịch / chưa chọn (gợi ý khung giờ nằm trong modal Chốt lịch) */}
         <div className="hidden xl:flex w-80 shrink-0 overflow-y-auto">
-          <OptimalAnalysis
-            matrix={matrix}
-            weekDays={weekDays}
-            totalMembers={totalMembers}
-            allMembers={respondedMembers}
-            onSelectSlot={handleSelectSlot}
-          />
+          <MemberResponsePanel responded={respondedMembers} pending={pendingMembers} />
         </div>
       </div>
 
@@ -207,9 +173,10 @@ export function LeadMatrixContent({ readOnly = false }) {
         open={finalizeActions.isModalOpen}
         onOpenChange={(open) => (open ? finalizeActions.openModal() : finalizeActions.closeModal())}
         cells={finalizeActions.cells}
+        members={finalizeActions.members}
         isLoading={finalizeActions.isLoadingRuns}
         isSubmitting={finalizeActions.isSubmitting}
-        error={finalizeActions.error}
+        error={finalizeActions.error || finalizeActions.finalizingConflict}
         onSubmit={finalizeActions.finalize}
       />
     </div>

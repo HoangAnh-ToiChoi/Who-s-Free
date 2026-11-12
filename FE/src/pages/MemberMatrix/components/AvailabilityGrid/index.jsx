@@ -19,13 +19,17 @@ import {
   useDayPager,
 } from "~/hooks";
 
+const noop = () => {};
+const NO_TOUCH = { onTouchStart: noop, onTouchMove: noop, onTouchEnd: noop };
+
 const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
 
 /**
  * AvailabilityGrid - Lưới nhập lịch rảnh của thành viên: điều hướng tuần, kéo chọn khung 30 phút,
  * popover chỉnh slot. Mobile hiện 3 ngày/màn với cột giờ cố định (xem GridScrollArea).
+ * locked: trưởng nhóm đang chốt lịch → chỉ xem (vẫn cuộn được), không kéo/sửa/xoá.
  */
-function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, onSessionLocked }) {
+function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, onSessionLocked, locked = false }) {
   const containerRef = useRef(null);
   const scrollBodyRef = useRef(null);
   const columnRefs = useRef([]);
@@ -128,7 +132,7 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, on
         weekLabel={weekLabel}
         stats={weekStats}
         weekNav={weekNav}
-        onClearAll={clearAllSlots}
+        onClearAll={locked ? undefined : clearAllSlots}
         touchDragPreview={isDragging && dragPreview?.isTouch ? dragPreview : null}
         weekDays={weekDays}
       />
@@ -182,9 +186,9 @@ function AvailabilityGrid({ sessionId, sessionCacheKey, dateWindow, memberId, on
           draftSlots={draftSlots}
           dragPreview={dragPreview}
           activeSlotId={popover.isOpen ? popover.slotData?.id : null}
-          onStartDrag={startDrag}
-          touch={touchDrag}
-          onSlotClick={handleSlotClick}
+          onStartDrag={locked ? noop : startDrag}
+          touch={locked ? NO_TOUCH : touchDrag}
+          onSlotClick={locked ? noop : handleSlotClick}
         />
       </div>
     </div>

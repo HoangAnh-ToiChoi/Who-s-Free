@@ -2,32 +2,43 @@ import { useState, useCallback } from "react";
 import { availabilityService } from "~/service/availabilityService/availabilityService";
 import { sessionService } from "~/service/sessionService/sessionService";
 import { buildSelectedCells } from "~/utils/finalizeCandidates";
+import { useFinalizingHeartbeat } from "./useFinalizingHeartbeat";
 
 /**
  * useFinalizeActions - Chốt lịch / mở khoá lịch của Lead
- * - Khi mở modal: nạp mọi giờ nhóm đã chọn (không giới hạn theo tuần) để Lead chọn khung giờ chốt
+ * - Khi mở modal: nạp mọi giờ nhóm đã chọn (không giới hạn theo tuần) + danh sách thành viên (tên cho phần gợi ý),
+ *   và đánh dấu "trưởng nhóm đang chốt" suốt lúc modal mở (thành viên khác tạm không sửa lịch)
+ * - Chốt bị từ chối vì khung giờ không còn hợp lệ (ai đó vừa đổi lịch) → tự nạp lại dữ liệu mới
  * - Sau khi chốt / mở khoá: gọi onChanged(session) để màn hình cập nhật trạng thái
  */
 export function useFinalizeActions({ sessionId, onChanged }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cells, setCells] = useState([]);
+  const [members, setMembers] = useState([]);
   const [isLoadingRuns, setIsLoadingRuns] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [emailResult, setEmailResult] = useState(null);
 
-  const openModal = useCallback(async () => {
-    if (!sessionId) return;
-    setError("");
-    setIsModalOpen(true);
+  const finalizingConflict = useFinalizingHeartbeat(sessionId, isModalOpen);
+
+  const loadRuns = useCallback(async () => {
     setIsLoadingRuns(true);
     try {
       const members = await availabilityService.getSessionAvailabilities(sessionId, { fresh: true });
+      setMembers(members);
       setCells(buildSelectedCells(members));
     } finally {
       setIsLoadingRuns(false);
     }
   }, [sessionId]);
+
+  const openModal = useCallback(async () => {
+    if (!sessionId) return;
+    setError("");
+    setIsModalOpen(true);
+    await loadRuns();
+  }, [sessionId, loadRuns]);
 
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
@@ -43,11 +54,12 @@ export function useFinalizeActions({ sessionId, onChanged }) {
         onChanged?.(result?.session);
       } catch (err) {
         setError(err?.message || "Finalize failed");
+        if (err?.code === "INVALID_FINAL_SLOT") loadRuns();
       } finally {
         setIsSubmitting(false);
       }
     },
-    [sessionId, onChanged],
+    [sessionId, onChanged, loadRuns],
   );
 
   const unfinalize = useCallback(async () => {
@@ -66,6 +78,8 @@ export function useFinalizeActions({ sessionId, onChanged }) {
   return {
     isModalOpen,
     cells,
+    members,
+    finalizingConflict,
     isLoadingRuns,
     isSubmitting,
     error,

@@ -28,6 +28,16 @@ class SessionController extends BaseController {
     return this.sendSuccess(res, result, "Đã chốt lịch");
   });
 
+  startFinalizing = asyncHandler(async (req, res) => {
+    const session = await sessionFinalizeService.startFinalizing(req.params.id, req.user?.id);
+    return this.sendSuccess(res, session, "Đang chốt lịch");
+  });
+
+  stopFinalizing = asyncHandler(async (req, res) => {
+    await sessionFinalizeService.stopFinalizing(req.params.id, req.user?.id);
+    return this.sendSuccess(res, null, "Đã đóng bảng chốt lịch");
+  });
+
   unfinalizeSession = asyncHandler(async (req, res) => {
     const session = await sessionFinalizeService.unfinalizeSession(req.params.id, req.user?.id);
     return this.sendSuccess(res, session, "Đã mở khoá lịch");
