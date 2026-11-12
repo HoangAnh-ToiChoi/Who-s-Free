@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
-import { useHorizontalScroll } from "~/hooks";
 import { formatMinutes } from "~/utils/finalizeCandidates";
 import { buildTimelineDays, presentMemberIds, timelineRange } from "~/utils/finalizeTimeline";
-import TimelineDayLabels from "./TimelineDayLabels";
-import TimelineDayTrack from "./TimelineDayTrack";
+import TimelineDayBlock from "./TimelineDayBlock";
 
 const isCompact = () => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
 const busiestDate = (days) => {
@@ -20,14 +18,16 @@ const busiestDate = (days) => {
 const LEGEND = ["bg-indigo-100", "bg-indigo-200", "bg-indigo-400", "bg-indigo-500", "bg-indigo-600"];
 
 /**
- * FinalizeTimeline - Chọn khung giờ chốt kiểu Timeline của Jira: cột trái là ngày / thành viên, bên phải là trục giờ chung.
+ * FinalizeTimeline - Chọn khung giờ chốt kiểu Timeline của Jira: cột ngày / thành viên ghim trái, bên phải là trục giờ chung.
  * Mỗi ngày có thanh tổng (đậm nhạt theo số người rảnh); mở ra thấy giờ rảnh của từng người.
- * Chỉ mở sẵn ngày đang chọn (hoặc ngày đầu tiên) để nhóm đông vẫn gọn; trục cuộn ngang, tự cuộn tới khung đang chọn.
+ * MỘT khối cuộn ngang duy nhất (không giới hạn chiều cao → modal là nơi duy nhất cuộn dọc); lăn chuột vẫn là cuộn dọc,
+ * cuộn ngang bằng Shift + lăn / touchpad / vuốt / thanh cuộn. Chỉ mở sẵn ngày đang chọn hoặc ngày đông người nhất.
  */
 function FinalizeTimeline({ cells, members, selection, onSelect }) {
   const { t } = useTranslation();
   const [compact] = useState(isCompact);
   const pxPerHour = compact ? 44 : 56;
+  const labelWidth = compact ? 112 : 176;
   const [mode, setMode] = useState("free");
 
   const days = useMemo(() => buildTimelineDays(cells, members), [cells, members]);
@@ -49,16 +49,7 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
       return next;
     });
 
-  const { attach, atStart, atEnd } = useHorizontalScroll();
   const scrollRef = useRef(null);
-  const setScrollEl = useCallback(
-    (el) => {
-      scrollRef.current = el;
-      attach(el);
-    },
-    [attach]
-  );
-  const fade = `linear-gradient(to right, ${atStart ? "black" : "transparent"}, black 20px, black calc(100% - 20px), ${atEnd ? "black" : "transparent"})`;
 
   // Tự cuộn tới khung đang chọn khi nó nằm ngoài vùng đang thấy (vd bấm một gợi ý), hoặc lúc mở tới lúc đông người
   // nhất của ngày đang mở. Đang kéo chọn trong vùng nhìn thấy thì không cuộn (tránh lệch giờ dưới con trỏ).
@@ -68,9 +59,10 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
   useEffect(() => {
     const el = scrollRef.current;
     if (focusStart == null || !el) return;
-    const visible = x(focusStart) >= el.scrollLeft && x(focusEnd) <= el.scrollLeft + el.clientWidth;
+    // Phần giờ nhìn thấy = bề rộng khung trừ cột tên đang ghim bên trái
+    const visible = x(focusStart) >= el.scrollLeft && x(focusEnd) <= el.scrollLeft + el.clientWidth - labelWidth;
     if (!visible) el.scrollTo({ left: Math.max(0, x(focusStart) - pxPerHour), behavior: "smooth" });
-  }, [focusStart, focusEnd, x, pxPerHour]);
+  }, [focusStart, focusEnd, x, pxPerHour, labelWidth]);
 
   const hours = [];
   for (let m = range.start; m <= range.end; m += 60) hours.push(m);
@@ -98,58 +90,49 @@ function FinalizeTimeline({ cells, members, selection, onSelect }) {
       </div>
       <p className="mt-0.5 text-[11px] text-slate-400">{t(compact ? "finalize.timelineHintTouch" : "finalize.timelineHint")}</p>
 
-      <div className="mt-2 flex max-h-[45vh] overflow-y-auto rounded-xl border border-slate-200">
-        <div className="w-28 shrink-0 border-r border-slate-200 bg-white sm:w-44">
-          <div className="sticky top-0 z-20 flex h-8 items-center truncate border-b border-slate-200 bg-slate-50 px-2 text-[10px] font-bold tracking-wider whitespace-nowrap text-slate-400 uppercase sm:px-3">
-            <span className="sm:hidden">{t("finalize.timelineColumnShort")}</span>
-            <span className="max-sm:hidden">{t("finalize.timelineColumn")}</span>
+      <div ref={scrollRef} className="mt-2 overflow-x-auto overflow-y-hidden rounded-xl border border-slate-200">
+        <div className="relative min-w-full" style={{ width: labelWidth + width }}>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+            {hours.map((m) => (
+              <div key={m} className="absolute inset-y-0 border-l border-slate-100" style={{ left: labelWidth + x(m) }} />
+            ))}
           </div>
-          {days.map((day) => (
-            <TimelineDayLabels
-              key={day.date}
-              day={day}
-              open={isOpen(day.date)}
-              onToggle={() => toggle(day.date)}
-              present={present}
-              hasSelection={selection?.date === day.date}
-            />
-          ))}
-        </div>
 
-        <div
-          ref={setScrollEl}
-          style={{ maskImage: fade, WebkitMaskImage: fade }}
-          className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:thin]"
-        >
-          <div className="relative" style={{ width }}>
-            <div className="pointer-events-none absolute inset-0">
-              {hours.map((m) => (
-                <div key={m} className="absolute inset-y-0 border-l border-slate-100" style={{ left: x(m) }} />
-              ))}
+          <div className="relative flex h-8 border-b border-slate-200 bg-slate-50">
+            <div
+              style={{ width: labelWidth }}
+              className="sticky left-0 z-20 flex shrink-0 items-center truncate border-r border-slate-200 bg-slate-50 px-2 text-[10px] font-bold tracking-wider whitespace-nowrap text-slate-400 uppercase sm:px-3"
+            >
+              <span className="sm:hidden">{t("finalize.timelineColumnShort")}</span>
+              <span className="max-sm:hidden">{t("finalize.timelineColumn")}</span>
             </div>
-            <div className="sticky top-0 z-20 h-8 border-b border-slate-200 bg-slate-50">
+            <div className="relative shrink-0" style={{ width }}>
               {hours.slice(0, -1).map((m) => (
                 <span key={m} className="absolute top-2 pl-1 text-[10px] font-semibold text-slate-400" style={{ left: x(m) }}>
                   {formatMinutes(m)}
                 </span>
               ))}
             </div>
-            {days.map((day) => (
-              <TimelineDayTrack
-                key={day.date}
-                day={day}
-                open={isOpen(day.date)}
-                total={total}
-                width={width}
-                x={x}
-                cellKeys={cellKeys}
-                range={range}
-                pxPerHour={pxPerHour}
-                selection={selection}
-                onSelect={onSelect}
-              />
-            ))}
           </div>
+
+          {days.map((day) => (
+            <TimelineDayBlock
+              key={day.date}
+              day={day}
+              open={isOpen(day.date)}
+              onToggle={() => toggle(day.date)}
+              total={total}
+              labelWidth={labelWidth}
+              width={width}
+              x={x}
+              cellKeys={cellKeys}
+              range={range}
+              pxPerHour={pxPerHour}
+              selection={selection}
+              present={present}
+              onSelect={onSelect}
+            />
+          ))}
         </div>
       </div>
 
