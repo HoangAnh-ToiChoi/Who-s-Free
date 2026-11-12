@@ -1,1 +1,0 @@
-function e(e,t,n=100){return!t||t<=0||!e||e<=0?0:Math.min(Math.max(Math.round(e/t*100),0),n)}export{e as t};
