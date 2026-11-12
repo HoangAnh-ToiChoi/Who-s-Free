@@ -123,8 +123,8 @@ function GridToolbar({
               {stats.count} · {stats.totalHours}h
             </span>
 
-            {/* Nút Clear lựa chọn cho MemberMatrix */}
-            <Button
+            {/* Nút Clear lựa chọn cho MemberMatrix (ẩn khi lịch đang tạm khoá) */}
+            {onClearAll && <Button
               type="button"
               variant="outline"
               size="sm"
@@ -134,7 +134,7 @@ function GridToolbar({
             >
               <Trash2 size={13} className="shrink-0" />
               <span className="hidden sm:inline">{t("gridToolbar.clearSelections")}</span>
-            </Button>
+            </Button>}
             <TouchDragHint dragPreview={touchDragPreview} weekDays={weekDays} />
           </div>
         ) : (

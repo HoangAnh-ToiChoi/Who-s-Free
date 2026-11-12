@@ -446,7 +446,9 @@
     "availableNames": "Có mặt: {{names}}",
     "missingNames": "Vắng: {{names}}",
     "tabOptimal": "Tối ưu",
-    "tabLimited": "Hạn chế"
+    "tabLimited": "Hạn chế",
+    "finalizingBanner": "Trưởng nhóm đang cân nhắc chốt lịch. Vui lòng liên hệ trưởng nhóm để có thể trao đổi.",
+    "finalizingByOther": "Một trưởng nhóm khác đang chốt lịch này. Hãy thử lại sau ít phút."
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
@@ -470,7 +472,8 @@
     "retrying": "Mất kết nối, đang thử lưu lại…",
     "failed": "Chưa lưu được thay đổi của bạn.",
     "locked": "Lịch vừa được trưởng nhóm chốt — thay đổi cuối của bạn chưa được lưu.",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "finalizing": "Trưởng nhóm đang cân nhắc chốt lịch nên thay đổi cuối của bạn chưa được lưu. Vui lòng liên hệ trưởng nhóm để trao đổi."
   },
   "sessionNote": {
     "title": "Ghi chú của trưởng nhóm",

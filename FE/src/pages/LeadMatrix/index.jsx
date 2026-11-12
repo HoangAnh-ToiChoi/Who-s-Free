@@ -189,7 +189,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         members={finalizeActions.members}
         isLoading={finalizeActions.isLoadingRuns}
         isSubmitting={finalizeActions.isSubmitting}
-        error={finalizeActions.error}
+        error={finalizeActions.error || finalizeActions.finalizingConflict}
         onSubmit={finalizeActions.finalize}
       />
     </div>

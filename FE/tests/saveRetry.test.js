@@ -15,3 +15,8 @@ test("mất mạng / server ngủ / quá tải / rate limit → retry", () => {
 test("lỗi dữ liệu hoặc quyền → fatal", () => {
   for (const status of [400, 403, 404]) assert.equal(classifySaveError({ status }), "fatal");
 });
+
+test("trưởng nhóm đang chốt lịch → finalizing (khớp lại theo server, không thử lại)", () => {
+  assert.equal(classifySaveError({ status: 409, code: "SESSION_FINALIZING", details: { status: "finalizing", slots: [] } }), "finalizing");
+  assert.equal(classifySaveError({ status: 409, details: { status: "finalizing" } }), "finalizing");
+});

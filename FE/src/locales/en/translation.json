@@ -446,7 +446,9 @@
     "availableNames": "Available: {{names}}",
     "missingNames": "Missing: {{names}}",
     "tabOptimal": "Optimal",
-    "tabLimited": "Limited"
+    "tabLimited": "Limited",
+    "finalizingBanner": "The lead is finalizing the schedule. Please contact the lead to discuss changes.",
+    "finalizingByOther": "Another lead is finalizing this schedule. Please try again in a few minutes."
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"
@@ -470,7 +472,8 @@
     "retrying": "Connection lost, retrying…",
     "failed": "Your changes were not saved.",
     "locked": "The lead just finalized this schedule — your last change was not saved.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "finalizing": "The lead is finalizing the schedule, so your last change was not saved. Please contact the lead to discuss."
   },
   "sessionNote": {
     "title": "Lead's note",

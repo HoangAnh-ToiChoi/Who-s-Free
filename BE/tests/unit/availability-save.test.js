@@ -74,6 +74,41 @@ describe("AvailabilityService.saveMyAvailability", () => {
     await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), (err) => err.statusCode === 409 && Array.isArray(err.details.slots));
   });
 
+  test("trưởng nhóm khác đang mở bảng Chốt lịch → 409 SESSION_FINALIZING kèm slot server, không ghi", async () => {
+    const until = new Date(Date.now() + 5 * 60 * 1000);
+    stub(SessionModel, "findById", async () => ({ id: "s1", group_id: "g1", status: "active_poll", finalizing_by: "lead1", finalizing_until: until }));
+    stub(GroupMemberModel, "findMember", async () => ({ user_id: "u1" }));
+    stub(AvailabilityModel, "replaceUserSlots", async () => assert.fail("không được ghi"));
+    stub(AvailabilityModel, "findBySessionAndUser", async () => [row]);
+    await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), (err) => {
+      assert.equal(err.statusCode, 409);
+      assert.equal(err.errorCode, "SESSION_FINALIZING");
+      assert.equal(err.details.status, "finalizing");
+      assert.deepEqual(err.details.slots.map((s) => s.id), ["r1"]);
+      return true;
+    });
+  });
+
+  test("chính trưởng nhóm đang chốt vẫn lưu được lịch của mình; khoá đã hết hạn thì ai cũng lưu được", async () => {
+    stub(GroupMemberModel, "findMember", async () => ({ user_id: "u1" }));
+    stub(AvailabilityModel, "replaceUserSlots", async () => [row]);
+    stub(RealtimeService, "broadcastSlotUpdate", async () => {});
+    const future = new Date(Date.now() + 5 * 60 * 1000);
+    stub(SessionModel, "findById", async () => ({ id: "s1", group_id: "g1", status: "active_poll", finalizing_by: "u1", finalizing_until: future }));
+    assert.equal((await service().saveMyAvailability("s1", "u1", [slot])).slots.length, 1);
+    const past = new Date(Date.now() - 1000);
+    stub(SessionModel, "findById", async () => ({ id: "s1", group_id: "g1", status: "active_poll", finalizing_by: "lead1", finalizing_until: past }));
+    assert.equal((await service().saveMyAvailability("s1", "u1", [slot])).slots.length, 1);
+  });
+
+  test("trưởng nhóm vừa mở bảng Chốt lịch trong lúc ghi (model báo đang chốt) → 409 SESSION_FINALIZING", async () => {
+    stub(SessionModel, "findById", async () => ({ id: "s1", group_id: "g1", status: "active_poll" }));
+    stub(GroupMemberModel, "findMember", async () => ({ user_id: "u1" }));
+    stub(AvailabilityModel, "replaceUserSlots", async () => "finalizing");
+    stub(AvailabilityModel, "findBySessionAndUser", async () => []);
+    await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), { statusCode: 409, errorCode: "SESSION_FINALIZING" });
+  });
+
   test("không tìm thấy phiên → 404", async () => {
     stub(SessionModel, "findById", async () => null);
     await assert.rejects(service().saveMyAvailability("s1", "u1", [slot]), { statusCode: 404 });

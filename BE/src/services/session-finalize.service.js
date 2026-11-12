@@ -13,6 +13,8 @@ import RealtimeService from "./realtime.service.js";
 import { buildScheduleWorkbook, XLSX_MIME } from "./schedule-export.service.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+/** Thời gian giữ trạng thái "đang chốt" mỗi lần trưởng nhóm mở/gia hạn (FE gia hạn mỗi 3 phút khi bảng còn mở). */
+export const FINALIZING_MINUTES = 10;
 
 /**
  * SessionFinalizeService - Chốt / mở khoá lịch và xuất Excel của một session
@@ -67,16 +69,18 @@ class SessionFinalizeService {
     const endMinutes = Number(payload.endMinutes);
     const note = String(payload.note ?? "").trim().slice(0, 500);
 
-    const rows = await AvailabilityModel.findForSchedule(session.id);
-    if (!DATE_PATTERN.test(date) || !isWindowSelected(rows, date, startMinutes, endMinutes)) {
-      throw AppError.badRequest(
-        "Khung giờ chốt phải nằm trong các giờ mà nhóm đã chọn",
-        ErrorCodes.INVALID_FINAL_SLOT,
-      );
-    }
+    const invalidSlot = () =>
+      AppError.badRequest("Khung giờ chốt phải nằm trong các giờ mà nhóm đã chọn", ErrorCodes.INVALID_FINAL_SLOT);
+    if (!DATE_PATTERN.test(date)) throw invalidSlot();
 
-    const updated = await SessionModel.finalize(session.id, { date, startMinutes, endMinutes, note, finalizedBy: actorId });
-    if (!updated) throw AppError.conflict("Phiên này đã được chốt", ErrorCodes.SESSION_FINALIZED);
+    // Kiểm tra trên lịch mới nhất và ghi chốt trong cùng một lần khoá phiên (xem SessionModel.finalizeLocked)
+    const result = await SessionModel.finalizeLocked(
+      session.id,
+      { date, startMinutes, endMinutes, note, finalizedBy: actorId },
+      (rows) => isWindowSelected(rows, date, startMinutes, endMinutes),
+    );
+    if (result === "already_finalized") throw AppError.conflict("Phiên này đã được chốt", ErrorCodes.SESSION_FINALIZED);
+    if (result === "invalid") throw invalidSlot();
 
     const fresh = await SessionModel.findById(session.id);
     RealtimeService.broadcast(`session:${session.id}`, "SESSION_FINALIZED", { sessionId: session.id });
@@ -95,6 +99,29 @@ class SessionFinalizeService {
     // Một request batch cho cả nhóm thay vì mỗi thành viên một request song song (dễ dính rate limit của provider)
     return EmailService.sendSessionFinalized({ emails, sessionTitle: session.title, whenLabel, note, sessionUrl })
       .catch(() => ({ total: emails.length, sent: 0, failed: emails.length }));
+  }
+
+  /**
+   * Trưởng nhóm mở bảng Chốt lịch (gọi lại định kỳ để gia hạn): thành viên khác tạm không sửa được lịch
+   * trong FINALIZING_MINUTES phút. Một trưởng nhóm khác đang chốt thì báo 409.
+   */
+  async startFinalizing(id, actorId) {
+    const session = await this.#requireLead(id, actorId);
+    if (session.status === "finalized") throw AppError.conflict("Phiên này đã được chốt", ErrorCodes.SESSION_FINALIZED);
+    const started = await SessionModel.startFinalizing(session.id, actorId, FINALIZING_MINUTES);
+    if (!started) {
+      throw AppError.conflict("Một trưởng nhóm khác đang chốt lịch này", ErrorCodes.SESSION_FINALIZING_BY_OTHER);
+    }
+    RealtimeService.broadcast(`session:${session.id}`, "SESSION_FINALIZING", { sessionId: session.id });
+    return toPublicSession(await SessionModel.findById(session.id));
+  }
+
+  /** Trưởng nhóm đóng bảng Chốt lịch: mở lại cho thành viên sửa lịch. */
+  async stopFinalizing(id, actorId) {
+    const session = await this.#requireLead(id, actorId);
+    if (await SessionModel.stopFinalizing(session.id, actorId)) {
+      RealtimeService.broadcast(`session:${session.id}`, "SESSION_FINALIZING", { sessionId: session.id });
+    }
   }
 
   /** Mở khoá để thành viên chỉnh sửa lại (không gửi mail). */

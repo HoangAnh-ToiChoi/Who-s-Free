@@ -34,6 +34,11 @@ export function toPublicSession(s) {
           note: s.export_note || "",
         }
       : null,
+    // Trưởng nhóm đang mở bảng Chốt lịch (còn hạn): thành viên khác tạm không sửa được lịch
+    finalizing:
+      s.status !== "finalized" && s.finalizing_until && new Date(s.finalizing_until) > new Date()
+        ? { by: s.finalizing_by, until: new Date(s.finalizing_until).toISOString() }
+        : null,
     createdAt: s.created_at || s.createdAt || new Date().toISOString(),
     updatedAt: s.updated_at || s.updatedAt || new Date().toISOString(),
   };

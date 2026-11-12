@@ -1,4 +1,4 @@
-import AvailabilityModel from "../models/availability.model.js";
+import AvailabilityModel, { BLOCKED_FINALIZING } from "../models/availability.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import RealtimeService from "./realtime.service.js";
 import AppError from "../utils/AppError.js";
@@ -31,6 +31,19 @@ async function finalizedConflict(sessionId, userId) {
   });
 }
 
+/** 409 khi trưởng nhóm khác đang mở bảng Chốt lịch; kèm slot thật để client khớp lại (giống finalizedConflict). */
+async function finalizingConflict(sessionId, userId) {
+  const rows = await AvailabilityModel.findBySessionAndUser(sessionId, userId);
+  return AppError.conflict(
+    "Trưởng nhóm đang cân nhắc chốt lịch. Vui lòng liên hệ trưởng nhóm để trao đổi.",
+    ErrorCodes.SESSION_FINALIZING,
+    { status: "finalizing", slots: toPublicUserAvailability({ sessionId, userId, slots: rows }).slots },
+  );
+}
+
+const isBlockedByFinalizing = (session, userId) =>
+  session.finalizing_until && new Date(session.finalizing_until) > new Date() && session.finalizing_by !== userId;
+
 class AvailabilityService {
   async getMyAvailability(sessionId, userId) {
     requireSessionAndUser(sessionId, userId);
@@ -44,11 +57,13 @@ class AvailabilityService {
 
     const { session } = await requireSessionMember(sessionId, userId);
     if (session.status === "finalized") throw await finalizedConflict(sessionId, userId);
+    if (isBlockedByFinalizing(session, userId)) throw await finalizingConflict(sessionId, userId);
     throwIfInvalid(getSlotsWindowError(slots, session.start_date, session.end_date));
 
     const saved = await AvailabilityModel.replaceUserSlots(sessionId, userId, slots);
     // Phiên có thể vừa được chốt giữa lúc kiểm tra ở trên và lúc ghi (transaction trả về null)
     if (saved === null) throw await finalizedConflict(sessionId, userId);
+    if (saved === BLOCKED_FINALIZING) throw await finalizingConflict(sessionId, userId);
 
     // Một thông báo cho cả lần lưu (thay cho mỗi dòng thay đổi một sự kiện postgres_changes)
     RealtimeService.broadcastSlotUpdate(sessionId, { sessionId });

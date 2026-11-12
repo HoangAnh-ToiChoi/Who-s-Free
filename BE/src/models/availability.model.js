@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
 import { isUuid } from "../utils/uuid.js";
 
+/** replaceUserSlots trả về giá trị này khi trưởng nhóm khác đang mở bảng Chốt lịch. */
+export const BLOCKED_FINALIZING = "finalizing";
+
 const SLOT_COLUMNS =
   "id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at";
 
@@ -27,17 +30,20 @@ class AvailabilityModel {
    * - pg_advisory_xact_lock theo (session, user): 2 lần lưu sát nhau của cùng một người chạy lần lượt,
    *   tránh DELETE/INSERT xen kẽ gây nhân đôi slot. Người khác nhau vẫn chạy song song.
    * - Khoá dòng session (FOR SHARE) và kiểm tra trạng thái ngay trong transaction để không ghi đè lên
-   *   phiên vừa được chốt. Trả về null nếu phiên đã chốt.
+   *   phiên vừa được chốt. Trả về null nếu phiên đã chốt, BLOCKED_FINALIZING nếu trưởng nhóm KHÁC đang chốt.
+   *   Chốt lịch khoá dòng session FOR UPDATE nên hai bên chạy lần lượt, không chen nhau.
    */
   static async replaceUserSlots(sessionId, userId, slots = []) {
     return withTransaction(async (client) => {
       await client.query("SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2));", [sessionId, userId]);
 
       const { rows: sessionRows } = await client.query(
-        "SELECT status FROM public.sessions WHERE id = $1 FOR SHARE;",
-        [sessionId]
+        `SELECT status, (finalizing_until > NOW() AND finalizing_by IS DISTINCT FROM $2) AS blocked
+         FROM public.sessions WHERE id = $1 FOR SHARE;`,
+        [sessionId, userId]
       );
       if (sessionRows[0]?.status === "finalized") return null;
+      if (sessionRows[0]?.blocked) return BLOCKED_FINALIZING;
 
       await client.query(
         "DELETE FROM public.availability_slots WHERE session_id = $1 AND user_id = $2;",
@@ -83,9 +89,10 @@ class AvailabilityModel {
   /**
    * Dữ liệu tối giản cho xuất Excel / kiểm tra khung giờ chốt (date_str trả về dạng YYYY-MM-DD).
    */
-  static async findForSchedule(sessionId) {
+  /** @param {{ query: Function }} [db] - client của transaction đang mở (mặc định: pool) */
+  static async findForSchedule(sessionId, db = { query }) {
     if (!sessionId) return [];
-    const { rows } = await query(
+    const { rows } = await db.query(
       `SELECT avs.user_id, u.full_name AS member_name, avs.date_str::text AS date,
               avs.start_minutes, avs.end_minutes
        FROM public.availability_slots avs

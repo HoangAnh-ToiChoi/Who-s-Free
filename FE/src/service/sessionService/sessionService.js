@@ -116,6 +116,16 @@ export const sessionService = {
     return session;
   },
 
+  /** Trưởng nhóm mở bảng Chốt lịch / gia hạn mỗi vài phút khi bảng còn mở (thành viên khác tạm không sửa lịch). */
+  async startFinalizing(sessionId) {
+    return await http.post(`/sessions/${sessionId}/finalizing`, {});
+  },
+
+  /** Đóng bảng Chốt lịch; keepalive để vẫn gửi được khi đang đóng tab. */
+  async stopFinalizing(sessionId, { keepalive = false } = {}) {
+    return await http.del(`/sessions/${sessionId}/finalizing`, { keepalive });
+  },
+
   async unfinalizeSession(sessionId) {
     return await http.post(`/sessions/${sessionId}/unfinalize`, {});
   },
