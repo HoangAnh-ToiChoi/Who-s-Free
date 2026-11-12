@@ -295,7 +295,6 @@
   "leadMatrix": {
     "leaderView": "Leader View",
     "enterMySchedule": "Enter my schedule",
-    "filterLabel": "Filter",
     "filterAll": "All",
     "filterLeadership": "Leadership",
     "legendLabel": "Availability:",
@@ -304,8 +303,6 @@
     "noOneAvailable": "No one is available in this time slot",
     "exportFile": "Export file",
     "exportSuccess": "Schedule summary exported. Advanced Excel (.xlsx) export is in development!",
-    "membersFiltered": "members",
-    "membersCountFiltered": "• {{selected}} / {{total}} members filtered",
     "notResponded": "no availability yet",
     "respondedTitle": "Submitted",
     "notRespondedTitle": "Not submitted yet",
@@ -313,7 +310,9 @@
     "noneResponded": "No one has submitted yet",
     "allResponded": "Everyone has submitted",
     "roleOwner": "Owner",
-    "roleLead": "Lead"
+    "roleLead": "Lead",
+    "rosterLabel": "Members",
+    "membersResponded": "• {{selected}} / {{total}} members submitted"
   },
   "placeholder": {
     "comingSoonTitle": "Feature Coming Soon",

@@ -1,58 +1,18 @@
-import { useState, useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { START_HOUR, END_HOUR } from "~/utils/timeUtils";
-import { availabilityService as calendarService } from "~/service/availabilityService/availabilityService";
 import { hasResponded } from "~/utils/members";
 
 /**
- * useHeatmapMatrix - Hook tính toán ma trận mật độ rảnh (heatmap) cho LeadMatrix
- * Đọc dữ liệu availability thực tế từ db.json và băm block 30 phút theo công thức chuẩn.
+ * useHeatmapMatrix - Ma trận mật độ rảnh (heatmap) của tuần đang xem cho LeadMatrix, khối 30 phút.
+ * Luôn tính cả nhóm (members từ useSessionMembers); dải xem thành viên không lọc ma trận.
  *
- * @param {string[]} selectedMemberIds - Danh sách member ID được chọn (filter)
- * @param {string} sessionId - ID của session hiện tại
+ * @param {Array} members - mọi thành viên nhóm kèm slots
+ * @param {Array} weekDays - các ngày của tuần đang xem
  * @returns {{ matrix, totalMembers, getCell }}
  */
-export function useHeatmapMatrix(
-  selectedMemberIds = [],
-  sessionId,
-  weekDays = []
-) {
-  const [sessionMembers, setSessionMembers] = useState(
-    () => calendarService.peekSessionAvailabilities(sessionId) ?? []
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadHeatmapData() {
-      if (!sessionId) {
-        setSessionMembers([]);
-        return;
-      }
-      try {
-        const avails = await calendarService.getSessionAvailabilities(sessionId);
-        if (isMounted && Array.isArray(avails)) {
-          setSessionMembers(avails);
-        }
-      } catch (err) {
-        console.warn("Could not load heatmap availabilities:", err);
-      }
-    }
-    loadHeatmapData();
-    return () => {
-      isMounted = false;
-    };
-  }, [sessionId]);
-
-  const filteredMembers = useMemo(() => {
-    if (!selectedMemberIds || selectedMemberIds.length === 0) {
-      return sessionMembers;
-    }
-    return sessionMembers.filter((m) =>
-      selectedMemberIds.includes(m.memberId)
-    );
-  }, [selectedMemberIds, sessionMembers]);
-
+export function useHeatmapMatrix(members = [], weekDays = []) {
   // API trả cả người chưa nhập lịch (slots rỗng): mẫu số của heatmap chỉ tính người đã nhập lịch như trước
-  const totalMembers = filteredMembers.filter(hasResponded).length;
+  const totalMembers = members.filter(hasResponded).length;
 
   // Tạo ma trận: 7 ngày x 48 block (30 phút) = 336 ô
   const matrix = useMemo(() => {
@@ -73,7 +33,7 @@ export function useHeatmapMatrix(
     }
 
     // Đổ dữ liệu availability vào ma trận (chỉ hiển thị slot thuộc tuần đang xem)
-    filteredMembers.forEach((member) => {
+    members.forEach((member) => {
       (member.slots || []).forEach((slot) => {
         let targetDayIndex = -1;
         if (slot.dateStr && weekDays && weekDays.length > 0) {
@@ -119,7 +79,7 @@ export function useHeatmapMatrix(
     }
 
     return result;
-  }, [filteredMembers, totalMembers, weekDays]);
+  }, [members, totalMembers, weekDays]);
 
   // Helper: lấy dữ liệu 1 ô
   const getCell = (dayIndex, blockStartMinutes) => {
@@ -129,7 +89,6 @@ export function useHeatmapMatrix(
   return {
     matrix,
     totalMembers,
-    filteredMembers,
     getCell,
   };
 }

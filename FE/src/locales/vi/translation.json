@@ -295,7 +295,6 @@
   "leadMatrix": {
     "leaderView": "Chế độ Trưởng nhóm",
     "enterMySchedule": "Nhập lịch của tôi",
-    "filterLabel": "Bộ lọc",
     "filterAll": "Tất cả",
     "filterLeadership": "Ban lãnh đạo",
     "legendLabel": "Mức độ rảnh:",
@@ -304,8 +303,6 @@
     "noOneAvailable": "Không ai rảnh trong khung giờ này",
     "exportFile": "Xuất file",
     "exportSuccess": "Đã xuất bảng tóm tắt lịch trình. Tính năng xuất Excel (.xlsx) đang được phát triển!",
-    "membersFiltered": "thành viên",
-    "membersCountFiltered": "• {{selected}} / {{total}} thành viên đang lọc",
     "notResponded": "chưa nhập lịch",
     "respondedTitle": "Đã chọn lịch",
     "notRespondedTitle": "Chưa chọn lịch",
@@ -313,7 +310,9 @@
     "noneResponded": "Chưa có ai chọn lịch",
     "allResponded": "Cả nhóm đã chọn lịch",
     "roleOwner": "Trưởng nhóm",
-    "roleLead": "Lead"
+    "roleLead": "Lead",
+    "rosterLabel": "Thành viên",
+    "membersResponded": "• {{selected}} / {{total}} thành viên đã chọn lịch"
   },
   "placeholder": {
     "comingSoonTitle": "Tính năng đang được phát triển",
