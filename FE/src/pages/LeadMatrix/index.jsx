@@ -5,7 +5,7 @@ import { useSessionResolver, useWeekNavigation, useSessionFinalizeSync } from "~
 import LeadMatrixHeader from "./components/LeadMatrixHeader";
 import HeatmapGrid from "./components/HeatmapGrid";
 import MemberFilterBar from "./components/MemberFilterBar";
-import OptimalAnalysis from "./components/OptimalAnalysis";
+import MemberResponsePanel from "./components/MemberResponsePanel";
 import { useHeatmapMatrix } from "./hooks/useHeatmapMatrix";
 import { useMemberFilter } from "./hooks/useMemberFilter";
 import { useLeadExport } from "./hooks/useLeadExport";
@@ -24,7 +24,6 @@ import GridToolbar from "~/pages/MemberMatrix/components/GridToolbar";
  *   + useWeekNavigation: Điều hướng tuần
  *   + useMemberFilter: Lọc thành viên
  *   + useHeatmapMatrix: Dữ liệu lưới heatmap
- *   + useOptimalAnalysis: Bảng xếp hạng khung giờ vàng & vùng xung đột
  *   + useLeadExport: Xử lý xuất file báo cáo
  * - LeadMatrix đóng vai trò Orchestrator kết nối và điều phối trạng thái hiển thị
  *
@@ -40,8 +39,9 @@ export function LeadMatrixContent({ readOnly = false }) {
 
   const sessionId = currentSession?.id;
 
-  const { activePreset, selectedMemberIds, allMembers, visibleMembers, respondedMembers, setPreset, toggleMember } =
-    useMemberFilter(sessionId);
+  const {
+    activePreset, selectedMemberIds, allMembers, visibleMembers, respondedMembers, pendingMembers, setPreset, toggleMember,
+  } = useMemberFilter(sessionId);
 
   const { matrix, totalMembers, getCell } = useHeatmapMatrix(
     selectedMemberIds,
@@ -60,22 +60,7 @@ export function LeadMatrixContent({ readOnly = false }) {
 
   const finalized = currentSession?.status === "finalized" ? currentSession.finalized : null;
 
-  // State đồng bộ tương tác khi click vào ô trong bảng xếp hạng hoặc trên lưới
   const [selectedCell, setSelectedCell] = useState(null);
-
-  const handleSelectSlot = useCallback(
-    (dayIndex, blockStart, dayName) => {
-      const cell = getCell(dayIndex, blockStart);
-      setSelectedCell({
-        dayIndex,
-        blockStart,
-        dayName,
-        ...cell,
-        totalMembers,
-      });
-    },
-    [getCell, totalMembers]
-  );
 
   const handleExport = useCallback(() => {
     exportToXlsx(sessionId, currentSession?.slug || "lich");
@@ -176,15 +161,9 @@ export function LeadMatrixContent({ readOnly = false }) {
           />
         </div>
 
-        {/* Sidebar Analysis */}
+        {/* Cột phải: ai đã chọn lịch / chưa chọn (gợi ý khung giờ nằm trong modal Chốt lịch) */}
         <div className="hidden xl:flex w-80 shrink-0 overflow-y-auto">
-          <OptimalAnalysis
-            matrix={matrix}
-            weekDays={weekDays}
-            totalMembers={totalMembers}
-            allMembers={respondedMembers}
-            onSelectSlot={handleSelectSlot}
-          />
+          <MemberResponsePanel responded={respondedMembers} pending={pendingMembers} />
         </div>
       </div>
 
@@ -207,6 +186,7 @@ export function LeadMatrixContent({ readOnly = false }) {
         open={finalizeActions.isModalOpen}
         onOpenChange={(open) => (open ? finalizeActions.openModal() : finalizeActions.closeModal())}
         cells={finalizeActions.cells}
+        members={finalizeActions.members}
         isLoading={finalizeActions.isLoadingRuns}
         isSubmitting={finalizeActions.isSubmitting}
         error={finalizeActions.error}

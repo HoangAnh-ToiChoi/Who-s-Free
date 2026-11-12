@@ -299,10 +299,6 @@
     "filterAll": "Tất cả",
     "filterLeadership": "Ban lãnh đạo",
     "legendLabel": "Mức độ rảnh:",
-    "optimalSlotsTitle": "Khung giờ tối ưu",
-    "conflictSlotsTitle": "Khung giờ hạn chế",
-    "lowParticipation": "Ít người chọn",
-    "onlyCountAvailable": "Chỉ {{count}}/{{total}} rảnh",
     "availableCount": "{{count}} trên {{total}} người rảnh",
     "statusFree": "Rảnh",
     "noOneAvailable": "Không ai rảnh trong khung giờ này",
@@ -310,12 +306,14 @@
     "exportSuccess": "Đã xuất bảng tóm tắt lịch trình. Tính năng xuất Excel (.xlsx) đang được phát triển!",
     "membersFiltered": "thành viên",
     "membersCountFiltered": "• {{selected}} / {{total}} thành viên đang lọc",
-    "noOptimalSlots": "Chưa có khung giờ rảnh trong tuần này. Hãy nhắc nhở thành viên nhập lịch!",
-    "noConflictSlots": "Không có khung giờ hạn chế nào",
-    "allPresent": "Tất cả cùng rảnh",
-    "availableMembersDesc": "{{count}}/{{total}} thành viên có mặt: {{names}}",
-    "missingMembersDesc": "Chỉ {{count}}/{{total}} người rảnh. Vắng: {{names}}",
-    "notResponded": "chưa nhập lịch"
+    "notResponded": "chưa nhập lịch",
+    "respondedTitle": "Đã chọn lịch",
+    "notRespondedTitle": "Chưa chọn lịch",
+    "respondedProgress": "{{count}}/{{total}} thành viên đã chọn lịch",
+    "noneResponded": "Chưa có ai chọn lịch",
+    "allResponded": "Cả nhóm đã chọn lịch",
+    "roleOwner": "Trưởng nhóm",
+    "roleLead": "Lead"
   },
   "placeholder": {
     "comingSoonTitle": "Tính năng đang được phát triển",
@@ -438,7 +436,16 @@
     "unlockKeep": "Giữ nguyên",
     "leadOnlyHint": "Chỉ trưởng nhóm mới có thể huỷ chốt.",
     "bannerTitle": "Lịch đã được chốt",
-    "bannerNote": "Ghi chú"
+    "bannerNote": "Ghi chú",
+    "suggestTitle": "Gợi ý khung giờ",
+    "suggestHint": "Bấm một gợi ý để chọn luôn khung giờ đó.",
+    "suggestEmpty": "Không có khung giờ nào thiếu người.",
+    "countOfTotal": "{{count}}/{{total}} rảnh",
+    "allFree": "Cả nhóm rảnh",
+    "availableNames": "Có mặt: {{names}}",
+    "missingNames": "Vắng: {{names}}",
+    "tabOptimal": "Tối ưu",
+    "tabLimited": "Hạn chế"
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
