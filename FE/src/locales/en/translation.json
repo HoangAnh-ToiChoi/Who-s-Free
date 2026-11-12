@@ -418,7 +418,6 @@
     "modalSubtitle": "Pick a time window within the hours the group selected.",
     "loading": "Loading the group's time windows...",
     "noRuns": "Nobody has picked any availability yet, so the schedule can't be finalized.",
-    "pickRun": "Hours the group selected",
     "note": "Note at the bottom of the Excel sheet (optional)",
     "notePlaceholder": "e.g. Everyone please bring a camera",
     "confirmHint": "Once finalized, nobody can edit their schedule and everyone gets an email notification.",
@@ -428,8 +427,6 @@
     "readOnlyHint": "The schedule is locked — view only.",
     "emailResult": "Email sent to {{sent}}/{{total}} members.",
     "emailFailed": "{{count}} emails could not be sent.",
-    "pickHint": "Click a slot to pick it; click an adjacent slot to extend the window. Green slots have the most people free.",
-    "peopleCount": "{{count}} people",
     "selected": "Finalized window: {{when}}",
     "nothingSelected": "No time window selected yet",
     "unlockTitle": "Cancel finalization?",
@@ -448,7 +445,18 @@
     "tabOptimal": "Optimal",
     "tabLimited": "Limited",
     "finalizingBanner": "The lead is finalizing the schedule. Please contact the lead to discuss changes.",
-    "finalizingByOther": "Another lead is finalizing this schedule. Please try again in a few minutes."
+    "finalizingByOther": "Another lead is finalizing this schedule. Please try again in a few minutes.",
+    "timelineTitle": "Group availability",
+    "timelineHint": "Click a segment on a day row to select it, or press and drag to pick a range; drag the handles to adjust.",
+    "timelineHintTouch": "Tap a segment on a day row to select it, drag the handles to adjust; swipe sideways for other hours.",
+    "timelineColumn": "Day / member",
+    "zoomFree": "Free hours",
+    "zoomFull": "Whole day",
+    "present": "Available",
+    "absent": "missing",
+    "legendFew": "Few",
+    "legendAll": "Everyone ({{count}})",
+    "timelineColumnShort": "Day"
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"

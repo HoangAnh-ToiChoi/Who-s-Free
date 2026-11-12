@@ -39,27 +39,3 @@ export function buildSelectedCells(members = []) {
     .map(({ people, ...cell }) => ({ ...cell, count: people.size, memberIds: [...people].sort() }))
     .sort((a, b) => (a.date === b.date ? a.start - b.start : a.date < b.date ? -1 : 1));
 }
-
-/**
- * Cập nhật khung giờ đang chọn khi bấm vào một ô:
- * - chưa chọn / khác ngày / không liền mạch -> chọn riêng ô đó
- * - bấm đúng ô duy nhất đang chọn -> bỏ chọn
- * - bấm ô nằm trong khung đang chọn -> thu về riêng ô đó
- * - bấm ô khác cùng ngày mà mọi ô ở giữa đều đã được nhóm chọn -> kéo dài khung tới ô đó
- * @param {{ date: string, start: number, end: number }|null} selection
- * @param {{ date: string, start: number, end: number }} cell
- * @param {Set<string>} cellKeys - tập khoá `${date}|${start}` của các ô được chọn
- */
-export function nextSelection(selection, cell, cellKeys) {
-  const only = { date: cell.date, start: cell.start, end: cell.end };
-  if (!selection || selection.date !== cell.date) return only;
-  if (cell.start >= selection.start && cell.end <= selection.end) {
-    return selection.start === cell.start && selection.end === cell.end ? null : only;
-  }
-  const start = Math.min(selection.start, cell.start);
-  const end = Math.max(selection.end, cell.end);
-  for (let m = start; m < end; m += CELL) {
-    if (!cellKeys.has(`${cell.date}|${m}`)) return only;
-  }
-  return { date: cell.date, start, end };
-}
