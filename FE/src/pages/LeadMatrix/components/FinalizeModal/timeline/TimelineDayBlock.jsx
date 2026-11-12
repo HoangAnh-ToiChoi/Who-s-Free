@@ -74,7 +74,7 @@ function TimelineDayBlock({ day, open, onToggle, total, labelWidth, width, x, ce
           </span>
         </button>
 
-        <div {...drag.bar} className="relative shrink-0 cursor-pointer touch-pan-x select-none border-b border-slate-100 bg-slate-50/60" style={{ width }}>
+        <div {...drag.bar} data-select-bar className="relative shrink-0 cursor-pointer touch-pan-x select-none border-b border-slate-100 bg-slate-50/60" style={{ width }}>
           {day.segments.map((seg, i) => {
             const w = x(seg.end) - x(seg.start);
             return (
