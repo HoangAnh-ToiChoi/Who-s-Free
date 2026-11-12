@@ -1,5 +1,6 @@
-import { memo, useState } from "react";
+import { memo } from "react";
 import { cn } from "~/lib/utils";
+import MemberAvatar from "../MemberAvatar";
 
 /**
  * MemberChip - Một thành viên trên thanh lọc. memo + onToggle(memberId) ổn định → bấm chọn 1 người chỉ vẽ lại chip đó.
@@ -7,30 +8,9 @@ import { cn } from "~/lib/utils";
  * Chưa chọn: làm mờ (để bấm chọn lại). Chưa nhập lịch: viền nét đứt.
  */
 function MemberChip({ member, isSelected, compact, notRespondedLabel, onToggle }) {
-  const [imgError, setImgError] = useState(false);
   const name = member.memberName || "Thành viên";
   const responded = member.slots?.length > 0;
   const title = responded ? name : `${name} · ${notRespondedLabel}`;
-  const avatar =
-    member.avatarUrl && !imgError ? (
-      <img
-        src={member.avatarUrl}
-        alt=""
-        onError={() => setImgError(true)}
-        className={cn("shrink-0 rounded-full object-cover", compact ? "h-full w-full" : "h-4.5 w-4.5")}
-      />
-    ) : (
-      <span
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-full font-bold",
-          compact ? "h-full w-full text-[11px]" : "h-4.5 w-4.5 text-[10px]",
-          isSelected ? "bg-indigo-200 text-indigo-800" : "bg-slate-200 text-slate-500"
-        )}
-      >
-        {name.charAt(0).toUpperCase()}
-      </span>
-    );
-
   return (
     <button
       type="button"
@@ -52,7 +32,12 @@ function MemberChip({ member, isSelected, compact, notRespondedLabel, onToggle }
           : "border-slate-200 bg-slate-50/80 text-slate-400 opacity-40 grayscale hover:opacity-75 hover:grayscale-0"
       )}
     >
-      {avatar}
+      <MemberAvatar
+        name={name}
+        avatarUrl={member.avatarUrl}
+        muted={!isSelected}
+        className={compact ? "h-full w-full text-[11px]" : "h-4.5 w-4.5 text-[10px]"}
+      />
       {!compact && <span className="max-w-[110px] truncate">{name}</span>}
     </button>
   );

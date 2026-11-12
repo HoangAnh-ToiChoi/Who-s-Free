@@ -299,10 +299,6 @@
     "filterAll": "All",
     "filterLeadership": "Leadership",
     "legendLabel": "Availability:",
-    "optimalSlotsTitle": "Top Optimal Slots",
-    "conflictSlotsTitle": "Limited Availability Slots",
-    "lowParticipation": "Low Availability",
-    "onlyCountAvailable": "Only {{count}}/{{total}} free",
     "availableCount": "{{count}} of {{total}} available",
     "statusFree": "Free",
     "noOneAvailable": "No one is available in this time slot",
@@ -310,12 +306,14 @@
     "exportSuccess": "Schedule summary exported. Advanced Excel (.xlsx) export is in development!",
     "membersFiltered": "members",
     "membersCountFiltered": "• {{selected}} / {{total}} members filtered",
-    "noOptimalSlots": "No overlapping free time this week. Remind members to input their schedules!",
-    "noConflictSlots": "No limited availability slots",
-    "allPresent": "All available",
-    "availableMembersDesc": "{{count}}/{{total}} members available: {{names}}",
-    "missingMembersDesc": "Only {{count}}/{{total}} available. Missing: {{names}}",
-    "notResponded": "no availability yet"
+    "notResponded": "no availability yet",
+    "respondedTitle": "Submitted",
+    "notRespondedTitle": "Not submitted yet",
+    "respondedProgress": "{{count}}/{{total}} members submitted",
+    "noneResponded": "No one has submitted yet",
+    "allResponded": "Everyone has submitted",
+    "roleOwner": "Owner",
+    "roleLead": "Lead"
   },
   "placeholder": {
     "comingSoonTitle": "Feature Coming Soon",
@@ -438,7 +436,16 @@
     "unlockKeep": "Keep it",
     "leadOnlyHint": "Only team leads can cancel finalization.",
     "bannerTitle": "Schedule finalized",
-    "bannerNote": "Note"
+    "bannerNote": "Note",
+    "suggestTitle": "Suggested slots",
+    "suggestHint": "Tap a suggestion to select that time range.",
+    "suggestEmpty": "No slots with missing members.",
+    "countOfTotal": "{{count}}/{{total}} free",
+    "allFree": "Everyone free",
+    "availableNames": "Available: {{names}}",
+    "missingNames": "Missing: {{names}}",
+    "tabOptimal": "Optimal",
+    "tabLimited": "Limited"
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"

@@ -14,10 +14,10 @@ const members = [
 
 test("tách thành ô 30 phút, đếm số người rảnh và sắp theo ngày, giờ", () => {
   assert.deepEqual(buildSelectedCells(members), [
-    { date: "2026-09-08", start: 780, end: 810, count: 1 },
-    { date: "2026-09-08", start: 810, end: 840, count: 2 },
-    { date: "2026-09-08", start: 840, end: 870, count: 1 },
-    { date: "2026-09-09", start: 480, end: 510, count: 1 },
+    { date: "2026-09-08", start: 780, end: 810, count: 1, memberIds: ["a"] },
+    { date: "2026-09-08", start: 810, end: 840, count: 2, memberIds: ["a", "b"] },
+    { date: "2026-09-08", start: 840, end: 870, count: 1, memberIds: ["b"] },
+    { date: "2026-09-09", start: 480, end: 510, count: 1, memberIds: ["b"] },
   ]);
   assert.deepEqual(buildSelectedCells([]), []);
 });

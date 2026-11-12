@@ -20,7 +20,7 @@ export function formatDateLabel(dateStr) {
 /**
  * Các ô 30 phút mà ít nhất 1 thành viên đã chọn, kèm số người rảnh.
  * @param {Array<{ memberId: string, slots: Array<{ dateStr: string, startMinutes: number, endMinutes: number }> }>} members
- * @returns {Array<{ date: string, start: number, end: number, count: number }>} sắp theo ngày, giờ
+ * @returns {Array<{ date: string, start: number, end: number, count: number, memberIds: string[] }>} sắp theo ngày, giờ
  */
 export function buildSelectedCells(members = []) {
   const byCell = new Map();
@@ -36,7 +36,7 @@ export function buildSelectedCells(members = []) {
     }
   }
   return [...byCell.values()]
-    .map(({ people, ...cell }) => ({ ...cell, count: people.size }))
+    .map(({ people, ...cell }) => ({ ...cell, count: people.size, memberIds: [...people].sort() }))
     .sort((a, b) => (a.date === b.date ? a.start - b.start : a.date < b.date ? -1 : 1));
 }
 

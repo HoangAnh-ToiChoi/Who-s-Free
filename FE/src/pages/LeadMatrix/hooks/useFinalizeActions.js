@@ -5,12 +5,13 @@ import { buildSelectedCells } from "~/utils/finalizeCandidates";
 
 /**
  * useFinalizeActions - Chốt lịch / mở khoá lịch của Lead
- * - Khi mở modal: nạp mọi giờ nhóm đã chọn (không giới hạn theo tuần) để Lead chọn khung giờ chốt
+ * - Khi mở modal: nạp mọi giờ nhóm đã chọn (không giới hạn theo tuần) + danh sách thành viên (tên cho phần gợi ý)
  * - Sau khi chốt / mở khoá: gọi onChanged(session) để màn hình cập nhật trạng thái
  */
 export function useFinalizeActions({ sessionId, onChanged }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cells, setCells] = useState([]);
+  const [members, setMembers] = useState([]);
   const [isLoadingRuns, setIsLoadingRuns] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -23,6 +24,7 @@ export function useFinalizeActions({ sessionId, onChanged }) {
     setIsLoadingRuns(true);
     try {
       const members = await availabilityService.getSessionAvailabilities(sessionId, { fresh: true });
+      setMembers(members);
       setCells(buildSelectedCells(members));
     } finally {
       setIsLoadingRuns(false);
@@ -66,6 +68,7 @@ export function useFinalizeActions({ sessionId, onChanged }) {
   return {
     isModalOpen,
     cells,
+    members,
     isLoadingRuns,
     isSubmitting,
     error,

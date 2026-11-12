@@ -4,8 +4,9 @@ import { Lock } from "lucide-react";
 import BaseModal from "~/components/Modals/BaseModal";
 import { Button } from "~/components/ui/button";
 import { formatDateLabel, formatMinutes, formatRange, nextSelection } from "~/utils/finalizeCandidates";
+import FinalizeSuggestions from "./FinalizeSuggestions";
 
-function FinalizeForm({ cells, isSubmitting, error, onClose, onSubmit }) {
+function FinalizeForm({ cells, members, isSubmitting, error, onClose, onSubmit }) {
   const { t } = useTranslation();
   const [selection, setSelection] = useState(null);
   const [note, setNote] = useState("");
@@ -23,6 +24,8 @@ function FinalizeForm({ cells, isSubmitting, error, onClose, onSubmit }) {
 
   return (
     <div className="mt-5 flex flex-col gap-4">
+      <FinalizeSuggestions cells={cells} members={members} selection={selection} onPick={setSelection} />
+
       <div>
         <p className="text-xs font-semibold text-slate-600">{t("finalize.pickRun")}</p>
         <p className="mt-0.5 text-[11px] text-slate-400">{t("finalize.pickHint")}</p>
@@ -102,9 +105,10 @@ function FinalizeForm({ cells, isSubmitting, error, onClose, onSubmit }) {
 }
 
 /**
- * FinalizeModal - Lead bấm chọn trực tiếp khung giờ chốt trong các ô giờ nhóm đã chọn, kèm ghi chú cuối bảng Excel
+ * FinalizeModal - Lead chọn khung giờ chốt: bấm một gợi ý (tối ưu / hạn chế) hoặc bấm trực tiếp các ô giờ nhóm đã chọn,
+ * kèm ghi chú cuối bảng Excel
  */
-function FinalizeModal({ open, onOpenChange, cells, isLoading, isSubmitting, error, onSubmit }) {
+function FinalizeModal({ open, onOpenChange, cells, members, isLoading, isSubmitting, error, onSubmit }) {
   const { t } = useTranslation();
 
   return (
@@ -125,6 +129,7 @@ function FinalizeModal({ open, onOpenChange, cells, isLoading, isSubmitting, err
         <FinalizeForm
           key={cells.map((c) => `${c.date}${c.start}${c.count}`).join("|")}
           cells={cells}
+          members={members}
           isSubmitting={isSubmitting}
           error={error}
           onClose={() => onOpenChange(false)}

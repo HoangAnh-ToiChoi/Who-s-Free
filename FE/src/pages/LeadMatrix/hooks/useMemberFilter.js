@@ -15,8 +15,8 @@ const defaultPreset = () =>
  * 2. leadership — chỉ owner/lead (vai trò thật trong nhóm); các thành viên khác bị ẨN khỏi thanh lọc, không làm mờ
  * 3. custom — bấm chọn/bỏ chọn từng người (người bị bỏ chọn vẫn hiện, làm mờ, để bấm chọn lại)
  *
- * Trả thêm: visibleMembers (thành viên hiện trên thanh lọc theo chế độ), respondedMembers (đã nhập lịch — dùng cho
- * phân tích khung giờ, để người chưa nhập lịch không bị tính là "vắng").
+ * Trả thêm: visibleMembers (thành viên hiện trên thanh lọc theo chế độ), respondedMembers / pendingMembers
+ * (đã / chưa nhập lịch — cột "Đã chọn lịch / Chưa chọn lịch" bên phải).
  */
 export function useMemberFilter(sessionId) {
   const [activePreset, setActivePreset] = useState(defaultPreset);
@@ -51,7 +51,10 @@ export function useMemberFilter(sessionId) {
     return visibleMembers.map((m) => m.memberId);
   }, [activePreset, visibleMembers, customSelectedIds]);
 
-  const respondedMembers = useMemo(() => allMembers.filter(hasResponded), [allMembers]);
+  const [respondedMembers, pendingMembers] = useMemo(
+    () => [allMembers.filter(hasResponded), allMembers.filter((m) => !hasResponded(m))],
+    [allMembers]
+  );
 
   const setPreset = useCallback((preset) => {
     setActivePreset(preset);
@@ -76,6 +79,7 @@ export function useMemberFilter(sessionId) {
     allMembers,
     visibleMembers,
     respondedMembers,
+    pendingMembers,
     setPreset,
     toggleMember,
   };
