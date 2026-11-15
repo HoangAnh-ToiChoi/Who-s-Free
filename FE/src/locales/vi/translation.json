@@ -462,9 +462,10 @@
     "copied": "Đã copy",
     "copyFailed": "Không copy được",
     "copyPrompt": "Chọn và copy tin nhắn này (Ctrl/Cmd + C):",
-    "copyMessage": "Lịch \"{{title}}\": khung giờ nhiều người rảnh nhất là {{slot}} ({{count}}/{{total}} người rảnh). Chốt tại: {{link}}",
-    "copyMessageNoCommon": "Lịch \"{{title}}\": chưa có khung giờ nào trùng nhau, nhiều nhất là {{slot}} ({{count}}/{{total}} người rảnh). Chốt tại: {{link}}",
-    "copyMessageEmpty": "Lịch \"{{title}}\": chưa có khung giờ nào được chọn (0/{{total}} người đã điền). Xem tại: {{link}}"
+    "copyMessage": "Chào mọi người nha! Mình vừa xem lịch \"{{title}}\" rồi, khung giờ nhiều bạn rảnh nhất là {{slot}} ({{count}}/{{total}} bạn rảnh). Nếu mọi người thấy ổn thì mình chốt khung này luôn nha, còn ai thấy chưa tiện thì nhắn mình để mình xem lại. Chi tiết ở đây nè: {{link}}",
+    "copyMessageAll": "Chào mọi người nha! Mình vừa xem lịch \"{{title}}\" rồi, vui quá vì cả {{total}} bạn đều rảnh vào {{slot}}. Nếu mọi người thấy ổn thì mình chốt khung này luôn nha. Chi tiết ở đây nè: {{link}}",
+    "copyMessageNoCommon": "Chào mọi người nha! Mình vừa xem lịch \"{{title}}\" rồi, nhưng hiện chưa có khung giờ nào nhiều bạn cùng rảnh, gần nhất là {{slot}} (mới có {{count}}/{{total}} bạn rảnh). Bạn nào còn linh động thì xem lại giúp mình để tụi mình tìm được giờ chung nha. Chi tiết ở đây nè: {{link}}",
+    "copyMessageEmpty": "Chào mọi người nha! Lịch \"{{title}}\" hiện chưa có ai chọn giờ rảnh nên mình chưa chốt được. Mọi người dành ít phút điền giúp mình để tụi mình sớm có lịch họp nha. Điền ở đây nè: {{link}}"
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"

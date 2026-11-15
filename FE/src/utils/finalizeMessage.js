@@ -28,5 +28,7 @@ export function buildFinalizeMessage({ title, members = [], link, t, lang = "vi"
   const slot = `${formatSlotDate(best.date, lang)} ${formatClock(best.start)}–${formatClock(best.end)}`;
   const params = { title, slot, count: best.count, total, link };
   const hasCommonSlot = total <= 1 || best.count >= 2;
-  return t(hasCommonSlot ? "finalize.copyMessage" : "finalize.copyMessageNoCommon", params);
+  const everyoneFree = total >= 2 && best.count === total;
+  const key = everyoneFree ? "copyMessageAll" : hasCommonSlot ? "copyMessage" : "copyMessageNoCommon";
+  return t(`finalize.${key}`, params);
 }
