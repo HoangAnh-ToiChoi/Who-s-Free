@@ -8,6 +8,9 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?logo=postgresql&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-421%20passing-brightgreen)
 
+**Demo trực tuyến:** [whos-free-one.vercel.app](https://whos-free-one.vercel.app/)
+<sub>Backend chạy trên gói hosting miễn phí nên lần mở đầu tiên có thể chờ vài chục giây để máy chủ thức dậy; giao diện sẽ tự báo và tự thử lại.</sub>
+
 <p align="center">
   <img src="docs/screenshots/lead-matrix.jpg" alt="Lead Overlap Matrix: heatmap mức độ trùng lịch của cả nhóm" width="900">
 </p>
@@ -270,3 +273,5 @@ Who's Free/
 
 **HoangAnh-ToiChoi**, thiết kế và phát triển toàn bộ dự án (giao diện, API, cơ sở dữ liệu, triển khai).
 GitHub: [@HoangAnh-ToiChoi](https://github.com/HoangAnh-ToiChoi)
+Email: [hoanganh281205@gmail.com](mailto:hoanganh281205@gmail.com)
+Demo: [whos-free-one.vercel.app](https://whos-free-one.vercel.app/)
