@@ -111,7 +111,8 @@
     "notMemberDesc": "Hãy nhờ trưởng nhóm gửi lời mời để xem lịch trình và nhập lịch rảnh.",
     "statusOpen": "Đang mở",
     "statusFinalized": "Đã chốt",
-    "roleOwner": "Owner"
+    "roleOwner": "Owner",
+    "statusClosed": "Đã đóng"
   },
   "createGroupModal": {
     "title": "Tạo nhóm mới",
@@ -456,7 +457,14 @@
     "legendAll": "Cả nhóm ({{count}})",
     "timelineColumnShort": "Ngày",
     "scrollEarlier": "Xem giờ sớm hơn",
-    "scrollLater": "Xem giờ muộn hơn"
+    "scrollLater": "Xem giờ muộn hơn",
+    "copyMessageButton": "Copy tin nhắn chốt lịch",
+    "copied": "Đã copy",
+    "copyFailed": "Không copy được",
+    "copyPrompt": "Chọn và copy tin nhắn này (Ctrl/Cmd + C):",
+    "copyMessage": "Lịch \"{{title}}\": khung giờ nhiều người rảnh nhất là {{slot}} ({{count}}/{{total}} người rảnh). Chốt tại: {{link}}",
+    "copyMessageNoCommon": "Lịch \"{{title}}\": chưa có khung giờ nào trùng nhau, nhiều nhất là {{slot}} ({{count}}/{{total}} người rảnh). Chốt tại: {{link}}",
+    "copyMessageEmpty": "Lịch \"{{title}}\": chưa có khung giờ nào được chọn (0/{{total}} người đã điền). Xem tại: {{link}}"
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"
@@ -466,7 +474,10 @@
     "empty": "Chưa có thông báo nào",
     "invite": "Bạn được mời vào nhóm {{group}}",
     "inviteHint": "Mở link trong email để tham gia",
-    "finalized": "Lịch \"{{session}}\" của nhóm {{group}} đã được chốt"
+    "finalized": "Lịch \"{{session}}\" của nhóm {{group}} đã được chốt",
+    "reminder": "Ngày mai là ngày cuối của lịch \"{{title}}\" (nhóm {{group}})",
+    "closed": "Lịch \"{{title}}\" (nhóm {{group}}) đã đóng vì quá hạn, chưa được chốt",
+    "loadError": "Không cập nhật được thông báo, đang thử lại."
   },
   "matrixGate": {
     "errorTitle": "Không tải được lịch",
@@ -481,7 +492,8 @@
     "failed": "Chưa lưu được thay đổi của bạn.",
     "locked": "Lịch vừa được trưởng nhóm chốt — thay đổi cuối của bạn chưa được lưu.",
     "retry": "Thử lại",
-    "finalizing": "Trưởng nhóm đang cân nhắc chốt lịch nên thay đổi cuối của bạn chưa được lưu. Vui lòng liên hệ trưởng nhóm để trao đổi."
+    "finalizing": "Trưởng nhóm đang cân nhắc chốt lịch nên thay đổi cuối của bạn chưa được lưu. Vui lòng liên hệ trưởng nhóm để trao đổi.",
+    "closed": "Phiên đã quá hạn nên thay đổi cuối của bạn chưa được lưu. Liên hệ trưởng nhóm nếu cần."
   },
   "sessionNote": {
     "title": "Ghi chú của trưởng nhóm",
@@ -509,7 +521,8 @@
     "finalizedDateLocked": "Lịch đã chốt nên không đổi được khoảng ngày. Hãy huỷ chốt trước.",
     "deleteTitle": "Xóa lịch trình \"{{title}}\"?",
     "deleteDesc": "Toàn bộ lịch rảnh thành viên đã nhập trong lịch trình này sẽ bị xóa và không khôi phục được.",
-    "deleteConfirm": "Xóa lịch trình"
+    "deleteConfirm": "Xóa lịch trình",
+    "closedReopenHint": "Phiên đã quá hạn. Chọn ngày kết thúc từ hôm nay trở đi để mở lại cho mọi người điền lịch."
   },
   "groupActions": {
     "menu": "Tùy chọn nhóm",
@@ -542,5 +555,9 @@
     "leaveDesc": "Lịch rảnh của bạn trong các lịch trình chưa chốt sẽ bị xóa. Muốn quay lại cần được mời lần nữa.",
     "leaveConfirm": "Rời nhóm",
     "lockedLead": "Lead không thể bị hạ quyền"
+  },
+  "closedSession": {
+    "bannerMember": "Phiên đã quá hạn, bạn không thể điền thêm. Liên hệ trưởng nhóm nếu cần.",
+    "bannerLead": "Phiên đã quá hạn nên thành viên không điền thêm được. Bạn vẫn có thể chốt lịch hoặc gia hạn bằng cách sửa ngày kết thúc."
   }
 }
