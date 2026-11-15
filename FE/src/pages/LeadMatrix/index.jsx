@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, LockOpen } from "lucide-react";
+import { useParams } from "react-router";
+import { LockOpen } from "lucide-react";
 import { useSessionResolver, useWeekNavigation, useSessionFinalizeSync } from "~/hooks";
 import LeadMatrixHeader from "./components/LeadMatrixHeader";
 import HeatmapGrid from "./components/HeatmapGrid";
@@ -11,6 +12,10 @@ import { useSessionMembers } from "./hooks/useSessionMembers";
 import { useLeadExport } from "./hooks/useLeadExport";
 import { useFinalizeActions } from "./hooks/useFinalizeActions";
 import FinalizeModal from "./components/FinalizeModal";
+import LeadToasts from "./components/LeadToasts";
+import CopyMessageButton from "./components/CopyMessageButton";
+import ClosedBanner from "~/components/ClosedBanner";
+import { createCompositeSlug } from "~/utils/slugify";
 import { SessionNoteEditButton } from "~/components/SessionNote";
 import MatrixGate from "~/components/MatrixGate";
 import ConfirmModal from "~/components/Modals/ConfirmModal";
@@ -38,6 +43,11 @@ export function LeadMatrixContent({ readOnly = false }) {
   });
 
   const sessionId = currentSession?.id;
+  const { groupId } = useParams();
+  const isClosed = currentSession?.status === "closed";
+  const finalizeLink = sessionId
+    ? `${window.location.origin}/groups/${groupId}/lead-matrix/${createCompositeSlug(currentSession.title, sessionId)}`
+    : "";
 
   const { view, setView, members, visibleMembers, respondedMembers, pendingMembers } = useSessionMembers(sessionId);
   const { matrix, totalMembers, getCell } = useHeatmapMatrix(members, weekDays);
@@ -64,28 +74,7 @@ export function LeadMatrixContent({ readOnly = false }) {
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-2 py-2 sm:px-6 sm:py-4 lg:px-8 min-h-0 flex-1 flex flex-col overflow-hidden relative">
-      {/* Toast thông báo xuất file */}
-      {exportNotice && (
-        <div className="absolute top-4 right-8 z-50 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-800 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-          <span>{t("finalize.exportDone")}</span>
-        </div>
-      )}
-      {exportError && (
-        <div role="alert" className="absolute top-4 right-8 z-50 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700 shadow-lg">
-          {exportError}
-        </div>
-      )}
-      {finalizeActions.emailResult && (
-        <div className="absolute top-16 right-8 z-50 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-800 shadow-lg">
-          {t("finalize.emailResult", {
-            sent: finalizeActions.emailResult.sent,
-            total: finalizeActions.emailResult.total,
-          })}
-          {finalizeActions.emailResult.failed > 0 &&
-            ` ${t("finalize.emailFailed", { count: finalizeActions.emailResult.failed })}`}
-        </div>
-      )}
+      <LeadToasts exportNotice={exportNotice} exportError={exportError} emailResult={finalizeActions.emailResult} />
 
       {/* Header session */}
       <LeadMatrixHeader
@@ -96,6 +85,8 @@ export function LeadMatrixContent({ readOnly = false }) {
         readOnly={readOnly}
         weekNav={weekNav}
       />
+
+      {isClosed && <ClosedBanner isLead />}
 
       {finalizeActions.error && !finalizeActions.isModalOpen && (
         <p role="alert" className="mb-2 text-xs font-semibold text-rose-600">{finalizeActions.error}</p>
@@ -131,6 +122,7 @@ export function LeadMatrixContent({ readOnly = false }) {
           onFinalize={finalizeActions.openModal}
           onUnfinalize={() => setIsUnlockConfirmOpen(true)}
           weekNavOnMobile={false}
+          leadExtra={<CopyMessageButton title={currentSession?.title} members={members} link={finalizeLink} />}
         />
       </div>
 
