@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { notificationService } from "~/service/notificationService/notificationService";
 
 const POLL_INTERVAL_MS = 30_000;
@@ -6,11 +6,14 @@ const POLL_INTERVAL_MS = 30_000;
 /**
  * useNotifications - Lấy thông báo bằng polling (30s/lần, chỉ khi tab đang hiển thị,
  * và lấy lại ngay khi người dùng quay lại tab).
- * Lỗi mạng khi polling bị bỏ qua, lần sau sẽ thử lại.
+ * Lỗi khi polling không hiện toast: set `error` (UI tự hiện dấu hiệu nhỏ) và console.warn đúng một lần
+ * mỗi lần chuyển từ ổn sang lỗi; lần sau thử lại, thành công thì `error` tự xoá.
  */
 export function useNotifications({ enabled = true } = {}) {
   const [items, setItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [error, setError] = useState(false);
+  const failingRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -20,10 +23,17 @@ export function useNotifications({ enabled = true } = {}) {
       if (document.hidden) return;
       try {
         const data = await notificationService.list({ signal: controller.signal });
+        failingRef.current = false;
+        setError(false);
         setItems(data.items || []);
         setUnreadCount(data.unreadCount || 0);
-      } catch {
-        // polling nền: bỏ qua lỗi, lần sau thử lại
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        if (!failingRef.current) {
+          failingRef.current = true;
+          console.warn("[notifications] Không tải được thông báo:", err?.message || err);
+        }
+        setError(true);
       }
     };
 
@@ -48,7 +58,7 @@ export function useNotifications({ enabled = true } = {}) {
     }
   };
 
-  return { items, unreadCount, markAllRead };
+  return { items, unreadCount, error, markAllRead };
 }
 
 export default useNotifications;
