@@ -62,7 +62,7 @@ class NotificationService {
         toItem({
           id: `reminder:${row.id}`,
           type: "reminder",
-          createdAt: row.reminder_sent_at,
+          createdAt: row.reminder_at,
           groupName: row.group_name,
           sessionTitle: row.title,
           endDate: row.end_date,

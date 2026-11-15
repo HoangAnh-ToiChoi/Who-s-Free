@@ -7,7 +7,7 @@ process.env.SUPABASE_URL ||= "http://127.0.0.1:9";
 process.env.SUPABASE_ANON_KEY ||= "test-anon-key";
 const skip = process.env.DATABASE_URL ? false : "cần DATABASE_URL (Postgres đã áp migration 20261115)";
 
-let query, pool, Model, S;
+let query, pool, Model, S, Notif;
 const ids = { group: null, owner: null, lead: null, member: null };
 const at = (iso) => new Date(iso);
 
@@ -16,6 +16,7 @@ before(async () => {
   ({ query, pool } = await import("../src/configs/db.config.js"));
   ({ default: Model } = await import("../src/models/session-deadline.model.js"));
   ({ default: S } = await import("../src/models/session.model.js"));
+  ({ default: Notif } = await import("../src/models/notification.model.js"));
   const tag = Date.now();
   const user = async (label) =>
     (await query("INSERT INTO public.users (email, full_name) VALUES ($1, $2) RETURNING id;", [`dl-${label}-${tag}@example.com`, label])).rows[0].id;
@@ -80,6 +81,21 @@ describe("nhắc 20h giờ VN (UTC+7), end_date = 2001-03-11", { skip }, () => {
     await Model.releaseReminders([id]);
     assert.equal((await status(id)).reminder_sent_at, null);
     assert.equal(mine(await Model.claimReminders(at("2001-03-10T13:10:00Z"))).length, 1);
+  });
+
+  test("chuông nhắc hạn độc lập với mail: hiện từ 20:00 VN, vẫn hiện sau khi release, member thì không thấy", async () => {
+    await clear();
+    const id = await mk("2001-03-11");
+    const bell = async (userId, iso) => (await Notif.findReminders(userId, at(iso))).filter((r) => r.id === id);
+    assert.equal((await bell(ids.lead, "2001-03-10T12:59:00Z")).length, 0);
+    assert.equal((await bell(ids.lead, "2001-03-10T13:00:00Z")).length, 1);
+    await Model.claimReminders(at("2001-03-10T13:00:00Z"));
+    await Model.releaseReminders([id]);
+    assert.equal((await status(id)).reminder_sent_at, null);
+    assert.equal((await bell(ids.owner, "2001-03-10T14:00:00Z")).length, 1);
+    assert.equal((await bell(ids.member, "2001-03-10T14:00:00Z")).length, 0);
+    assert.equal((await bell(ids.lead, "2001-03-11T00:00:00Z")).length, 1, "ngày end_date vẫn còn hiện");
+    assert.equal((await bell(ids.lead, "2001-03-11T17:00:00Z")).length, 0, "sang 00:00 VN ngày sau end_date thì hết");
   });
 });
 

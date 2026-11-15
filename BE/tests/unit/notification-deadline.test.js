@@ -31,7 +31,7 @@ test("reminder + closed: đúng shape theo contract, link tới ma trận, unrea
   stub({
     seenAt: "2026-11-15T13:30:00Z",
     reminders: [
-      { id: "s1", slug: "plan", title: "Plan", group_id: "g1", group_name: "G1", reminder_sent_at: "2026-11-15T13:00:00Z", end_date: "2026-11-16" },
+      { id: "s1", slug: "plan", title: "Plan", group_id: "g1", group_name: "G1", reminder_at: "2026-11-15T13:00:00Z", end_date: "2026-11-16" },
     ],
     closed: [{ id: "s2", slug: "trip", title: "Trip", group_id: "g2", group_name: "G2", closed_at: "2026-11-15T17:00:00Z" }],
   });
@@ -133,7 +133,7 @@ test("giới hạn 30 item sau khi trộn nhiều nguồn", async () => {
       group_id: "g",
       group_name: "G",
       closed_at: `2026-11-15T10:${String(i).padStart(2, "0")}:00Z`,
-      reminder_sent_at: `2026-11-14T10:${String(i).padStart(2, "0")}:00Z`,
+      reminder_at: `2026-11-14T10:${String(i).padStart(2, "0")}:00Z`,
     }));
   stub({ reminders: many("r", 30), closed: many("c", 30) });
   assert.equal((await notificationService.list(user)).items.length, 30);
@@ -160,7 +160,8 @@ test("model: query reminder/closed chỉ cho owner/lead, không SELECT *, có LI
     assert.match(sql, /LIMIT 30/);
     assert.doesNotMatch(sql, /SELECT\s+\*/i);
   }
-  assert.match(sqls[0], /reminder_sent_at IS NOT NULL/);
+  assert.doesNotMatch(sqls[0], /reminder_sent_at/);
+  assert.match(sqls[0], /TIME '20:00'/);
   assert.match(sqls[0], /AT TIME ZONE 'Asia\/Ho_Chi_Minh'/);
   assert.match(sqls[1], /INTERVAL '14 days'/);
 });
