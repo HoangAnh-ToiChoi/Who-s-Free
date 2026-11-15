@@ -87,6 +87,8 @@ class SessionService {
       }
       const label = typeof payload.dateRange === "string" ? payload.dateRange.trim().slice(0, 150) : "";
       Object.assign(changes, { start_date: startDate, end_date: endDate, date_range: label || `${startDate} – ${endDate}` });
+      // Đổi hạn: được nhắc lại, và session đã tự đóng được mở lại nếu hạn mới chưa qua (model xét theo giờ VN)
+      if (endDate !== session.end_date) changes.reset_deadline = true;
     }
 
     await SessionModel.update(session.id, changes);

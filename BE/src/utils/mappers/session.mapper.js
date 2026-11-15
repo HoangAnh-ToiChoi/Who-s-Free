@@ -39,6 +39,7 @@ export function toPublicSession(s) {
       s.status !== "finalized" && s.finalizing_until && new Date(s.finalizing_until) > new Date()
         ? { by: s.finalizing_by, until: new Date(s.finalizing_until).toISOString() }
         : null,
+    closedAt: s.closed_at ? new Date(s.closed_at).toISOString() : null,
     createdAt: s.created_at || s.createdAt || new Date().toISOString(),
     updatedAt: s.updated_at || s.updatedAt || new Date().toISOString(),
   };

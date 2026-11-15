@@ -2,6 +2,8 @@ import { query } from "../configs/db.config.js";
 
 /** Số ngày giữ lại thông báo "đã chốt lịch" trong chuông. */
 const FINALIZED_WINDOW_DAYS = 14;
+/** Số ngày giữ lại thông báo "đã đóng vì quá hạn" trong chuông. */
+const CLOSED_WINDOW_DAYS = 14;
 const LIMIT = 30;
 
 /**
@@ -55,6 +57,40 @@ class NotificationModel {
           AND s.finalized_at > NOW() - INTERVAL '${FINALIZED_WINDOW_DAYS} days'
           AND s.finalized_by IS DISTINCT FROM $1
         ORDER BY s.finalized_at DESC
+        LIMIT ${LIMIT};`,
+      [userId],
+    );
+    return rows;
+  }
+
+  /** Nhắc hạn đã gửi cho session còn mở, chỉ cho owner/lead của nhóm. */
+  static async findReminders(userId) {
+    const { rows } = await query(
+      `SELECT s.id, s.slug, s.title, s.group_id, s.reminder_sent_at, s.end_date::text AS end_date, g.name AS group_name
+         FROM public.sessions s
+         JOIN public.group_members gm ON gm.group_id = s.group_id AND gm.user_id = $1 AND gm.role IN ('owner', 'lead')
+         JOIN public.groups g ON g.id = s.group_id
+        WHERE s.status = 'active_poll'
+          AND s.reminder_sent_at IS NOT NULL
+          AND s.end_date >= (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
+        ORDER BY s.reminder_sent_at DESC
+        LIMIT ${LIMIT};`,
+      [userId],
+    );
+    return rows;
+  }
+
+  /** Session tự đóng vì quá hạn trong CLOSED_WINDOW_DAYS ngày gần đây, chỉ cho owner/lead của nhóm. */
+  static async findRecentClosed(userId) {
+    const { rows } = await query(
+      `SELECT s.id, s.slug, s.title, s.group_id, s.closed_at, g.name AS group_name
+         FROM public.sessions s
+         JOIN public.group_members gm ON gm.group_id = s.group_id AND gm.user_id = $1 AND gm.role IN ('owner', 'lead')
+         JOIN public.groups g ON g.id = s.group_id
+        WHERE s.status = 'closed'
+          AND s.closed_at IS NOT NULL
+          AND s.closed_at > NOW() - INTERVAL '${CLOSED_WINDOW_DAYS} days'
+        ORDER BY s.closed_at DESC
         LIMIT ${LIMIT};`,
       [userId],
     );

@@ -5,6 +5,7 @@ import invitationRoutes from "./invitation.routes.js";
 import joinRoutes from "./join.routes.js";
 import sessionRoutes from "./session.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import jobRoutes from "./job.routes.js";
 import MemberModel from "../models/member.model.js";
 import AuthMiddleware from "../middlewares/auth.middleware.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -18,6 +19,7 @@ router.use("/invitations", invitationRoutes);
 router.use("/join", joinRoutes);
 router.use("/sessions", sessionRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/jobs", jobRoutes);
 
 router.get(
   "/members",

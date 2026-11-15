@@ -64,14 +64,27 @@ class SessionModel {
     return rows?.[0] ?? null;
   }
 
-  /** Cập nhật các cột được phép (tên, khoảng ngày, ghi chú). `fields` dùng tên cột DB. */
-  static async update(id, fields) {
+  /**
+   * Cập nhật các cột được phép (tên, khoảng ngày, ghi chú). `fields` dùng tên cột DB.
+   * `reset_deadline: true` (kèm end_date mới): xoá dấu đã nhắc để được nhắc lại, và mở lại session `closed`
+   * nếu end_date mới >= hôm nay theo giờ VN (tính trong SQL; vế phải của SET luôn thấy giá trị cũ của cột).
+   */
+  static async update(id, { reset_deadline: resetDeadline, ...fields }) {
     const ALLOWED = ["title", "start_date", "end_date", "date_range", "description"];
     const keys = Object.keys(fields).filter((key) => ALLOWED.includes(key));
     if (keys.length === 0) return false;
-    const sets = keys.map((key, i) => `${key} = $${i + 2}`).join(", ");
+    const sets = keys.map((key, i) => `${key} = $${i + 2}`);
+    if (resetDeadline && keys.includes("end_date")) {
+      const reopen = `status = 'closed' AND $${keys.indexOf("end_date") + 2}::date >= (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date`;
+      sets.push(
+        "reminder_sent_at = NULL",
+        `status = CASE WHEN ${reopen} THEN 'active_poll' ELSE status END`,
+        `closed_at = CASE WHEN ${reopen} THEN NULL ELSE closed_at END`,
+        `closed_notified_at = CASE WHEN ${reopen} THEN NULL ELSE closed_notified_at END`,
+      );
+    }
     const { rowCount } = await query(
-      `UPDATE public.sessions SET ${sets}, updated_at = NOW() WHERE id = $1;`,
+      `UPDATE public.sessions SET ${sets.join(", ")}, updated_at = NOW() WHERE id = $1;`,
       [id, ...keys.map((key) => fields[key])],
     );
     return rowCount > 0;
