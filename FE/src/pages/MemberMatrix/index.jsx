@@ -10,6 +10,7 @@ import MatrixGate from "~/components/MatrixGate";
 import SaveStatusIndicator from "./components/SaveStatusIndicator";
 import BodyPortal from "~/components/BodyPortal";
 import { useSessionFinalizeSync } from "~/hooks";
+import ClosedBanner from "~/components/ClosedBanner";
 import { useFinalizingLock } from "./hooks/useFinalizingLock";
 
 /**
@@ -18,7 +19,7 @@ import { useFinalizingLock } from "./hooks/useFinalizingLock";
  */
 function MatrixContent() {
   const { t } = useTranslation();
-  const { currentSession, refreshCurrentSession } = useSessionResolver();
+  const { currentSession, updateCurrentSession, refreshCurrentSession } = useSessionResolver();
   const { currentUser } = useCurrentUser();
   const { groupId } = useParams();
   const { role } = useUserGroupRole(groupId);
@@ -28,8 +29,11 @@ function MatrixContent() {
   const [lostLastEdit, setLostLastEdit] = useState(false);
   // Trưởng nhóm đang mở bảng Chốt lịch: chỉ xem, không sửa lịch
   const isFinalizingLocked = useFinalizingLock(currentSession, currentUser?.id, refreshCurrentSession);
-  const handleSessionLocked = () => {
+  const isClosed = currentSession?.status === "closed";
+  const handleSessionLocked = (kind) => {
     setLostLastEdit(true);
+    // Server đã báo quá hạn: chuyển màn đóng ngay, không đợi lần tải lại session
+    if (kind === "closed") updateCurrentSession({ status: "closed" });
     refreshCurrentSession();
   };
 
@@ -55,6 +59,8 @@ function MatrixContent() {
       {/* Header session với link quay lại nhóm & nút chuyển đổi chế độ */}
       <MatrixHeader session={currentSession} />
 
+      {isClosed && <ClosedBanner isLead={isLead} lostLastEdit={lostLastEdit} />}
+
       {isFinalizingLocked && (
         <div
           role="status"
@@ -73,7 +79,7 @@ function MatrixContent() {
           dateWindow={{ startDate: currentSession?.startDate, endDate: currentSession?.endDate }}
           memberId={currentUser?.id}
           onSessionLocked={handleSessionLocked}
-          locked={isFinalizingLocked}
+          locked={isFinalizingLocked || isClosed}
         />
       </div>
     </div>

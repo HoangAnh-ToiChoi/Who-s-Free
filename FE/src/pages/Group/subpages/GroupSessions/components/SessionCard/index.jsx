@@ -47,6 +47,12 @@ function getSessionTheme(tagColor) {
   }
 }
 
+const STATUS_BADGES = {
+  active_poll: { label: "groupDetail.statusOpen", className: "bg-emerald-50 text-emerald-700" },
+  finalized: { label: "groupDetail.statusFinalized", className: "bg-indigo-50 text-indigo-700" },
+  closed: { label: "groupDetail.statusClosed", className: "bg-orange-50 text-orange-700" },
+};
+
 function SessionCard({ session, canManage = false, onEdit, onDelete }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -66,7 +72,8 @@ function SessionCard({ session, canManage = false, onEdit, onDelete }) {
   const matrixUrl = `/groups/${groupId}/matrix/${sessionSlug}`;
 
   const openMatrix = () => navigate(matrixUrl, { state: { session } });
-  const isFinalized = session.status === "finalized";
+  const status = STATUS_BADGES[session.status] || STATUS_BADGES.active_poll;
+  const isClosed = session.status === "closed";
 
   const menuItems = [
     { key: "edit", label: t("manage.edit"), icon: Pencil, onSelect: onEdit },
@@ -98,14 +105,14 @@ function SessionCard({ session, canManage = false, onEdit, onDelete }) {
         <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
           <Calendar size={13} className="shrink-0 text-slate-400" />
           <span className="truncate">{session.dateRange}</span>
-          <span
-            className={cn(
-              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold sm:hidden",
-              isFinalized ? "bg-indigo-50 text-indigo-700" : "bg-emerald-50 text-emerald-700"
-            )}
-          >
-            {t(isFinalized ? "groupDetail.statusFinalized" : "groupDetail.statusOpen")}
+          <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold sm:hidden", status.className)}>
+            {t(status.label)}
           </span>
+          {isClosed && (
+            <span className={cn("hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold sm:inline", status.className)}>
+              {t(status.label)}
+            </span>
+          )}
         </div>
 
         {/* Ghi chú của trưởng nhóm: 1 dòng trong cặp dấu nháy (rê chuột / trang ma trận xem đầy đủ) */}

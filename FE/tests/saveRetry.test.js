@@ -6,6 +6,11 @@ test("phiên đã chốt → locked (khớp lại theo server, không thử lạ
   assert.equal(classifySaveError({ status: 409, code: "SESSION_FINALIZED", details: { status: "finalized", slots: [] } }), "locked");
 });
 
+test("phiên quá hạn bị đóng → closed (khớp lại theo server, không thử lại)", () => {
+  assert.equal(classifySaveError({ status: 409, code: "SESSION_CLOSED", details: { status: "closed", slots: [] } }), "closed");
+  assert.equal(classifySaveError({ status: 409, details: { status: "closed" } }), "closed");
+});
+
 test("mất mạng / server ngủ / quá tải / rate limit → retry", () => {
   for (const status of [undefined, 0, 408, 429, 500, 502, 503, 504]) {
     assert.equal(classifySaveError({ status }), "retry", `status ${status}`);
