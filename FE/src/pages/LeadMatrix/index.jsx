@@ -46,7 +46,7 @@ export function LeadMatrixContent({ readOnly = false }) {
   const { groupId } = useParams();
   const isClosed = currentSession?.status === "closed";
   const finalizeLink = sessionId
-    ? `${window.location.origin}/groups/${groupId}/lead-matrix/${createCompositeSlug(currentSession.title, sessionId)}`
+    ? `${window.location.origin}/groups/${groupId}/matrix/${createCompositeSlug(currentSession.title, sessionId)}`
     : "";
 
   const { view, setView, members, visibleMembers, respondedMembers, pendingMembers } = useSessionMembers(sessionId);
