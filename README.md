@@ -188,7 +188,9 @@ npm run dev            # http://localhost:5000
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Kết nối Supabase |
 | `JWT_SECRET`, `JWT_REFRESH_SECRET` | Chuỗi ngẫu nhiên dài |
 | `CLIENT_ORIGIN`, `API_BASE_URL` | Địa chỉ FE và BE (dùng cho CORS và link trong email) |
-| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Gửi email (hoặc dùng `BREVO_*`) |
+| `EMAIL_PROVIDER` | Chọn nhà gửi email: `resend` (mặc định) hoặc `brevo` |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Cấu hình khi dùng Resend |
+| `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` | Cấu hình khi dùng Brevo (`BREVO_SENDER_NAME` không bắt buộc) |
 | `JOB_SECRET` | Bí mật cho endpoint job hẹn giờ. Để trống thì endpoint tự đóng |
 
 ### 3. Frontend
