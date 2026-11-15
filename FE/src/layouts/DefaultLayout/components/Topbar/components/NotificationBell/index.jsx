@@ -1,14 +1,12 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Bell, CalendarCheck, UserPlus } from "lucide-react";
+import { AlarmClock, Bell, CalendarCheck, CalendarX, UserPlus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { useClickOutside } from "~/hooks";
+import { getNotificationView } from "~/utils/notificationView";
 
-const TYPE_STYLES = {
-  invite: { Icon: UserPlus, className: "bg-indigo-100 text-indigo-600" },
-  finalized: { Icon: CalendarCheck, className: "bg-emerald-100 text-emerald-600" },
-};
+const ICONS = { UserPlus, CalendarCheck, AlarmClock, CalendarX };
 
 const RELATIVE_STEPS = [
   ["day", 86400],
@@ -26,7 +24,7 @@ function formatRelative(dateString, locale) {
   return rtf.format(0, "minute");
 }
 
-function NotificationBell({ items = [], unreadCount = 0, onOpen }) {
+function NotificationBell({ items = [], unreadCount = 0, error = false, onOpen }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -39,10 +37,7 @@ function NotificationBell({ items = [], unreadCount = 0, onOpen }) {
     setOpen(!open);
   };
 
-  const describe = (item) =>
-    item.type === "invite"
-      ? t("notifications.invite", { group: item.groupName })
-      : t("notifications.finalized", { session: item.sessionTitle, group: item.groupName });
+  const entries = items.map((item) => ({ item, view: getNotificationView(item) })).filter((e) => e.view);
 
   const handleItemClick = (item) => {
     if (!item.link) return;
@@ -74,12 +69,18 @@ function NotificationBell({ items = [], unreadCount = 0, onOpen }) {
             {t("notifications.title")}
           </div>
 
-          {items.length === 0 ? (
+          {error && (
+            <p role="alert" className="border-b border-amber-100 bg-amber-50 px-4 py-2 text-[11px] font-medium text-amber-800">
+              {t("notifications.loadError")}
+            </p>
+          )}
+
+          {entries.length === 0 ? (
             <p className="px-4 py-8 text-center text-xs text-slate-400">{t("notifications.empty")}</p>
           ) : (
             <ul className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
-              {items.map((item) => {
-                const { Icon, className } = TYPE_STYLES[item.type] || TYPE_STYLES.invite;
+              {entries.map(({ item, view }) => {
+                const Icon = ICONS[view.icon];
                 const clickable = Boolean(item.link);
                 return (
                   <li key={item.id}>
@@ -92,17 +93,17 @@ function NotificationBell({ items = [], unreadCount = 0, onOpen }) {
                       } ${clickable ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`}
                     >
                       <span
-                        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${className}`}
+                        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${view.tone}`}
                       >
                         <Icon size={15} />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-xs leading-snug font-medium text-slate-800">
-                          {describe(item)}
+                          {t(view.textKey, view.params)}
                         </span>
-                        {item.type === "invite" && (
+                        {view.hintKey && (
                           <span className="mt-0.5 block text-[11px] text-slate-500">
-                            {t("notifications.inviteHint")}
+                            {t(view.hintKey)}
                           </span>
                         )}
                         <span className="mt-0.5 block text-[11px] text-slate-400">

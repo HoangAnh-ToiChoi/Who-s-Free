@@ -123,9 +123,25 @@ CREATE TABLE IF NOT EXISTS sessions (
     -- Trưởng nhóm đang mở bảng Chốt lịch: thành viên khác không lưu được lịch cho tới finalizing_until
     finalizing_by UUID REFERENCES users(id) ON DELETE SET NULL,
     finalizing_until TIMESTAMPTZ,
+    -- Tự đóng khi quá end_date (giờ VN); reminder_sent_at / closed_notified_at = đã giành quyền gửi mail (job nhắc hạn)
+    closed_at TIMESTAMPTZ,
+    reminder_sent_at TIMESTAMPTZ,
+    closed_notified_at TIMESTAMPTZ,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Nhật ký mỗi lần chạy job nhắc hạn / đóng session
+CREATE TABLE IF NOT EXISTS job_runs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_name VARCHAR(100) NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    finished_at TIMESTAMPTZ,
+    reminders_sent INT NOT NULL DEFAULT 0,
+    sessions_closed INT NOT NULL DEFAULT 0,
+    emails_failed INT NOT NULL DEFAULT 0,
+    error TEXT
 );
 
 -- ==============================================================================
@@ -166,6 +182,8 @@ CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
 CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_group ON sessions(group_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_slug ON sessions(slug);
+CREATE INDEX IF NOT EXISTS idx_sessions_status_end_date ON sessions(end_date) WHERE status = 'active_poll';
+CREATE INDEX IF NOT EXISTS idx_sessions_closed_unnotified ON sessions(id) WHERE status = 'closed' AND closed_notified_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_session_participants_session ON session_participants(session_id);
 CREATE INDEX IF NOT EXISTS idx_avail_slots_session_user ON availability_slots(session_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_avail_slots_session_day ON availability_slots(session_id, day_index);
@@ -185,6 +203,7 @@ ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_invites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE job_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE availability_slots ENABLE ROW LEVEL SECURITY;
 

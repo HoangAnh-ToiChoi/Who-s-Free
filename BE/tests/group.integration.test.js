@@ -465,13 +465,12 @@ test("DETAIL-03: Fetch unknown UUID/slug returns 404 GROUP_NOT_FOUND", async () 
   assert.equal(data.error, "GROUP_NOT_FOUND");
 });
 
-test("DETAIL-04: Authenticated non-member fetches group detail returns guest userRole", async () => {
+test("DETAIL-04: Authenticated non-member fetching group detail is rejected with 403", async () => {
   const { group, outsiderToken } = await setupGroupA();
   const { response, data } = await request(`/api/groups/${group.id}`, { token: outsiderToken });
 
-  assert.equal(response.status, 200);
-  assert.equal(data.data.id, group.id);
-  assert.equal(data.data.userRole, "guest");
+  assert.equal(response.status, 403);
+  assert.equal(data.error, "FORBIDDEN");
 });
 
 // ==========================================

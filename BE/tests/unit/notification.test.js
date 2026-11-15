@@ -5,10 +5,12 @@ import notificationService from "../../src/services/notification.service.js";
 
 const user = { id: "u1", email: "a@x.com" };
 
-function stub({ seenAt, invitations = [], finalized = [] }) {
+function stub({ seenAt, invitations = [], finalized = [], reminders = [], closed = [] }) {
   NotificationModel.getSeenAt = async () => seenAt;
   NotificationModel.findPendingInvitations = async () => invitations;
   NotificationModel.findRecentFinalized = async () => finalized;
+  NotificationModel.findReminders = async () => reminders;
+  NotificationModel.findRecentClosed = async () => closed;
 }
 
 test("trộn lời mời + lịch chốt, mới nhất trước, đếm chưa đọc theo mốc đã xem", async () => {

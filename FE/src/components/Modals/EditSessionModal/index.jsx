@@ -78,6 +78,9 @@ function EditSessionForm({ session, onOpenChange, onSubmit }) {
         <div inert={isFinalized} className={cn(isFinalized && "pointer-events-none opacity-60")}>
           <DateRangeField value={dateRange} onChange={setDateRange} hasError={submitted && rangeIncomplete} />
         </div>
+        {session.status === "closed" && (
+          <p className="text-xs text-orange-700">{t("sessionActions.closedReopenHint")}</p>
+        )}
         {isFinalized && (
           <p className="flex items-start gap-1.5 text-xs text-amber-700">
             <Lock size={13} className="mt-0.5 shrink-0" />
