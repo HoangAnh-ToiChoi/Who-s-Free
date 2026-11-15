@@ -462,10 +462,24 @@
     "copied": "Đã copy",
     "copyFailed": "Không copy được",
     "copyPrompt": "Chọn và copy tin nhắn này (Ctrl/Cmd + C):",
-    "copyMessage": "Chào mọi người nha! Mình vừa xem lịch \"{{title}}\" rồi, khung giờ nhiều bạn rảnh nhất là {{slot}} ({{count}}/{{total}} bạn rảnh). Nếu mọi người thấy ổn thì mình chốt khung này luôn nha, còn ai thấy chưa tiện thì nhắn mình để mình xem lại. Chi tiết ở đây nè: {{link}}",
-    "copyMessageAll": "Chào mọi người nha! Mình vừa xem lịch \"{{title}}\" rồi, vui quá vì cả {{total}} bạn đều rảnh vào {{slot}}. Nếu mọi người thấy ổn thì mình chốt khung này luôn nha. Chi tiết ở đây nè: {{link}}",
-    "copyMessageNoCommon": "Chào mọi người nha! Mình vừa xem lịch \"{{title}}\" rồi, nhưng hiện chưa có khung giờ nào nhiều bạn cùng rảnh, gần nhất là {{slot}} (mới có {{count}}/{{total}} bạn rảnh). Bạn nào còn linh động thì xem lại giúp mình để tụi mình tìm được giờ chung nha. Chi tiết ở đây nè: {{link}}",
-    "copyMessageEmpty": "Chào mọi người nha! Lịch \"{{title}}\" hiện chưa có ai chọn giờ rảnh nên mình chưa chốt được. Mọi người dành ít phút điền giúp mình để tụi mình sớm có lịch họp nha. Điền ở đây nè: {{link}}"
+    "copy": {
+      "cheerful": {
+        "some": "Mọi người ơi, lịch \"{{title}}\" có kết quả rồi nè! Khung giờ nhiều bạn rảnh nhất là {{slot}} ({{count}}/{{total}} bạn rảnh). Mọi người thấy ổn thì mình chốt khung này luôn nha, ai chưa tiện thì nhắn mình liền. Xem chi tiết ở đây nè: {{link}}",
+        "all": "Mọi người ơi, lịch \"{{title}}\" có kết quả rồi nè! Cả {{total}} bạn đều rảnh vào {{slot}}, nên mình chốt khung này luôn nha. Ai có ý kiến khác thì nhắn mình liền. Xem chi tiết ở đây nè: {{link}}",
+        "noCommon": "Mọi người ơi, mình xem lịch \"{{title}}\" rồi mà chưa có khung giờ nào nhiều bạn cùng rảnh. Gần nhất là {{slot}} (mới {{count}}/{{total}} bạn rảnh). Bạn nào còn linh động thì vô xem lại giúp mình nha, để tụi mình tìm được giờ chung. Vô đây nè: {{link}}",
+        "empty": "Mọi người ơi, lịch \"{{title}}\" chưa có ai chọn giờ rảnh nên mình chưa chốt được. Mọi người dành ít phút điền giúp mình nha, để tụi mình sớm có lịch họp. Điền ở đây nè: {{link}}"
+      },
+      "casual": {
+        "some": "ok t coi lịch \"{{title}}\" rồi. nhiều người rảnh nhất là {{slot}} ({{count}}/{{total}} người). ai ko tiện thì nói luôn, ko thì t chốt khung này. xem chính xác ở đây: {{link}}",
+        "all": "ok t coi lịch \"{{title}}\" rồi, cả {{total}} người đều rảnh {{slot}}. t chốt khung này luôn, ai có ý kiến khác thì nói luôn. xem chính xác ở đây: {{link}}",
+        "noCommon": "t coi lịch \"{{title}}\" rồi mà chưa có giờ nào nhiều người rảnh chung. gần nhất là {{slot}} (mới {{count}}/{{total}} người). ai còn xoay được thì vô chỉnh lại giùm t. chỉnh ở đây: {{link}}",
+        "empty": "lịch \"{{title}}\" chưa thấy ai điền giờ rảnh hết nên t chưa chốt được. mọi người vô điền giùm t cái. điền ở đây: {{link}}"
+      }
+    },
+    "copyStyle": {
+      "cheerful": { "label": "Vui vẻ", "hint": "Thân thiện, có “nha”, “nè”" },
+      "casual": { "label": "Thẳng kiểu bạn bè", "hint": "Ngắn gọn, nói chuyện ngang ngang" }
+    }
   },
   "system": {
     "waking": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…"

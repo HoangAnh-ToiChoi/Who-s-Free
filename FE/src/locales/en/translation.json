@@ -462,10 +462,24 @@
     "copied": "Copied",
     "copyFailed": "Couldn't copy",
     "copyPrompt": "Select and copy this message (Ctrl/Cmd + C):",
-    "copyMessage": "Hi everyone! I just checked the \"{{title}}\" schedule, and the time most people are free is {{slot}} ({{count}}/{{total}} free). If that works for you, I'll lock it in, and if it doesn't, just let me know so I can take another look. Details here: {{link}}",
-    "copyMessageAll": "Hi everyone! I just checked the \"{{title}}\" schedule, and great news: all {{total}} of us are free on {{slot}}. If that works for you, I'll lock it in. Details here: {{link}}",
-    "copyMessageNoCommon": "Hi everyone! I just checked the \"{{title}}\" schedule, but there's no time that works for most of us yet. The closest is {{slot}} ({{count}}/{{total}} free). If you have some flexibility, please take another look so we can find a time together. Details here: {{link}}",
-    "copyMessageEmpty": "Hi everyone! Nobody has picked their free times for \"{{title}}\" yet, so I can't lock it in. Could you take a minute to fill it in so we can set the meeting soon? Fill it in here: {{link}}"
+    "copy": {
+      "cheerful": {
+        "some": "Hey everyone, the \"{{title}}\" schedule has results! The time most people are free is {{slot}} ({{count}}/{{total}} free). If that works for you, I'll lock it in, and if it doesn't, just tell me. Details here: {{link}}",
+        "all": "Hey everyone, the \"{{title}}\" schedule has results! All {{total}} of us are free on {{slot}}, so I'll lock it in. If you have a different idea, just tell me. Details here: {{link}}",
+        "noCommon": "Hey everyone, I checked the \"{{title}}\" schedule and there's no time that works for most of us yet. The closest is {{slot}} ({{count}}/{{total}} free). If you have some flexibility, please take another look so we can find a time together. Here: {{link}}",
+        "empty": "Hey everyone, nobody has picked their free times for \"{{title}}\" yet, so I can't lock it in. Could you take a minute to fill it in so we can set the meeting soon? Fill it in here: {{link}}"
+      },
+      "casual": {
+        "some": "ok i checked \"{{title}}\". most people are free {{slot}} ({{count}}/{{total}}). if that doesn't work for you just say so, otherwise i'm locking it in. exact details here: {{link}}",
+        "all": "ok i checked \"{{title}}\", all {{total}} of us are free {{slot}}. locking that in, say so if you disagree. exact details here: {{link}}",
+        "noCommon": "i checked \"{{title}}\" and there's no time most of us share yet. closest is {{slot}} ({{count}}/{{total}}). if you can move things around, go update yours. here: {{link}}",
+        "empty": "nobody's filled in \"{{title}}\" yet so i can't lock anything. go fill it in. here: {{link}}"
+      }
+    },
+    "copyStyle": {
+      "cheerful": { "label": "Cheerful", "hint": "Friendly and upbeat" },
+      "casual": { "label": "Casual and blunt", "hint": "Short, like texting a friend" }
+    }
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"

@@ -7,6 +7,7 @@ const FEEDBACK_MS = 2500;
 
 /**
  * useCopyFinalizeMessage - Dựng tin nhắn chốt lịch từ dữ liệu đang xem và copy vào clipboard.
+ * copy(style): style là giọng văn ("cheerful" | "casual").
  * status: idle | copied | failed (tự về idle sau ít giây).
  */
 export function useCopyFinalizeMessage({ title, members, link }) {
@@ -16,8 +17,8 @@ export function useCopyFinalizeMessage({ title, members, link }) {
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
-  const copy = useCallback(async () => {
-    const message = buildFinalizeMessage({ title, members, link, t, lang: i18n.language });
+  const copy = useCallback(async (style) => {
+    const message = buildFinalizeMessage({ title, members, link, t, lang: i18n.language, style });
     const ok = await copyText(message, t("finalize.copyPrompt"));
     setStatus(ok ? "copied" : "failed");
     clearTimeout(timerRef.current);

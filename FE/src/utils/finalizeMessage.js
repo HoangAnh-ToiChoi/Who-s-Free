@@ -2,6 +2,9 @@
 import { buildSelectedCells } from "./finalizeCandidates.js";
 import { rankSuggestions } from "./finalizeSuggestions.js";
 
+/** Các giọng văn có sẵn, khớp khoá `finalize.copy.<style>` trong locales. */
+export const COPY_STYLES = ["cheerful", "casual"];
+
 const pad = (n) => String(n).padStart(2, "0");
 const formatClock = (minutes) => `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 
@@ -14,21 +17,23 @@ export function formatSlotDate(dateStr, lang = "vi") {
 }
 
 /**
- * @param {{ title: string, members: Array, link: string, t: Function, lang?: string }} input
+ * @param {{ title: string, members: Array, link: string, t: Function, lang?: string, style?: "cheerful"|"casual" }} input
  *   members: toàn bộ thành viên của phiên (người chưa nhập lịch có slots rỗng) — total = members.length
+ *   style: giọng văn của tin nhắn; giá trị lạ rơi về "cheerful"
  * @returns {string}
  */
-export function buildFinalizeMessage({ title, members = [], link, t, lang = "vi" }) {
+export function buildFinalizeMessage({ title, members = [], link, t, lang = "vi", style = "cheerful" }) {
+  const tone = COPY_STYLES.includes(style) ? style : "cheerful";
   const total = members.length;
   const { optimal } = rankSuggestions(buildSelectedCells(members), total);
   const best = optimal[0];
 
-  if (!best) return t("finalize.copyMessageEmpty", { title, total, link });
+  if (!best) return t(`finalize.copy.${tone}.empty`, { title, total, link });
 
   const slot = `${formatSlotDate(best.date, lang)} ${formatClock(best.start)}–${formatClock(best.end)}`;
   const params = { title, slot, count: best.count, total, link };
   const hasCommonSlot = total <= 1 || best.count >= 2;
   const everyoneFree = total >= 2 && best.count === total;
-  const key = everyoneFree ? "copyMessageAll" : hasCommonSlot ? "copyMessage" : "copyMessageNoCommon";
-  return t(`finalize.${key}`, params);
+  const variant = everyoneFree ? "all" : hasCommonSlot ? "some" : "noCommon";
+  return t(`finalize.copy.${tone}.${variant}`, params);
 }
