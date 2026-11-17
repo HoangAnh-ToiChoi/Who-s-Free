@@ -34,9 +34,6 @@ function HomeHeader({
               {t("groups.totalCount", { count: totalCount })}
             </span>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
-            {t("groups.subtitle")}
-          </p>
         </div>
 
         {/* Action Button - Cố định min-width và height để chống giật giao diện */}

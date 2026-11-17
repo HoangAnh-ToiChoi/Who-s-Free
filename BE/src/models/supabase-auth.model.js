@@ -9,29 +9,19 @@ class SupabaseAuthModel {
     return supabaseAdmin;
   }
 
-  static async createUser({ email, password, fullName }) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName || "" } },
-    });
-
-    if (error) throw error;
-    return data?.user || null;
-  }
-
   /**
-   * Tạo tài khoản đã xác nhận email (dùng khi người dùng đi vào từ link lời mời gửi tới chính email đó).
+   * Tạo tài khoản email + mật khẩu qua Admin API (Supabase không tự gửi thư xác nhận — BE tự gửi OTP qua Brevo).
+   * confirmed = true: đã xác nhận sẵn (người đi vào từ link lời mời gửi tới chính email đó).
    * Cần SUPABASE_SERVICE_ROLE_KEY hợp lệ.
    */
-  static async createConfirmedUser({ email, password, fullName }) {
+  static async createUser({ email, password, fullName, confirmed = false }) {
     if (!this.hasValidAdminRoleKey()) {
-      throw new Error("Thiếu SUPABASE_SERVICE_ROLE_KEY hợp lệ để tạo tài khoản từ lời mời");
+      throw new Error("Thiếu SUPABASE_SERVICE_ROLE_KEY hợp lệ để tạo tài khoản");
     }
     const { data, error } = await this.getAdminClient().auth.admin.createUser({
       email,
       password,
-      email_confirm: true,
+      email_confirm: confirmed,
       user_metadata: { full_name: fullName || "" },
     });
     if (error) throw error;
@@ -96,12 +86,15 @@ class SupabaseAuthModel {
     }
   }
 
-  static async updatePassword(userId, newPassword) {
-    const { data, error } = await this.getAdminClient().auth.admin.updateUserById(userId, {
-      password: newPassword,
-    });
+  /** Cập nhật tài khoản qua Admin API (vd { password }, { email_confirm: true }, { user_metadata }). */
+  static async updateUser(userId, attributes) {
+    const { data, error } = await this.getAdminClient().auth.admin.updateUserById(userId, attributes);
     if (error) throw error;
     return data?.user || null;
+  }
+
+  static updatePassword(userId, newPassword) {
+    return this.updateUser(userId, { password: newPassword });
   }
 
   static async signOut() {

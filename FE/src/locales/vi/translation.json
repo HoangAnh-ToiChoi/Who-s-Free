@@ -31,7 +31,6 @@
   "groups": {
     "title": "Danh sách nhóm",
     "totalCount": "{{count}} tổng số",
-    "subtitle": "Điều phối ma trận rảnh/bận, lịch họp định kỳ và danh sách thành viên.",
     "createNewGroup": "Tạo nhóm mới",
     "filterAll": "Tất cả nhóm",
     "filterOwner": "Do bạn quản lý",

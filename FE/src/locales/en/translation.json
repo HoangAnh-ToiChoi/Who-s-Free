@@ -31,7 +31,6 @@
   "groups": {
     "title": "Groups",
     "totalCount": "{{count}} total",
-    "subtitle": "Coordinate availability matrices, weekly meeting schedules, and member rosters.",
     "createNewGroup": "Create New Group",
     "filterAll": "All Groups",
     "filterOwner": "Owned by you",

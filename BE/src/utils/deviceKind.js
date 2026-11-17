@@ -20,8 +20,8 @@ export function detectDeviceKind(userAgent = "", mobileHint) {
   return "desktop";
 }
 
-/** Thông tin thiết bị của request: { kind, userAgent } (userAgent cắt còn 300 ký tự để lưu). */
+/** Thông tin thiết bị của request: { kind, userAgent, ip } (userAgent cắt còn 300 ký tự để lưu). */
 export function deviceFromRequest(req) {
   const userAgent = String(req?.headers?.["user-agent"] || "").slice(0, USER_AGENT_MAX);
-  return { kind: detectDeviceKind(userAgent, req?.headers?.["sec-ch-ua-mobile"]), userAgent };
+  return { kind: detectDeviceKind(userAgent, req?.headers?.["sec-ch-ua-mobile"]), userAgent, ip: req?.ip || null };
 }
