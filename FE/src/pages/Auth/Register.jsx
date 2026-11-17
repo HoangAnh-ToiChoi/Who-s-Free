@@ -87,14 +87,11 @@ function Register() {
 
     setIsSubmitting(true);
     try {
-      const user = await register(formData);
-      navigate(returnUrl, {
-        replace: true,
-        state: { user },
-      });
+      const pending = await register(formData);
+      navigate("/auth/verify-email", { state: { ...pending, reason: "register", returnUrl } });
     } catch (error) {
       const messageKey =
-        error.message === "EMAIL_ALREADY_REGISTERED"
+        error.code === "EMAIL_ALREADY_REGISTERED"
           ? "auth.errors.emailAlreadyRegistered"
           : "auth.errors.storageUnavailable";
       setErrors((current) => ({
@@ -117,9 +114,6 @@ function Register() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           {t("auth.registerTitle")}
         </h1>
-        <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-          {t("auth.registerSubtitle")}
-        </p>
       </div>
 
       {/* Register Form */}

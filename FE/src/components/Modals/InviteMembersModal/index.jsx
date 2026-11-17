@@ -22,7 +22,6 @@ const ROLE_OPTIONS = [
 function InviteMembersModal({ open, onOpenChange, group }) {
   const { t } = useTranslation();
   const groupId = group?.id;
-  const groupName = group?.name || "";
   const normalizedUserRole = (group?.userRole || group?.role || "").toLowerCase();
   const isOwner = normalizedUserRole === "owner";
   const canInvite = normalizedUserRole === "owner" || normalizedUserRole === "lead";
@@ -60,7 +59,6 @@ function InviteMembersModal({ open, onOpenChange, group }) {
         open={open}
         onOpenChange={onOpenChange}
         title={t("inviteModal.title")}
-        subtitle={t("inviteModal.subtitle", { groupName })}
         icon={<UserPlus size={18} strokeWidth={2.2} />}
         maxWidth="sm:max-w-[560px]"
         className="p-7 sm:p-8 border-slate-200/90"

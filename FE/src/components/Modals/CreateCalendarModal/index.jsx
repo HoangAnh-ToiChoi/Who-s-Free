@@ -182,7 +182,6 @@ function CreateCalendarModal({
       open={open}
       onOpenChange={handleOpenChange}
       title={t("createCalendarModal.title")}
-      subtitle={t("createCalendarModal.subtitle")}
       icon={<CalendarPlus size={18} strokeWidth={2.2} />}
       maxWidth="sm:max-w-[500px]"
       className="gap-5"

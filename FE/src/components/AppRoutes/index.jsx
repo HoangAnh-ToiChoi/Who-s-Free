@@ -14,6 +14,7 @@ const Login = lazy(() => import("~/pages/Auth/Login"));
 const Register = lazy(() => import("~/pages/Auth/Register"));
 const ForgotPassword = lazy(() => import("~/pages/Auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("~/pages/Auth/ResetPassword"));
+const VerifyEmail = lazy(() => import("~/pages/Auth/VerifyEmail"));
 const AuthCallback = lazy(() => import("~/pages/Auth/AuthCallback"));
 const Invite = lazy(() => import("~/pages/Invite"));
 const Join = lazy(() => import("~/pages/Join"));
@@ -47,6 +48,7 @@ function AppRoutes() {
               <Route path="/auth/register" element={<Register />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
             </Route>
           </Route>

@@ -23,6 +23,22 @@ class EmailService {
     });
   }
 
+  static async sendEmailVerificationOtp({ email, otp, expiresInMinutes }) {
+    const config = getEmailConfig();
+    if (!config || process.env.NODE_ENV === "test") {
+      console.log(`[EmailService] Email verification OTP for ${email}: ${otp}`);
+      return { id: "dev-mock-email-id" };
+    }
+
+    return deliver(config, {
+      to: email,
+      label: "verification email",
+      subject: "Mã xác thực email Who's Free",
+      text: `Mã xác thực email Who's Free của bạn là ${otp}. Mã có hiệu lực trong ${expiresInMinutes} phút. Nếu bạn không đăng ký Who's Free, hãy bỏ qua email này.`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0f172a"><h2>Xác thực email Who's Free</h2><p>Nhập mã dưới đây để hoàn tất đăng ký:</p><p style="font-size:30px;font-weight:700;letter-spacing:8px;color:#4f46e5">${otp}</p><p>Mã có hiệu lực trong ${expiresInMinutes} phút.</p><p>Nếu bạn không đăng ký Who's Free, hãy bỏ qua email này.</p></div>`,
+    });
+  }
+
   /**
    * Gửi email lời mời tham gia nhóm (Resend hoặc Brevo, theo EMAIL_PROVIDER)
    */

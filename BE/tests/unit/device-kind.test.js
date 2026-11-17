@@ -25,5 +25,5 @@ test("deviceFromRequest: cắt User-Agent còn 300 ký tự", () => {
   const device = deviceFromRequest({ headers: { "user-agent": `iPhone ${"x".repeat(500)}` } });
   assert.equal(device.kind, "mobile");
   assert.equal(device.userAgent.length, 300);
-  assert.deepEqual(deviceFromRequest({ headers: {} }), { kind: "desktop", userAgent: "" });
+  assert.deepEqual(deviceFromRequest({ headers: {}, ip: "1.2.3.4" }), { kind: "desktop", userAgent: "", ip: "1.2.3.4" });
 });

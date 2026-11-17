@@ -128,7 +128,6 @@ function EditSessionModal({ open, onOpenChange, session, onSubmit }) {
       open={open}
       onOpenChange={onOpenChange}
       title={t("sessionActions.editTitle")}
-      subtitle={t("sessionActions.editSubtitle")}
       icon={<Pencil size={16} strokeWidth={2.2} />}
       maxWidth="sm:max-w-[480px]"
       className="gap-5"

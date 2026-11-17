@@ -102,10 +102,11 @@ class UserModel {
   }
 
   static async createConfirmedInAuth({ email, password, fullName }) {
-    const authUser = await SupabaseAuthModel.createConfirmedUser({
+    const authUser = await SupabaseAuthModel.createUser({
       email: email.toLowerCase(),
       password,
       fullName,
+      confirmed: true,
     });
     return this.syncAuthUser(authUser, { fullName });
   }

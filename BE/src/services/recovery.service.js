@@ -2,6 +2,7 @@ import OtpModel from "../models/otp.model.js";
 import UserModel from "../models/user.model.js";
 import AuthSessionService from "./auth-session.service.js";
 import EmailService from "./email.service.js";
+import EmailVerificationService from "./email-verification.service.js";
 import TokenService from "./token.service.js";
 import AppError from "../utils/AppError.js";
 import { randomInt } from "node:crypto";
@@ -139,6 +140,8 @@ class RecoveryService {
     }
 
     await UserModel.updatePassword(user.id, password);
+    // Nhập đúng OTP quên mật khẩu = chứng minh là chủ email → xác thực luôn nếu tài khoản còn chờ
+    await new EmailVerificationService().confirmAfterPasswordReset(user);
 
     // Đánh dấu token đã sử dụng và hủy bỏ toàn bộ refresh token cũ
     RecoveryService.consumedResetTokens.add(resetToken);
