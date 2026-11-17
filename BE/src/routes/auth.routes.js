@@ -1,6 +1,7 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth.controller.js";
 import AuthMiddleware from "../middlewares/auth.middleware.js";
+import emailVerificationController from "../controllers/email-verification.controller.js";
 import validate from "../middlewares/validate.middleware.js";
 import { authRateLimit, forgotPasswordRateLimit } from "../middlewares/rateLimit.middleware.js";
 import {
@@ -32,6 +33,10 @@ const authController = new AuthController();
  *   POST   /api/auth/verify-otp        → Xác thực OTP 6 số (Zod validated)
  *   POST   /api/auth/reset-password    → Đổi mật khẩu mới (Zod validated)
  *
+ * XÁC THỰC EMAIL (tài khoản đăng ký bằng email + mật khẩu):
+ *   POST   /api/auth/verify-email         → Nhập mã 6 số, đúng thì đăng nhập luôn
+ *   POST   /api/auth/verify-email/resend  → Gửi lại mã
+ *
  * PROTECTED (phải có token):
  *   GET    /api/auth/me                → Lấy thông tin user hiện tại
  */
@@ -49,6 +54,10 @@ router.post("/logout", authController.logout);
 router.post("/forgot-password", forgotPasswordRateLimit, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post("/verify-otp", authRateLimit, validate(verifyOtpSchema), authController.verifyOtp);
 router.post("/reset-password", authRateLimit, validate(resetPasswordSchema), authController.resetPassword);
+
+// Xác thực email (thân request giống OTP quên mật khẩu: { email, otp } / { email })
+router.post("/verify-email", authRateLimit, validate(verifyOtpSchema), emailVerificationController.verify);
+router.post("/verify-email/resend", forgotPasswordRateLimit, validate(forgotPasswordSchema), emailVerificationController.resend);
 
 // ─── Protected Routes ────────────────────────────────────────────────────────
 router.get("/me", AuthMiddleware.authenticate, authController.getMe);

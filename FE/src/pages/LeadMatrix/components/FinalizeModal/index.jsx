@@ -91,7 +91,6 @@ function FinalizeModal({ open, onOpenChange, cells, members, isLoading, isSubmit
       open={open}
       onOpenChange={onOpenChange}
       title={t("finalize.modalTitle")}
-      subtitle={t("finalize.modalSubtitle")}
       icon={<Lock size={18} className="text-indigo-600" />}
       maxWidth="sm:max-w-[920px]"
     >

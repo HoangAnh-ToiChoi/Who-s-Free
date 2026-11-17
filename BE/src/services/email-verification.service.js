@@ -137,6 +137,23 @@ class EmailVerificationService {
   }
 
   /**
+   * Đăng ký lại bằng email đã có: chỉ cho phép khi tài khoản đó chưa xác thực (đặt mật khẩu mới, rồi gửi mã mới).
+   * Tài khoản đã xác thực → báo email đã được đăng ký.
+   */
+  async reclaimUnverifiedSignup({ email, password, fullName }) {
+    const existing = await SupabaseAuthModel.findByEmail(normalize(email));
+    if (!existing || isConfirmed(existing)) {
+      throw AppError.conflict("Email này đã được đăng ký. Vui lòng đăng nhập.", "EMAIL_ALREADY_REGISTERED");
+    }
+    const authUser = await SupabaseAuthModel.updateUser(existing.id, {
+      password,
+      user_metadata: { ...existing.user_metadata, full_name: fullName || existing.user_metadata?.full_name || "" },
+    });
+    await UserModel.syncAuthUser(authUser, { fullName });
+    return authUser;
+  }
+
+  /**
    * Đăng nhập Google vào tài khoản từng tự đăng ký nhưng chưa xác thực: mật khẩu đó có thể do người lạ đặt
    * (chiếm trước email), nên thay bằng mật khẩu ngẫu nhiên và ghi nhận email đã được Google xác thực.
    */

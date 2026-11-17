@@ -72,8 +72,12 @@ function Login() {
       }
       navigate(returnUrl, { replace: true });
     } catch (error) {
+      if (error.code === "EMAIL_NOT_VERIFIED") {
+        navigate("/auth/verify-email", { state: { ...error.details, reason: "login", returnUrl } });
+        return;
+      }
       const messageKey =
-        error.message === "INVALID_CREDENTIALS"
+        error.code === "INVALID_CREDENTIALS"
           ? "auth.errors.invalidCredentials"
           : "auth.errors.storageUnavailable";
       setErrors((current) => ({
@@ -97,9 +101,6 @@ function Login() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           {t("auth.loginTitle")}
         </h1>
-        <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-          {t("auth.loginSubtitle")}
-        </p>
       </div>
 
       {location.state?.registrationSuccess && (

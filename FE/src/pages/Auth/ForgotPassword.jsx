@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,6 +16,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/useAuth";
 import BackButton from "~/components/BackButton";
+import OtpCodeInput, { OTP_LENGTH } from "./components/OtpCodeInput";
 
 function ForgotPassword() {
   const { t } = useTranslation();
@@ -25,14 +26,12 @@ function ForgotPassword() {
   // Luồng 2 bước: EMAIL -> OTP
   const [step, setStep] = useState("EMAIL"); // "EMAIL" | "OTP"
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [emailError, setEmailError] = useState(null);
   const [otpError, setOtpError] = useState(null);
   const [countdown, setCountdown] = useState(60);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const otpInputsRef = useRef([]);
 
   // Countdown timer cho việc gửi lại OTP
   useEffect(() => {
@@ -45,17 +44,6 @@ function ForgotPassword() {
     return () => clearInterval(timer);
   }, [step, countdown]);
 
-  // Tự động focus vào ô đầu tiên khi chuyển sang bước OTP
-  useEffect(() => {
-    if (step === "OTP") {
-      const focusTimer = setTimeout(() => {
-        otpInputsRef.current[0]?.focus();
-      }, 100);
-
-      return () => clearTimeout(focusTimer);
-    }
-  }, [step]);
-
   // Gửi mã OTP 6 số
   const sendOtpCode = async (targetEmail) => {
     setIsSubmitting(true);
@@ -66,7 +54,7 @@ function ForgotPassword() {
       }
       setStep("OTP");
       setCountdown(60);
-      setOtp(["", "", "", "", "", ""]);
+      setOtp("");
       setOtpError(null);
     } finally {
       setIsSubmitting(false);
@@ -86,65 +74,11 @@ function ForgotPassword() {
     });
   };
 
-  // Xử lý thay đổi từng ô ký tự OTP
-  const handleOtpChange = (index, value) => {
-    // Chỉ chấp nhận ký tự số
-    const cleanValue = value.replace(/\D/g, "");
-
-    // Hỗ trợ trường hợp paste trực tiếp vào ô bất kỳ
-    if (cleanValue.length > 1) {
-      const digits = cleanValue.slice(0, 6).split("");
-      const newOtp = [...otp];
-      digits.forEach((d, i) => {
-        if (i < 6) newOtp[i] = d;
-      });
-      setOtp(newOtp);
-      if (otpError) setOtpError(null);
-      const nextIndex = Math.min(digits.length, 5);
-      otpInputsRef.current[nextIndex]?.focus();
-      return;
-    }
-
-    const newOtp = [...otp];
-    newOtp[index] = cleanValue;
-    setOtp(newOtp);
-    if (otpError) setOtpError(null);
-
-    // Tự động chuyển focus sang ô tiếp theo
-    if (cleanValue && index < 5) {
-      otpInputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  // Xử lý xóa Backspace lùi ô
-  const handleKeyDown = (index, e) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  // Hỗ trợ Clipboard Paste
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "");
-    if (!pastedData) return;
-
-    const digits = pastedData.slice(0, 6).split("");
-    const newOtp = [...otp];
-    digits.forEach((d, i) => {
-      if (i < 6) newOtp[i] = d;
-    });
-    setOtp(newOtp);
-    if (otpError) setOtpError(null);
-    const focusIndex = Math.min(digits.length - 1, 5);
-    otpInputsRef.current[focusIndex]?.focus();
-  };
-
   // Xác thực mã OTP và chuyển sang đổi mật khẩu
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
-    const enteredOtp = otp.join("");
-    if (enteredOtp.length !== 6) {
+    const enteredOtp = otp;
+    if (enteredOtp.length !== OTP_LENGTH) {
       setOtpError(t("auth.otpInvalid"));
       return;
     }
@@ -189,9 +123,6 @@ function ForgotPassword() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               {t("auth.forgotTitle")}
             </h1>
-            <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-              {t("auth.forgotSubtitle")}
-            </p>
           </div>
 
           {/* Form Email — Chống trình duyệt tự lưu autofill */}
@@ -264,7 +195,7 @@ function ForgotPassword() {
               type="button"
               onClick={() => {
                 setStep("EMAIL");
-                setOtp(["", "", "", "", "", ""]);
+                setOtp("");
                 setOtpError(null);
               }}
               className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
@@ -297,10 +228,8 @@ function ForgotPassword() {
                     <button
                       type="button"
                       onClick={() => {
-                        const digits = generatedOtp.split("");
-                        setOtp(digits);
+                        setOtp(generatedOtp);
                         setOtpError(null);
-                        otpInputsRef.current[5]?.focus();
                       }}
                       className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 hover:underline cursor-pointer"
                     >
@@ -319,31 +248,14 @@ function ForgotPassword() {
             className="space-y-4"
           >
             <div>
-              <div
-                className="flex items-center justify-between gap-1.5 sm:gap-2.5"
-                onPaste={handlePaste}
-              >
-                {otp.map((digit, idx) => (
-                  <Input
-                    key={idx}
-                    ref={(el) => (otpInputsRef.current[idx] = el)}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={1}
-                    value={digit}
-                    autoComplete="off"
-                    onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(idx, e)}
-                    aria-label={`OTP Digit ${idx + 1}`}
-                    className={`h-12 w-11 sm:w-12 text-center text-lg font-bold rounded-xl bg-slate-50/50 p-0 transition-all focus:bg-white ${
-                      otpError
-                        ? "border-rose-500 bg-rose-50/40 ring-1 ring-rose-500/50 text-rose-900"
-                        : "border-slate-200/90 focus:border-indigo-500 focus:ring-indigo-500/20 text-slate-800"
-                    }`}
-                  />
-                ))}
-              </div>
+              <OtpCodeInput
+                value={otp}
+                invalid={Boolean(otpError)}
+                onChange={(next) => {
+                  setOtp(next);
+                  if (otpError) setOtpError(null);
+                }}
+              />
               {otpError && (
                 <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-rose-600">
                   <AlertCircle size={13} className="text-rose-500 shrink-0" />

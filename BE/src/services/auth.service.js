@@ -3,6 +3,11 @@ import OtpModel from "../models/otp.model.js";
 import AuthSessionService from "./auth-session.service.js";
 import AppError from "../utils/AppError.js";
 import { toPublicUser } from "../utils/mappers/user.mapper.js";
+import SupabaseAuthModel from "../models/supabase-auth.model.js";
+import EmailVerificationService, { isConfirmed } from "./email-verification.service.js";
+
+const emailVerification = new EmailVerificationService();
+const isEmailTaken = (err) => err?.code === "email_exists" || /already (been )?registered/i.test(err?.message || "");
 
 /**
  * AuthService - Nghiệp vụ Xác thực Người dùng (Core Authentication Service)
@@ -43,22 +48,19 @@ class AuthService {
       throw AppError.badRequest("Email và mật khẩu là bắt buộc", "VALIDATION_ERROR");
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    let authUser;
     try {
-      const createdUser = await UserModel.createInAuth({ email, password, fullName });
-      const publicUser = toPublicUser(createdUser);
-
-      const { accessToken, refreshToken } = await this.#issueSession(publicUser, device);
-
-      return {
-        user: publicUser,
-        accessToken,
-        refreshToken,
-        message: "Đăng ký tài khoản thành công!",
-      };
+      authUser = await UserModel.createInAuth({ email: normalizedEmail, password, fullName });
     } catch (err) {
-      if (err.isOperational) throw err;
-      throw AppError.badRequest(err.message || "Đăng ký tài khoản thất bại", "REGISTER_FAILED");
+      if (!isEmailTaken(err)) {
+        throw AppError.badRequest(err.message || "Đăng ký tài khoản thất bại", "REGISTER_FAILED");
+      }
+      authUser = await emailVerification.reclaimUnverifiedSignup({ email: normalizedEmail, password, fullName });
     }
+
+    const delivery = await emailVerification.dispatch({ userId: authUser.id, email: normalizedEmail }, "register", device);
+    return EmailVerificationService.pendingPayload(normalizedEmail, delivery);
   }
 
   /**
@@ -86,17 +88,32 @@ class AuthService {
       throw AppError.badRequest("Email và mật khẩu là bắt buộc", "VALIDATION_ERROR");
     }
 
+    let authUser;
     try {
-      const authUser = await UserModel.signInWithPassword({ email, password });
-      const publicUser = toPublicUser(authUser);
-
-      const { accessToken, refreshToken } = await this.#issueSession(publicUser, device);
-
-      return { accessToken, refreshToken, user: publicUser };
+      authUser = await UserModel.signInWithPassword({ email, password });
     } catch (err) {
-      if (err.isOperational) throw err;
-      throw AppError.unauthorized("Email hoặc mật khẩu không chính xác", "INVALID_CREDENTIALS");
+      if (err?.code !== "email_not_confirmed" && !/email not confirmed/i.test(err?.message || "")) {
+        throw AppError.unauthorized("Email hoặc mật khẩu không chính xác", "INVALID_CREDENTIALS");
+      }
+      // Supabase chỉ báo "chưa xác nhận" khi mật khẩu đã đúng
+      authUser = await SupabaseAuthModel.findByEmail(email.trim().toLowerCase());
     }
+    if (!authUser) throw AppError.unauthorized("Email hoặc mật khẩu không chính xác", "INVALID_CREDENTIALS");
+
+    if (!isConfirmed(authUser)) {
+      const target = email.trim().toLowerCase();
+      const delivery = await emailVerification.dispatch({ userId: authUser.id, email: target }, "login", device);
+      throw new AppError(
+        "Tài khoản của bạn cần xác thực email để tiếp tục.",
+        403,
+        "EMAIL_NOT_VERIFIED",
+        EmailVerificationService.pendingPayload(target, delivery)
+      );
+    }
+
+    const publicUser = toPublicUser(authUser);
+    const { accessToken, refreshToken } = await this.#issueSession(publicUser, device);
+    return { accessToken, refreshToken, user: publicUser };
   }
 
   /**
@@ -121,6 +138,7 @@ class AuthService {
 
     try {
       const authUser = await UserModel.exchangeCodeForSession(code);
+      await emailVerification.secureOAuthAccount(authUser);
       const publicUser = toPublicUser(authUser);
 
       const { accessToken, refreshToken } = await this.#issueSession(publicUser, device);
@@ -148,6 +166,7 @@ class AuthService {
         throw AppError.unauthorized("Không tìm thấy thông tin xác thực từ token", "INVALID_TOKEN");
       }
 
+      await emailVerification.secureOAuthAccount(authUser);
       const publicUser = toPublicUser(authUser);
       const { accessToken, refreshToken } = await this.#issueSession(publicUser, device);
 

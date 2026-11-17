@@ -3,7 +3,8 @@
  *
  * Kiểm thử theo từng tiêu chí hoàn tất trong AUTH_REFACTOR_PLAN.md:
  *
- * [C1] Login/register/Google trả access token trong JSON; refresh token KHÔNG xuất hiện trong response body.
+ * [C1] Login/Google trả access token trong JSON; refresh token KHÔNG xuất hiện trong response body.
+ *      Register KHÔNG đăng nhập (phải xác thực email trước) → không token, không cookie, không phiên.
  * [C2] Protected API chỉ dùng Bearer access token; request không có Bearer hợp lệ bị 401.
  *      Middleware KHÔNG fallback sang access cookie.
  * [C3] Refresh cookie được BE xác thực với DB, rotate một lần; token cũ bị từ chối.
@@ -20,6 +21,7 @@ import assert from "node:assert/strict";
 import { after, afterEach, before, beforeEach, mock, test } from "node:test";
 import { once } from "node:events";
 import { installFakeRefreshSessions } from "./helpers/fakeRefreshSessions.js";
+import { installFakeEmailVerifications } from "./helpers/fakeEmailVerifications.js";
 import jwt from "jsonwebtoken";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ const TEST_USER = {
   user_metadata: { full_name: "Refactor Tester" },
   role: "authenticated",
   created_at: "2026-01-01T00:00:00.000Z",
+  email_confirmed_at: "2026-01-01T00:00:00.000Z",
 };
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -38,6 +41,8 @@ let app;
 let supabase;
 let supabaseAdmin;
 let AuthService;
+let verifications;
+let EmailService;
 let UserModel;
 let RefreshSessionModel;
 let sessions;
@@ -122,7 +127,12 @@ function setDefaultMocks() {
     stub(admin, "getUserById", async () => ({ data: { user: TEST_USER }, error: null }));
     stub(admin, "listUsers", async () => ({ data: { users: [TEST_USER] }, error: null }));
     stub(admin, "updateUserById", async () => ({ data: { user: TEST_USER }, error: null }));
+    stub(admin, "createUser", async ({ email, user_metadata }) => ({
+      data: { user: { ...TEST_USER, email, user_metadata, email_confirmed_at: null } },
+      error: null,
+    }));
   }
+  stub(EmailService, "sendEmailVerificationOtp", async () => ({ id: "test" }));
 }
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────
@@ -131,6 +141,7 @@ before(async () => {
   process.env.NODE_ENV = "test";
   process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.CLIENT_ORIGIN = "http://localhost:5173";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "test-service-role-key";
 
   ({ default: app } = await import("../src/app.js"));
   ({ pool } = await import("../src/configs/db.config.js"));
@@ -142,6 +153,10 @@ before(async () => {
     id, email: TEST_EMAIL, full_name: "Refactor Tester", avatar_url: null, created_at: TEST_USER.created_at,
   }));
   ({ default: TokenService } = await import("../src/services/token.service.js"));
+  ({ default: EmailService } = await import("../src/services/email.service.js"));
+  verifications = installFakeEmailVerifications(
+    (await import("../src/models/email-verification.model.js")).default
+  );
 
   server = app.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -150,6 +165,7 @@ before(async () => {
 
 after(async () => {
   sessions.restore();
+  verifications.restore();
   await new Promise((resolve, reject) =>
     server.close((err) => (err ? reject(err) : resolve()))
   );
@@ -157,6 +173,7 @@ after(async () => {
 
 beforeEach(() => {
   sessions.rows.clear();
+  verifications.rows.length = 0;
   if (AuthService?.otpStore) AuthService.otpStore.clear();
   setDefaultMocks();
 });
@@ -169,7 +186,7 @@ afterEach(() => {
 // [C1] Login/Register trả accessToken trong JSON — refreshToken KHÔNG xuất hiện
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test("[C1] register: response JSON chứa accessToken và KHÔNG chứa refreshToken", async () => {
+test("[C1] register: chưa đăng nhập — không accessToken, không refreshToken, không cookie", async () => {
   const { response, data } = await post("/api/auth/register", {
     fullName: "Refactor Tester",
     email: TEST_EMAIL,
@@ -177,19 +194,10 @@ test("[C1] register: response JSON chứa accessToken và KHÔNG chứa refreshT
   });
 
   assert.equal(response.status, 201);
-  assert.equal(data.success, true);
-
-  // Phải có accessToken trong response body
-  assert.ok(data.data.accessToken, "accessToken phải có trong response JSON");
-
-  // accessToken phải là JWT hợp lệ
-  const decoded = jwt.verify(data.data.accessToken, TEST_JWT_SECRET);
-  assert.equal(decoded.token_type, "access");
-  assert.equal(decoded.sub, TEST_USER.id);
-
-  // refreshToken KHÔNG được lộ trong response body
-  assert.equal(data.data.refreshToken, undefined, "refreshToken phải KHÔNG có trong response JSON");
-  assert.equal(data.refreshToken, undefined);
+  assert.equal(data.data.requiresVerification, true);
+  assert.equal(data.data.accessToken, undefined);
+  assert.equal(data.data.refreshToken, undefined);
+  assert.deepEqual(response.headers.getSetCookie(), []);
 });
 
 test("[C1] login: response JSON chứa accessToken và KHÔNG chứa refreshToken", async () => {
@@ -391,14 +399,14 @@ test("[C3] refresh không có cookie thì xóa cookies và trả 401", async () 
 // [C5] DB lỗi không tạo phiên "thành công" tồn tại chỉ trong memory (production)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-test("[C5] register: refresh token được persist vào DB (in-memory store có token)", async () => {
+test("[C5] register: chưa xác thực email thì không tạo phiên đăng nhập nào", async () => {
   await post("/api/auth/register", {
     fullName: "DB Persist Test",
     email: TEST_EMAIL,
     password: "StrongPassword123!",
   });
 
-  assert.equal(sessions.rows.size, 1, "Refresh token phải được persist sau register");
+  assert.equal(sessions.rows.size, 0, "Register không được tạo phiên trước khi xác thực email");
 });
 
 test("[C5] login: refresh token được persist vào store sau khi login thành công", async () => {
@@ -529,7 +537,7 @@ test("[C8] login response envelope có user object và accessToken (không có p
   assert.equal(data.data.user?.refresh_token, undefined);
 });
 
-test("[C8] register response envelope có user object và accessToken (không có password, refreshToken)", async () => {
+test("[C8] register response chỉ có thông tin chờ xác thực (không user, không token, không mã OTP)", async () => {
   const { data } = await post("/api/auth/register", {
     fullName: "Envelope Test",
     email: TEST_EMAIL,
@@ -537,12 +545,11 @@ test("[C8] register response envelope có user object và accessToken (không c�
   });
 
   assert.equal(data.success, true);
-  assert.ok(data.data.user, "user object phải có trong data");
-  assert.ok(data.data.accessToken, "accessToken phải có trong data");
-
+  assert.equal(data.data.email, TEST_EMAIL);
+  assert.equal(data.data.user, undefined);
+  assert.equal(data.data.accessToken, undefined);
   assert.equal(data.data.refreshToken, undefined);
-  assert.equal(data.data.user?.password, undefined);
-  assert.equal(data.data.user?.refresh_token, undefined);
+  assert.equal(data.data.otp, undefined);
 });
 
 test("[C8] user object đầy đủ các field chuẩn (id, email, fullName, role, avatarUrl)", async () => {

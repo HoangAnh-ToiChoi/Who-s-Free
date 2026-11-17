@@ -31,17 +31,12 @@ class AuthController extends BaseController {
 
   /**
    * POST /api/auth/register
-   * Response: { user, accessToken } — refreshToken chỉ qua HttpOnly cookie
+   * Response: { requiresVerification, email, ... } — chưa đăng nhập, phải nhập mã gửi qua email trước
    */
   register = asyncHandler(async (req, res) => {
     const { email, password, fullName } = req.body;
     const result = await this.authService.register({ email, password, fullName }, deviceFromRequest(req));
-    TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return this.sendCreated(
-      res,
-      { user: result.user, accessToken: result.accessToken },
-      result.message
-    );
+    return this.sendCreated(res, result, "Đăng ký thành công, vui lòng xác thực email");
   });
 
   /**
