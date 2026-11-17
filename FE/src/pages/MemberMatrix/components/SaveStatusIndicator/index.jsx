@@ -8,9 +8,10 @@ const STYLES = {
   retrying: "text-amber-700 bg-amber-50 border-amber-200",
   failed: "text-rose-700 bg-rose-50 border-rose-200",
   locked: "text-indigo-800 bg-indigo-50 border-indigo-200",
+  closed: "text-orange-800 bg-orange-50 border-orange-200",
   finalizing: "text-amber-800 bg-amber-50 border-amber-200",
 };
-const ICONS = { saving: Loader2, saved: Check, retrying: RotateCw, failed: CloudOff, locked: Lock, finalizing: Lock };
+const ICONS = { saving: Loader2, saved: Check, retrying: RotateCw, failed: CloudOff, locked: Lock, closed: Lock, finalizing: Lock };
 
 /**
  * Trạng thái lưu THẬT của lịch rảnh (UI vẽ slot trước, server mới là nơi quyết định).

@@ -5,6 +5,9 @@ import { isUuid } from "../utils/uuid.js";
 /** replaceUserSlots trả về giá trị này khi trưởng nhóm khác đang mở bảng Chốt lịch. */
 export const BLOCKED_FINALIZING = "finalizing";
 
+/** replaceUserSlots trả về giá trị này khi phiên đã tự đóng vì quá hạn. */
+export const BLOCKED_CLOSED = "closed";
+
 const SLOT_COLUMNS =
   "id, session_id, user_id, day_index, date_str, start_minutes, end_minutes, label, note, created_at, updated_at";
 
@@ -30,7 +33,7 @@ class AvailabilityModel {
    * - pg_advisory_xact_lock theo (session, user): 2 lần lưu sát nhau của cùng một người chạy lần lượt,
    *   tránh DELETE/INSERT xen kẽ gây nhân đôi slot. Người khác nhau vẫn chạy song song.
    * - Khoá dòng session (FOR SHARE) và kiểm tra trạng thái ngay trong transaction để không ghi đè lên
-   *   phiên vừa được chốt. Trả về null nếu phiên đã chốt, BLOCKED_FINALIZING nếu trưởng nhóm KHÁC đang chốt.
+   *   phiên vừa được chốt. Trả về null nếu phiên đã chốt, BLOCKED_CLOSED nếu phiên đã đóng quá hạn, BLOCKED_FINALIZING nếu trưởng nhóm KHÁC đang chốt.
    *   Chốt lịch khoá dòng session FOR UPDATE nên hai bên chạy lần lượt, không chen nhau.
    */
   static async replaceUserSlots(sessionId, userId, slots = []) {
@@ -43,6 +46,7 @@ class AvailabilityModel {
         [sessionId, userId]
       );
       if (sessionRows[0]?.status === "finalized") return null;
+      if (sessionRows[0]?.status === "closed") return BLOCKED_CLOSED;
       if (sessionRows[0]?.blocked) return BLOCKED_FINALIZING;
 
       await client.query(

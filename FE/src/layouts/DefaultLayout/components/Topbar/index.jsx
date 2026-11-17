@@ -15,7 +15,7 @@ function Topbar() {
   const { groups, isLoading, createGroup, searchQuery, setSearchQuery } = useGroups();
   const { currentUser } = useCurrentUser();
   const { isAuthenticated } = useAuth();
-  const { items, unreadCount, markAllRead } = useNotifications({ enabled: isAuthenticated });
+  const { items, unreadCount, error, markAllRead } = useNotifications({ enabled: isAuthenticated });
 
   // Sử dụng custom hook tách biệt để nhận diện active workspace từ route
   const { activeWorkspace } = useActiveWorkspace(groups, isLoading);
@@ -67,7 +67,7 @@ function Topbar() {
           </span>
         </button>
 
-        <NotificationBell items={items} unreadCount={unreadCount} onOpen={markAllRead} />
+        <NotificationBell items={items} unreadCount={unreadCount} error={error} onOpen={markAllRead} />
         <UserAvatar user={currentUser} />
       </div>
     </header>

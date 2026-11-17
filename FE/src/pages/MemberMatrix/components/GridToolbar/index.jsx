@@ -10,7 +10,7 @@ import TouchDragHint from "../TouchDragHint";
  * GridToolbar - Thanh công cụ điều hướng tuần (Google Calendar Navigation)
  * Hỗ trợ 2 chế độ:
  * - "member": Hiển thị số slot đã chọn + Nút Xóa lựa chọn
- * - "lead": Hiển thị số thành viên đang lọc + Nút Xuất file
+ * - "lead": Hiển thị số thành viên đang lọc + Nút Xuất file (leadExtra: nút phụ đặt trước Xuất file)
  */
 function GridToolbar({
   weekLabel,
@@ -28,6 +28,7 @@ function GridToolbar({
   weekNavOnMobile = true,
   touchDragPreview = null,
   weekDays = [],
+  leadExtra = null,
 }) {
   const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -72,6 +73,7 @@ function GridToolbar({
             {/* Nút Xuất Excel / Chốt lịch / Mở khoá: chỉ Lead (chế độ xem của thành viên bị ẩn) */}
             {!readOnly && (
               <>
+                {leadExtra}
                 <Button
                   type="button"
                   variant="outline"

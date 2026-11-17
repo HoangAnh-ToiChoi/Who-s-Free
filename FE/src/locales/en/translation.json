@@ -111,7 +111,8 @@
     "notMemberDesc": "Ask the group lead to send you an invite to see its schedules and add your availability.",
     "statusOpen": "Open",
     "statusFinalized": "Finalized",
-    "roleOwner": "Owner"
+    "roleOwner": "Owner",
+    "statusClosed": "Closed"
   },
   "createGroupModal": {
     "title": "Create New Group",
@@ -456,7 +457,29 @@
     "legendAll": "Everyone ({{count}})",
     "timelineColumnShort": "Day",
     "scrollEarlier": "Earlier hours",
-    "scrollLater": "Later hours"
+    "scrollLater": "Later hours",
+    "copyMessageButton": "Copy finalize message",
+    "copied": "Copied",
+    "copyFailed": "Couldn't copy",
+    "copyPrompt": "Select and copy this message (Ctrl/Cmd + C):",
+    "copy": {
+      "cheerful": {
+        "some": "Hey everyone, the \"{{title}}\" schedule has results! The time most people are free is {{slot}} ({{count}}/{{total}} free). If that works for you, I'll lock it in, and if it doesn't, just tell me. Details here: {{link}}",
+        "all": "Hey everyone, the \"{{title}}\" schedule has results! All {{total}} of us are free on {{slot}}, so I'll lock it in. If you have a different idea, just tell me. Details here: {{link}}",
+        "noCommon": "Hey everyone, I checked the \"{{title}}\" schedule and there's no time that works for most of us yet. The closest is {{slot}} ({{count}}/{{total}} free). If you have some flexibility, please take another look so we can find a time together. Here: {{link}}",
+        "empty": "Hey everyone, nobody has picked their free times for \"{{title}}\" yet, so I can't lock it in. Could you take a minute to fill it in so we can set the meeting soon? Fill it in here: {{link}}"
+      },
+      "casual": {
+        "some": "ok i checked \"{{title}}\". most people are free {{slot}} ({{count}}/{{total}}). if that doesn't work for you just say so, otherwise i'm locking it in. exact details here: {{link}}",
+        "all": "ok i checked \"{{title}}\", all {{total}} of us are free {{slot}}. locking that in, say so if you disagree. exact details here: {{link}}",
+        "noCommon": "i checked \"{{title}}\" and there's no time most of us share yet. closest is {{slot}} ({{count}}/{{total}}). if you can move things around, go update yours. here: {{link}}",
+        "empty": "nobody's filled in \"{{title}}\" yet so i can't lock anything. go fill it in. here: {{link}}"
+      }
+    },
+    "copyStyle": {
+      "cheerful": { "label": "Cheerful", "hint": "Friendly and upbeat" },
+      "casual": { "label": "Casual and blunt", "hint": "Short, like texting a friend" }
+    }
   },
   "system": {
     "waking": "The system is checking, please wait a moment…"
@@ -466,7 +489,10 @@
     "empty": "No notifications yet",
     "invite": "You were invited to the group {{group}}",
     "inviteHint": "Open the link in your email to join",
-    "finalized": "The schedule \"{{session}}\" in {{group}} has been finalized"
+    "finalized": "The schedule \"{{session}}\" in {{group}} has been finalized",
+    "reminder": "Tomorrow is the last day of \"{{title}}\" ({{group}})",
+    "closed": "\"{{title}}\" ({{group}}) was closed because the deadline passed without being finalized",
+    "loadError": "Couldn't refresh notifications, retrying."
   },
   "matrixGate": {
     "errorTitle": "Couldn't load the schedule",
@@ -481,7 +507,8 @@
     "failed": "Your changes were not saved.",
     "locked": "The lead just finalized this schedule — your last change was not saved.",
     "retry": "Retry",
-    "finalizing": "The lead is finalizing the schedule, so your last change was not saved. Please contact the lead to discuss."
+    "finalizing": "The lead is finalizing the schedule, so your last change was not saved. Please contact the lead to discuss.",
+    "closed": "The session is past its deadline, so your last change was not saved. Contact the lead if needed."
   },
   "sessionNote": {
     "title": "Lead's note",
@@ -509,7 +536,8 @@
     "finalizedDateLocked": "This schedule is finalized, so its dates can't change. Unlock it first.",
     "deleteTitle": "Delete \"{{title}}\"?",
     "deleteDesc": "All availability members entered for this schedule will be deleted permanently.",
-    "deleteConfirm": "Delete schedule"
+    "deleteConfirm": "Delete schedule",
+    "closedReopenHint": "This session is past its deadline. Pick an end date from today onward to reopen it for everyone."
   },
   "groupActions": {
     "menu": "Group options",
@@ -542,5 +570,9 @@
     "leaveDesc": "Your availability in schedules that aren't finalized will be deleted. You'll need a new invite to rejoin.",
     "leaveConfirm": "Leave group",
     "lockedLead": "Leads can't be demoted"
+  },
+  "closedSession": {
+    "bannerMember": "This session is past its deadline and no longer accepts changes. Contact the lead if needed.",
+    "bannerLead": "This session is past its deadline, so members can no longer fill in. You can still finalize it, or extend it by editing the end date."
   }
 }
