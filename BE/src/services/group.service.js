@@ -2,7 +2,7 @@ import GroupModel from "../models/group.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import UserModel from "../models/user.model.js";
 import RealtimeService from "./realtime.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { generateUniqueSlug } from "../utils/slugify.js";
 import { toPublicGroup } from "../utils/mappers/group.mapper.js";
 

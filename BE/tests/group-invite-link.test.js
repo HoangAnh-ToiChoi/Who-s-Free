@@ -151,14 +151,14 @@ beforeEach(() => {
   }) => {
     const currentCount = membersStore.filter((m) => m.group_id === groupId).length;
     if (currentCount >= testGroup.capacity) {
-      const { default: AppError } = await import("../src/utils/AppError.js");
+      const { AppError } = await import("../src/controllers/errorHandle.controller.js");
       throw AppError.badRequest("Nhóm đã đạt số lượng tối đa", "GROUP_CAPACITY_FULL");
     }
     const exists = membersStore.some(
       (m) => m.group_id === groupId && m.user_id === userId
     );
     if (exists) {
-      const { default: AppError } = await import("../src/utils/AppError.js");
+      const { AppError } = await import("../src/controllers/errorHandle.controller.js");
       throw AppError.conflict("Người dùng này đã là thành viên trong nhóm", "ALREADY_MEMBER");
     }
     const newMember = {

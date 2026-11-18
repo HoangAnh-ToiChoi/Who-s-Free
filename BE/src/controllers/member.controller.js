@@ -1,11 +1,11 @@
-import BaseController from "./BaseController.js";
+import { sendSuccess } from "./response.controller.js";
 import MemberModel from "../models/member.model.js";
 
-class MemberController extends BaseController {
+class MemberController {
   /** GET /api/members - Danh sách thành viên */
   async getAll(req, res) {
     const members = await MemberModel.findAll();
-    return this.sendSuccess(res, members, "Lấy danh sách thành viên thành công");
+    return sendSuccess(res, members, "Lấy danh sách thành viên thành công");
   }
 }
 

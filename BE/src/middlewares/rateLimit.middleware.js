@@ -1,5 +1,5 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../controllers/response.controller.js";
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 

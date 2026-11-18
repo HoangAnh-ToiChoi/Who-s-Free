@@ -3,7 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import ApiResponse from "./utils/ApiResponse.js";
+import ApiResponse from "./controllers/response.controller.js";
 import apiRoutes from "./routes/index.js";
 import { pool } from "./configs/db.config.js";
 import { corsOptions } from "./configs/cors.config.js";

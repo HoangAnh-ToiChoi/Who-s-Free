@@ -1,10 +1,13 @@
-import BaseController from "./BaseController.js";
+import { sendSuccess, sendCreated } from "./response.controller.js";
 import AuthService from "../services/auth.service.js";
 import RecoveryService from "../services/recovery.service.js";
 import TokenService from "../services/token.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "./errorHandle.controller.js";
 import { getSafeReturnUrl } from "../utils/safeReturnUrl.js";
 import { deviceFromRequest } from "../utils/deviceKind.js";
+
+const authService = new AuthService();
+const recoveryService = new RecoveryService();
 
 /**
  * AuthController - HTTP Layer tiếp nhận request và trả response cho module Auth
@@ -12,20 +15,14 @@ import { deviceFromRequest } from "../utils/deviceKind.js";
  * Trách nhiệm duy nhất (SRP):
  *   - Nhận HTTP request từ route (đã qua Zod validation middleware)
  *   - Gọi service tương ứng (AuthService hoặc RecoveryService)
- *   - Trả response chuẩn Envelope { user, accessToken } qua BaseController
+ *   - Trả response chuẩn Envelope { user, accessToken } qua response.controller
  *   - Tự động bắt lỗi chuyển về Centralized Error Handler
  *
  * Contract theo AUTH_REFACTOR_PLAN:
  *   - Response JSON: { user, accessToken } — refreshToken KHÔNG lộ trong body
  *   - Refresh token được gửi qua HttpOnly cookie
  */
-class AuthController extends BaseController {
-  constructor() {
-    super();
-    this.authService = new AuthService();
-    this.recoveryService = new RecoveryService();
-  }
-
+class AuthController {
   // ─── Core Auth Handlers ──────────────────────────────────────────────────────
 
   /**
@@ -34,8 +31,8 @@ class AuthController extends BaseController {
    */
   async register(req, res) {
     const { email, password, fullName } = req.body;
-    const result = await this.authService.register({ email, password, fullName }, deviceFromRequest(req));
-    return this.sendCreated(res, result, "Đăng ký thành công, vui lòng xác thực email");
+    const result = await authService.register({ email, password, fullName }, deviceFromRequest(req));
+    return sendCreated(res, result, "Đăng ký thành công, vui lòng xác thực email");
   }
 
   /**
@@ -44,13 +41,13 @@ class AuthController extends BaseController {
    */
   async login(req, res) {
     const { email, password } = req.body;
-    const { accessToken, refreshToken, user } = await this.authService.login(
+    const { accessToken, refreshToken, user } = await authService.login(
       { email, password },
       deviceFromRequest(req)
     );
 
     TokenService.setAuthCookies(res, accessToken, refreshToken);
-    return this.sendSuccess(
+    return sendSuccess(
       res,
       { user, accessToken },
       "Đăng nhập thành công"
@@ -71,7 +68,7 @@ class AuthController extends BaseController {
     const queryParams = returnUrl.startsWith("/invite/")
       ? { prompt: "select_account", ...(loginHint && { login_hint: loginHint }) }
       : undefined;
-    const { url } = await this.authService.getGoogleOAuthUrl(redirectTo, queryParams);
+    const { url } = await authService.getGoogleOAuthUrl(redirectTo, queryParams);
     return res.redirect(url);
   }
 
@@ -105,7 +102,7 @@ class AuthController extends BaseController {
       );
     }
 
-    const { accessToken, refreshToken } = await this.authService.handleGoogleCallback(code, deviceFromRequest(req));
+    const { accessToken, refreshToken } = await authService.handleGoogleCallback(code, deviceFromRequest(req));
     TokenService.setAuthCookies(res, accessToken, refreshToken);
     return res.redirect(new URL(returnUrl, clientUrl).toString());
   }
@@ -118,9 +115,9 @@ class AuthController extends BaseController {
   async googleSession(req, res) {
     const { accessToken } = req.body;
     // refreshToken từ FE (nếu có) bị bỏ qua — BE tự tạo refresh token mới
-    const result = await this.authService.handleGoogleSession(accessToken, deviceFromRequest(req));
+    const result = await authService.handleGoogleSession(accessToken, deviceFromRequest(req));
     TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
-    return this.sendSuccess(
+    return sendSuccess(
       res,
       { user: result.user, accessToken: result.accessToken },
       "Đăng nhập Google thành công"
@@ -139,11 +136,11 @@ class AuthController extends BaseController {
     }
 
     try {
-      const result = await this.authService.refreshAccessToken(refreshToken);
+      const result = await authService.refreshAccessToken(refreshToken);
 
       TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-      return this.sendSuccess(
+      return sendSuccess(
         res,
         { accessToken: result.accessToken, user: result.user },
         "Token đã được làm mới"
@@ -160,17 +157,17 @@ class AuthController extends BaseController {
    * POST /api/auth/logout
    */
   async logout(req, res) {
-    await this.authService.logout(req.cookies?.refresh_token);
+    await authService.logout(req.cookies?.refresh_token);
     TokenService.clearAuthCookies(res);
-    return this.sendSuccess(res, null, "Đăng xuất thành công");
+    return sendSuccess(res, null, "Đăng xuất thành công");
   }
 
   /**
    * GET /api/auth/me [PROTECTED]
    */
   async getMe(req, res) {
-    const user = await this.authService.getMe(req.user.id);
-    return this.sendSuccess(res, user, "Lấy thông tin người dùng thành công");
+    const user = await authService.getMe(req.user.id);
+    return sendSuccess(res, user, "Lấy thông tin người dùng thành công");
   }
 
   // ─── Recovery Handlers ───────────────────────────────────────────────────────
@@ -180,8 +177,8 @@ class AuthController extends BaseController {
    */
   async forgotPassword(req, res) {
     const { email } = req.body;
-    const result = await this.recoveryService.forgotPassword({ email });
-    return this.sendSuccess(res, result, result.message);
+    const result = await recoveryService.forgotPassword({ email });
+    return sendSuccess(res, result, result.message);
   }
 
   /**
@@ -189,8 +186,8 @@ class AuthController extends BaseController {
    */
   async verifyOtp(req, res) {
     const { email, otp } = req.body;
-    const result = await this.recoveryService.verifyOtp({ email, otp });
-    return this.sendSuccess(res, result, "Xác thực mã OTP thành công");
+    const result = await recoveryService.verifyOtp({ email, otp });
+    return sendSuccess(res, result, "Xác thực mã OTP thành công");
   }
 
   /**
@@ -198,13 +195,13 @@ class AuthController extends BaseController {
    */
   async resetPassword(req, res) {
     const { email, resetToken, password, confirmPassword } = req.body;
-    const result = await this.recoveryService.resetPassword({
+    const result = await recoveryService.resetPassword({
       email,
       resetToken,
       password,
       confirmPassword,
     });
-    return this.sendSuccess(res, null, result.message);
+    return sendSuccess(res, null, result.message);
   }
 }
 

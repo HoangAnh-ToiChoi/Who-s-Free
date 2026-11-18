@@ -1,7 +1,7 @@
 import UserModel from "../models/user.model.js";
 import OtpModel from "../models/otp.model.js";
 import AuthSessionService from "./auth-session.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { toPublicUser } from "../utils/mappers/user.mapper.js";
 import SupabaseAuthModel from "../models/supabase-auth.model.js";
 import EmailVerificationService, { isConfirmed } from "./email-verification.service.js";
