@@ -5,24 +5,12 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_UPDATED_AT } from "~/constants/legal";
 
 function Block({ block }) {
   if (typeof block === "string") return <p>{block}</p>;
-  if (block.list) {
-    return (
-      <ul className="list-disc space-y-1.5 pl-5 marker:text-slate-400">
-        {block.list.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    );
-  }
   return (
-    <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200">
-      {block.providers.map(([name, purpose]) => (
-        <div key={name} className="grid gap-1 px-3.5 py-2.5 sm:grid-cols-[150px_1fr] sm:gap-3">
-          <dt className="font-semibold text-slate-800">{name}</dt>
-          <dd>{purpose}</dd>
-        </div>
+    <ul className="list-disc space-y-1.5 pl-5 marker:text-slate-400">
+      {block.list.map((item) => (
+        <li key={item}>{item}</li>
       ))}
-    </dl>
+    </ul>
   );
 }
 

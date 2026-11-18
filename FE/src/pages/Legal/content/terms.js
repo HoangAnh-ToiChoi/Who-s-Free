@@ -1,6 +1,18 @@
 // Nội dung Điều khoản dịch vụ. Mỗi mục: { heading, blocks } — block là đoạn văn (chuỗi) hoặc { list: [...] }.
 export const termsSections = [
   {
+    heading: "Tóm tắt nhanh",
+    blocks: [
+      {
+        list: [
+          "Who's Free là đồ án sinh viên, miễn phí, dùng để nhóm khảo sát lịch rảnh và chốt lịch họp.",
+          "Hãy dùng email thật, giữ kín mật khẩu và không dùng ứng dụng để gửi thư rác hay đăng nội dung vi phạm pháp luật.",
+          "Ứng dụng có thể chậm, gián đoạn hoặc ngừng hoạt động khi đồ án kết thúc; chúng tôi sẽ báo trước.",
+        ],
+      },
+    ],
+  },
+  {
     heading: "1. Giới thiệu và chấp nhận điều khoản",
     blocks: [
       "Who's Free là đồ án học tập do sinh viên tự phát triển, cung cấp miễn phí và không nhằm mục đích thương mại. Khi tạo tài khoản hoặc sử dụng Who's Free, bạn đồng ý với Điều khoản dịch vụ này và Chính sách bảo mật. Nếu không đồng ý, vui lòng không sử dụng.",
@@ -12,7 +24,7 @@ export const termsSections = [
       {
         list: [
           "Tạo nhóm, mời thành viên bằng email hoặc đường link mời.",
-          "Mở phiên khảo sát để thành viên chọn khung giờ rảnh trên lưới 30 phút.",
+          "Mở phiên khảo sát để thành viên chọn các khung giờ rảnh.",
           "Trưởng nhóm (Owner/Lead) xem tổng hợp, chốt lịch họp và xuất bảng lịch ra file Excel.",
           "Gửi email thông báo: lời mời, lịch đã chốt, nhắc hạn, mã xác thực.",
         ],
@@ -51,9 +63,9 @@ export const termsSections = [
       {
         list: [
           "Gửi thư rác, quấy rối, giả mạo người khác.",
-          "Đăng nội dung vi phạm pháp luật Việt Nam (trong tên nhóm, tên phiên, ghi chú...), bao gồm nội dung xúc phạm, kích động thù ghét, đồi truỵ, hoặc vi phạm quy định về an ninh mạng.",
+          "Đăng nội dung vi phạm pháp luật Việt Nam (trong tên nhóm, tên phiên, ghi chú...), như nội dung xúc phạm, kích động thù ghét hoặc đồi truỵ.",
           "Thu thập, sao chép dữ liệu của người dùng khác ngoài mục đích làm việc trong nhóm.",
-          "Dò mật khẩu hoặc mã xác thực, tấn công, khai thác lỗ hổng, hay dùng công cụ tự động làm quá tải hệ thống.",
+          "Cố truy cập tài khoản của người khác, tấn công hoặc làm quá tải hệ thống.",
         ],
       },
       "Nếu phát hiện lỗi bảo mật, hãy báo riêng cho chúng tôi theo mục Liên hệ thay vì khai thác hoặc công bố. Chúng tôi rất cảm ơn những báo cáo như vậy.",
@@ -70,7 +82,7 @@ export const termsSections = [
     blocks: [
       {
         list: [
-          "Dịch vụ được cung cấp theo hiện trạng. Máy chủ dùng gói miễn phí nên có thể khởi động chậm vài chục giây sau thời gian không có người dùng, hoặc tạm gián đoạn.",
+          "Dịch vụ được cung cấp theo hiện trạng. Ứng dụng chạy trên hạ tầng miễn phí nên đôi khi phản hồi chậm hoặc tạm gián đoạn.",
           "Email có thể đến trễ hoặc vào mục Spam. Không nên dùng Who's Free cho việc khẩn cấp hoặc việc có hậu quả nghiêm trọng nếu lịch sai.",
           "Dù có sao lưu hằng ngày, dữ liệu vẫn có thể mất do sự cố ngoài ý muốn. Hãy xuất file Excel nếu bạn cần lưu lại lịch quan trọng.",
           "Trong phạm vi pháp luật cho phép, nhóm phát triển không chịu trách nhiệm cho thiệt hại gián tiếp phát sinh từ việc sử dụng dịch vụ.",
