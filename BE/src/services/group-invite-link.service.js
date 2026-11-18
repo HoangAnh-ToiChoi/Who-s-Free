@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import GroupModel from "../models/group.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import GroupInviteLinkModel from "../models/group-invite-link.model.js";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import {
   toPublicInviteLink,
   toPublicJoinPreview,

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { REFRESH_TTL_DAYS } from "../models/refresh-session.model.js";
 
 /**

@@ -1,6 +1,6 @@
 import SessionModel from "../models/session.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 
 /** Trả về bản ghi thành viên của userId trong nhóm, hoặc 403 nếu không phải thành viên. */

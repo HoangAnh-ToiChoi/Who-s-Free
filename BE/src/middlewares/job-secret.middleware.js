@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 
 const digest = (value) => createHash("sha256").update(String(value)).digest();
 

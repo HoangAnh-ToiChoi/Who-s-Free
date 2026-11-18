@@ -1,5 +1,5 @@
-import ApiResponse from "../controllers/response.controller.js";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import AppError from "../utils/AppError.js";
 import TokenService from "../services/token.service.js";
 import AuthSessionService from "../services/auth-session.service.js";
 

@@ -4,7 +4,7 @@ import AuthSessionService from "./auth-session.service.js";
 import EmailService from "./email.service.js";
 import EmailVerificationService from "./email-verification.service.js";
 import TokenService from "./token.service.js";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { randomInt } from "node:crypto";
 
 /**

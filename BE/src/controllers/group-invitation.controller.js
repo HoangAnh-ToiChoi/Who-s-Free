@@ -3,7 +3,7 @@ import GroupInvitationService from "../services/group-invitation.service.js";
 import AuthService from "../services/auth.service.js";
 import TokenService from "../services/token.service.js";
 import UserModel from "../models/user.model.js";
-import { AppError } from "./errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { deviceFromRequest } from "../utils/deviceKind.js";
 
 /**

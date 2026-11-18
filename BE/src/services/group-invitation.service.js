@@ -5,7 +5,7 @@ import GroupInvitationModel from "../models/group-invitation.model.js";
 import UserModel from "../models/user.model.js";
 import EmailService from "./email.service.js";
 import RealtimeService from "./realtime.service.js";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { isLeadOrOwner } from "../utils/permissions.js";
 import { toPublicInvitation } from "../utils/mappers/invitation.mapper.js";
 import { toPublicGroup } from "../utils/mappers/group.mapper.js";

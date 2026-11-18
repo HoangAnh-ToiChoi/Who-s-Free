@@ -1,4 +1,4 @@
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 
 /**
  * Middleware validate request với Zod Schema

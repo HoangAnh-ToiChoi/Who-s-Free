@@ -1,4 +1,4 @@
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { escapeHtml, getEmailConfig, deliver, deliverBatch } from "./email-delivery.service.js";
 
 /**

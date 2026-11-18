@@ -1,4 +1,4 @@
-import ApiResponse from "./response.controller.js";
+import ApiResponse from "../utils/ApiResponse.js";
 
 /**
  * BaseController - Class cha cho toàn bộ Controller trong hệ thống

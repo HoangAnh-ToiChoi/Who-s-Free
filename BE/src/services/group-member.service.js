@@ -2,7 +2,7 @@ import GroupModel from "../models/group.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import UserModel from "../models/user.model.js";
 import RealtimeService from "./realtime.service.js";
-import { AppError } from "../controllers/errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { isUuid } from "../utils/uuid.js";
 import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
 

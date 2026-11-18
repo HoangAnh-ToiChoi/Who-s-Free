@@ -2,7 +2,7 @@ import BaseController from "./BaseController.js";
 import AuthService from "../services/auth.service.js";
 import RecoveryService from "../services/recovery.service.js";
 import TokenService from "../services/token.service.js";
-import { AppError } from "./errorHandle.controller.js";
+import AppError from "../utils/AppError.js";
 import { getSafeReturnUrl } from "../utils/safeReturnUrl.js";
 import { deviceFromRequest } from "../utils/deviceKind.js";
 
