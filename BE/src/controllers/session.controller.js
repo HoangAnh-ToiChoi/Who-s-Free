@@ -1,71 +1,70 @@
 import BaseController from "./BaseController.js";
 import sessionService from "../services/session.service.js";
 import sessionFinalizeService from "../services/session-finalize.service.js";
-import asyncHandler from "../utils/asyncHandler.js";
 
 /**
  * SessionController - Điều phối HTTP Request cho Sessions
  */
 class SessionController extends BaseController {
-  getSessions = asyncHandler(async (req, res) => {
+  async getSessions(req, res) {
     const sessions = await sessionService.getSessions({ groupId: req.query.groupId }, req.user?.id);
     return this.sendSuccess(res, sessions, "Lấy danh sách phiên khảo sát thành công");
-  });
+  }
 
-  getSessionById = asyncHandler(async (req, res) => {
+  async getSessionById(req, res) {
     const { id } = req.params;
     const session = await sessionService.getSessionById(id, req.user?.id);
     return this.sendSuccess(res, session, "Lấy thông tin phiên khảo sát thành công");
-  });
+  }
 
-  createSession = asyncHandler(async (req, res) => {
+  async createSession(req, res) {
     const session = await sessionService.createSession(req.body, req.user?.id);
     return this.sendCreated(res, session, "Tạo phiên khảo sát mới thành công");
-  });
+  }
 
-  finalizeSession = asyncHandler(async (req, res) => {
+  async finalizeSession(req, res) {
     const result = await sessionFinalizeService.finalizeSession(req.params.id, req.user?.id, req.body);
     return this.sendSuccess(res, result, "Đã chốt lịch");
-  });
+  }
 
-  startFinalizing = asyncHandler(async (req, res) => {
+  async startFinalizing(req, res) {
     const session = await sessionFinalizeService.startFinalizing(req.params.id, req.user?.id);
     return this.sendSuccess(res, session, "Đang chốt lịch");
-  });
+  }
 
-  stopFinalizing = asyncHandler(async (req, res) => {
+  async stopFinalizing(req, res) {
     await sessionFinalizeService.stopFinalizing(req.params.id, req.user?.id);
     return this.sendSuccess(res, null, "Đã đóng bảng chốt lịch");
-  });
+  }
 
-  unfinalizeSession = asyncHandler(async (req, res) => {
+  async unfinalizeSession(req, res) {
     const session = await sessionFinalizeService.unfinalizeSession(req.params.id, req.user?.id);
     return this.sendSuccess(res, session, "Đã mở khoá lịch");
-  });
+  }
 
-  exportSchedule = asyncHandler(async (req, res) => {
+  async exportSchedule(req, res) {
     const { buffer, fileName, mimeType } = await sessionFinalizeService.exportSchedule(req.params.id, req.user?.id);
     res.setHeader("Content-Type", mimeType);
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
     res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
     return res.send(buffer);
-  });
+  }
 
-  updateSession = asyncHandler(async (req, res) => {
+  async updateSession(req, res) {
     const session = await sessionService.updateSession(req.params.id, req.user?.id, req.body);
     return this.sendSuccess(res, session, "Đã cập nhật phiên khảo sát");
-  });
+  }
 
-  updateNote = asyncHandler(async (req, res) => {
+  async updateNote(req, res) {
     const session = await sessionService.updateNote(req.params.id, req.user?.id, req.body?.note);
     return this.sendSuccess(res, session, "Đã cập nhật ghi chú");
-  });
+  }
 
-  deleteSession = asyncHandler(async (req, res) => {
+  async deleteSession(req, res) {
     const { id } = req.params;
     const result = await sessionService.deleteSession(id, req.user?.id);
     return this.sendSuccess(res, result, "Xóa phiên khảo sát thành công");
-  });
+  }
 }
 
 export const sessionController = new SessionController();

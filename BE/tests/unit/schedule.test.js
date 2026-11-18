@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import ExcelJS from "exceljs";
-import { buildHourGrid, formatDateLabel, isWindowSelected } from "../../src/utils/schedule.js";
+import { loadSchedule } from "../../src/schedule/index.js";
 import { buildScheduleWorkbook, heatColor } from "../../src/services/schedule-export.service.js";
+
+const { buildHourGrid, formatDateLabel, isWindowSelected } = await loadSchedule();
 
 const rows = [
   { user_id: "u1", member_name: "An", date: "2026-09-08", start_minutes: 780, end_minutes: 840 },

@@ -4,7 +4,7 @@ import SupabaseAuthModel from "../models/supabase-auth.model.js";
 import UserModel from "../models/user.model.js";
 import AuthSessionService from "./auth-session.service.js";
 import EmailService from "./email.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { generateOtp, hashOtp, otpMatches } from "../utils/otp.js";
 import { toPublicUser } from "../utils/mappers/user.mapper.js";
 

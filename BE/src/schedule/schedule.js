@@ -1,4 +1,4 @@
-// BE/src/utils/schedule.js
+// BE/src/schedule/schedule.js
 // Hàm thuần xử lý lưới lịch rảnh: lưới nền 30 phút, hiển thị theo khối 1 giờ.
 
 const CELL = 30;

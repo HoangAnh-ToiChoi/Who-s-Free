@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { invitationStore as store } from "./group-invitation.store.js";
 import { findById, INVITATION_COLUMNS } from "./group-invitation-query.model.js";
 

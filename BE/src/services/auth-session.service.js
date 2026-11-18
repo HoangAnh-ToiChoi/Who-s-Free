@@ -1,6 +1,6 @@
 import RefreshSessionModel from "../models/refresh-session.model.js";
 import TokenService from "./token.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { toPublicUser } from "../utils/mappers/user.mapper.js";
 
 // Nhớ kết quả "phiên còn sống" để middleware không phải hỏi DB ở mọi request.
