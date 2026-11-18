@@ -562,7 +562,7 @@
     "capacityTooSmall": "Nhóm đang có {{count}} thành viên",
     "deleteTitle": "Xóa nhóm \"{{name}}\"?",
     "deleteDesc": "Mọi lịch trình, lịch rảnh và thành viên của nhóm sẽ bị xóa vĩnh viễn.",
-    "deleteTypeHint": "Gõ lại tên nhóm để xác nhận:",
+    "deleteTypeHint": "Gõ đúng tên nhóm vào ô bên dưới để mở nút Xóa vĩnh viễn:",
     "deleteConfirm": "Xóa vĩnh viễn",
     "dangerZone": "Vùng nguy hiểm",
     "currentMembers": "Đang có {{count}} thành viên"

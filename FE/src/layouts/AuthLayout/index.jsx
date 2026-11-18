@@ -1,9 +1,10 @@
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 import AppLogo from "~/layouts/DefaultLayout/components/Topbar/components/AppLogo";
 
-function AuthLayout() {
+/** wide: trang đọc dài (Điều khoản, Chính sách) — khung rộng hơn, nội dung bắt đầu từ trên. */
+function AuthLayout({ wide = false }) {
   const { t, i18n } = useTranslation();
   const isVietnamese = i18n.language?.startsWith("vi");
 
@@ -49,8 +50,8 @@ function AuthLayout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-        <div className="animate-in fade-in-50 w-full max-w-[440px] duration-200">
+      <main className={`flex flex-1 justify-center px-4 py-8 sm:py-12 ${wide ? "items-start" : "items-center"}`}>
+        <div className={`animate-in fade-in-50 w-full duration-200 ${wide ? "max-w-3xl" : "max-w-[440px]"}`}>
           <Outlet />
         </div>
       </main>
@@ -58,6 +59,10 @@ function AuthLayout() {
       {/* Footer */}
       <footer className="border-t border-slate-200/60 py-6 text-center text-xs text-slate-500">
         <p>© 2026 Who&apos;s Free. {t("auth.footerNotice")}</p>
+        <p className="mt-1.5 space-x-3">
+          <Link to="/terms" className="hover:text-indigo-600 hover:underline">{t("auth.termsOfService")}</Link>
+          <Link to="/privacy" className="hover:text-indigo-600 hover:underline">{t("auth.privacyPolicy")}</Link>
+        </p>
       </footer>
     </div>
   );

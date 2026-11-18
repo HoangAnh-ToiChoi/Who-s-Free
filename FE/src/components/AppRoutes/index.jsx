@@ -15,6 +15,8 @@ const Register = lazy(() => import("~/pages/Auth/Register"));
 const ForgotPassword = lazy(() => import("~/pages/Auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("~/pages/Auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("~/pages/Auth/VerifyEmail"));
+const Terms = lazy(() => import("~/pages/Legal/Terms"));
+const Privacy = lazy(() => import("~/pages/Legal/Privacy"));
 const AuthCallback = lazy(() => import("~/pages/Auth/AuthCallback"));
 const Invite = lazy(() => import("~/pages/Invite"));
 const Join = lazy(() => import("~/pages/Join"));
@@ -40,6 +42,12 @@ function AppRoutes() {
           <Route path="/invite/:token" element={<Invite />} />
           {/* Public Group Join Link Flow */}
           <Route path="/join/:token" element={<Join />} />
+
+          {/* Điều khoản dịch vụ / Chính sách bảo mật — ai cũng xem được, kể cả đã đăng nhập */}
+          <Route element={<AuthLayout wide />}>
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+          </Route>
 
           {/* Auth Flow Routes — Giao diện Layout riêng biệt */}
           <Route element={<GuestOnly />}>
