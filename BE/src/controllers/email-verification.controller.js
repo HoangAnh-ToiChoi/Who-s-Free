@@ -1,25 +1,28 @@
-import BaseController from "./BaseController.js";
+import { sendSuccess } from "./response.controller.js";
 import EmailVerificationService from "../services/email-verification.service.js";
 import TokenService from "../services/token.service.js";
-import asyncHandler from "../utils/asyncHandler.js";
 import { deviceFromRequest } from "../utils/deviceKind.js";
 
-class EmailVerificationController extends BaseController {
-  service = new EmailVerificationService();
+const emailVerificationService = new EmailVerificationService();
 
+class EmailVerificationController {
   /** POST /api/auth/verify-email - Nhập mã đúng thì xác thực email và đăng nhập luôn (refresh token qua cookie). */
-  verify = asyncHandler(async (req, res) => {
+  async verify(req, res) {
     const { email, otp } = req.body;
-    const { user, accessToken, refreshToken } = await this.service.verify({ email, otp }, deviceFromRequest(req));
-    TokenService.setAuthCookies(res, accessToken, refreshToken);
-    return this.sendSuccess(res, { user, accessToken }, "Xác thực email thành công");
-  });
+    const result = await emailVerificationService.verify({ email, otp }, deviceFromRequest(req));
+    // Email từng bị đăng ký nhiều lần: đã xác thực nhưng chưa đăng nhập, phải đặt mật khẩu mới
+    if (result.passwordResetRequired) {
+      return sendSuccess(res, result, "Xác thực email thành công, vui lòng đặt mật khẩu mới");
+    }
+    TokenService.setAuthCookies(res, result.accessToken, result.refreshToken);
+    return sendSuccess(res, { user: result.user, accessToken: result.accessToken }, "Xác thực email thành công");
+  }
 
   /** POST /api/auth/verify-email/resend - Gửi lại mã (trả lời như nhau dù email có tồn tại hay không). */
-  resend = asyncHandler(async (req, res) => {
-    const data = await this.service.resend({ email: req.body.email }, deviceFromRequest(req));
-    return this.sendSuccess(res, data, "Nếu email cần xác thực, mã mới đã được gửi.");
-  });
+  async resend(req, res) {
+    const data = await emailVerificationService.resend({ email: req.body.email }, deviceFromRequest(req));
+    return sendSuccess(res, data, "Nếu email cần xác thực, mã mới đã được gửi.");
+  }
 }
 
 export default new EmailVerificationController();

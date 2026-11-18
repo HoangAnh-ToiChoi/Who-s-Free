@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
+import { jwtConfig } from "../configs/jwt.config.js";
 
 /** Mã OTP 6 chữ số ngẫu nhiên an toàn. */
 export const generateOtp = () => String(crypto.randomInt(100000, 1000000));
 
 /** HMAC của mã gắn với email: DB chỉ giữ giá trị này, lộ bảng cũng không đọc ra được mã. */
 export function hashOtp(email, otp) {
-  const secret = process.env.JWT_SECRET || "otp-fallback-secret";
+  const secret = jwtConfig.otpSecret;
   return crypto.createHmac("sha256", secret).update(`${email}:${String(otp).trim()}`).digest("hex");
 }
 

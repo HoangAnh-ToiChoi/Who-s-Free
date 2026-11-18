@@ -48,7 +48,11 @@ function VerifyEmail() {
     if (otp.length !== OTP_LENGTH) return setError(t("auth.otpInvalid"));
     setIsSubmitting(true);
     try {
-      await verifyEmail({ email, otp });
+      const result = await verifyEmail({ email, otp });
+      if (result?.passwordResetRequired) {
+        navigate("/auth/forgot-password", { replace: true, state: { email, notice: "passwordResetRequired" } });
+        return;
+      }
       navigate(getSafeReturnUrl(`?returnUrl=${encodeURIComponent(state?.returnUrl || "/")}`), { replace: true });
     } catch {
       setError(t("auth.verifyCodeInvalid"));

@@ -1,7 +1,7 @@
 import AvailabilityModel, { BLOCKED_FINALIZING, BLOCKED_CLOSED } from "../models/availability.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import RealtimeService from "./realtime.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import { requireSessionMember } from "./session-access.helpers.js";
 import { getSlotsValidationError, getSlotsWindowError } from "../validations/availability.validation.js";

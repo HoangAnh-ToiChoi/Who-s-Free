@@ -1,8 +1,9 @@
 import { query } from "../configs/db.config.js";
 import { invitationStore as store } from "./group-invitation.store.js";
+import { appConfig } from "../configs/app.config.js";
 
 // NODE_ENV=test dùng store trong bộ nhớ làm test double; môi trường thật chỉ đọc/ghi DB.
-const isTest = () => process.env.NODE_ENV === "test";
+const isTest = () => appConfig.isTest;
 
 export const INVITATION_COLUMNS = `id, group_id, email, role, token_hash, invited_by, expires_at, status,
   accepted_at, accepted_by, revoked_at, revoked_by, created_at, updated_at`;

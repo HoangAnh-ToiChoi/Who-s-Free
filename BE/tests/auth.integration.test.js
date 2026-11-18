@@ -136,9 +136,11 @@ function withUnverifiedNewUser() {
   const state = { user: { ...NEW_USER }, updates: [] };
   for (const admin of new Set([supabase.auth.admin, supabaseAdmin?.auth?.admin].filter(Boolean))) {
     stub(admin, "listUsers", async () => ({ data: { users: [TEST_USER, state.user] }, error: null }));
+    stub(admin, "getUserById", async () => ({ data: { user: state.user }, error: null }));
     stub(admin, "updateUserById", async (id, attributes) => {
       state.updates.push({ id, attributes });
       if (attributes.email_confirm) state.user.email_confirmed_at = new Date().toISOString();
+      if (attributes.app_metadata) state.user.app_metadata = attributes.app_metadata;
       return { data: { user: state.user }, error: null };
     });
   }
@@ -307,6 +309,31 @@ test("resend: waits 60s between codes; unknown email answers like a normal send"
   const unknown = await post("/api/auth/verify-email/resend", { email: "nobody@example.com" });
   assert.equal(unknown.response.status, 200);
   assert.equal(sentCodes.length, 2, "email lạ không gửi gì");
+});
+
+test("đăng ký lại email chưa xác thực KHÔNG đổi mật khẩu; nhập mã đúng thì bắt đặt lại mật khẩu, không cấp phiên", async () => {
+  const state = withUnverifiedNewUser();
+  for (const admin of new Set([supabase.auth.admin, supabaseAdmin?.auth?.admin].filter(Boolean))) {
+    stub(admin, "createUser", async () => ({ data: { user: null }, error: Object.assign(new Error("already registered"), { code: "email_exists" }) }));
+  }
+  // Kẻ tấn công đăng ký lại bằng email của nạn nhân (đang chờ xác thực)
+  const reclaim = await post("/api/auth/register", { fullName: "Attacker", email: NEW_EMAIL, password: "AttackerPassword1!" });
+  assert.equal(reclaim.response.status, 201);
+  assert.ok(!state.updates.some((u) => u.attributes.password), "không được ghi đè mật khẩu");
+  assert.ok(!state.updates.some((u) => u.attributes.user_metadata), "không được đổi tên");
+  assert.equal(state.user.app_metadata.signup_contested, true);
+
+  // Chủ email nhập đúng mã: email được xác thực, mật khẩu bị thay ngẫu nhiên, không cấp phiên
+  const otp = sentCodes.at(-1).otp;
+  const verified = await post("/api/auth/verify-email", { email: NEW_EMAIL, otp });
+  assert.equal(verified.response.status, 200);
+  assert.equal(verified.data.data.passwordResetRequired, true);
+  assert.equal(verified.data.data.accessToken, undefined);
+  assert.deepEqual(verified.response.headers.getSetCookie(), []);
+  const reset = state.updates.find((u) => u.attributes.password);
+  assert.ok(reset && reset.attributes.password !== "AttackerPassword1!");
+  assert.equal(reset.attributes.email_confirm, true);
+  assert.equal(state.user.app_metadata.signup_contested, false);
 });
 
 test("Google login into an unverified self-signup replaces its password", async () => {

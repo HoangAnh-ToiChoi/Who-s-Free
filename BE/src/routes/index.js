@@ -1,33 +1,14 @@
 import { Router } from "express";
-import authRoutes from "./auth.routes.js";
-import groupRoutes from "./group.routes.js";
-import invitationRoutes from "./invitation.routes.js";
-import joinRoutes from "./join.routes.js";
-import sessionRoutes from "./session.routes.js";
-import notificationRoutes from "./notification.routes.js";
-import jobRoutes from "./job.routes.js";
-import MemberModel from "../models/member.model.js";
-import AuthMiddleware from "../middlewares/auth.middleware.js";
-import ApiResponse from "../utils/ApiResponse.js";
-import asyncHandler from "../utils/asyncHandler.js";
+import { loadModules } from "../utils/loadModules.js";
 
 const router = Router();
 
-router.use("/auth", authRoutes);
-router.use("/groups", groupRoutes);
-router.use("/invitations", invitationRoutes);
-router.use("/join", joinRoutes);
-router.use("/sessions", sessionRoutes);
-router.use("/notifications", notificationRoutes);
-router.use("/jobs", jobRoutes);
+// Tên file xác định đường dẫn: group.routes.js -> /groups
+// Riêng auth và join giữ nguyên số ít.
+const SINGULAR_PATHS = ["auth", "join"];
 
-router.get(
-  "/members",
-  AuthMiddleware.authenticate,
-  asyncHandler(async (req, res) => {
-    const members = await MemberModel.findAll();
-    return res.json(ApiResponse.success(members, "Lấy danh sách thành viên thành công"));
-  }),
-);
+for (const { name, module } of await loadModules(import.meta.url, ".routes.js")) {
+  router.use(SINGULAR_PATHS.includes(name) ? `/${name}` : `/${name}s`, module.default);
+}
 
 export default router;

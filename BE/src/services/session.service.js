@@ -1,7 +1,7 @@
 import SessionModel from "../models/session.model.js";
 import GroupModel from "../models/group.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import { toPublicSession } from "../utils/mappers/session.mapper.js";
 import { isLeadOrOwner } from "../utils/permissions.js";

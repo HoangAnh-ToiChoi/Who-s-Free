@@ -4,7 +4,7 @@ import SupabaseAuthModel from "../models/supabase-auth.model.js";
 import UserModel from "../models/user.model.js";
 import AuthSessionService from "./auth-session.service.js";
 import EmailService from "./email.service.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { generateOtp, hashOtp, otpMatches } from "../utils/otp.js";
 import { toPublicUser } from "../utils/mappers/user.mapper.js";
 
@@ -107,7 +107,11 @@ class EmailVerificationService {
     return EmailVerificationService.pendingPayload(target, delivery);
   }
 
-  /** Nhập mã: đúng thì xác nhận email trên Supabase, ghi verified và đăng nhập luôn. */
+  /**
+   * Nhập mã: đúng thì xác nhận email trên Supabase, ghi verified và đăng nhập luôn.
+   * Email từng bị đăng ký nhiều lần (signup_contested): không ai chứng minh được mật khẩu hiện tại là của chủ email,
+   * nên xoá mật khẩu đó và trả { passwordResetRequired } để người dùng đặt mật khẩu mới qua "Quên mật khẩu".
+   */
   async verify({ email, otp }, device) {
     const target = normalize(email);
     const record = await EmailVerificationModel.findLatestPending(target);
@@ -128,6 +132,18 @@ class EmailVerificationService {
       throw invalidCode();
     }
 
+    const current = await SupabaseAuthModel.findById(record.userId);
+    if (current?.app_metadata?.signup_contested) {
+      await SupabaseAuthModel.updateUser(record.userId, {
+        email_confirm: true,
+        password: crypto.randomBytes(32).toString("base64url"),
+        app_metadata: { ...current.app_metadata, signup_contested: false },
+      });
+      await EmailVerificationModel.setStatus(record.id, "verified");
+      logEvent("verified_contested", { id: record.id, user: record.userId });
+      return { passwordResetRequired: true, email: target };
+    }
+
     const authUser = await SupabaseAuthModel.updateUser(record.userId, { email_confirm: true });
     await EmailVerificationModel.setStatus(record.id, "verified");
     logEvent("verified", { id: record.id, user: record.userId });
@@ -137,20 +153,22 @@ class EmailVerificationService {
   }
 
   /**
-   * Đăng ký lại bằng email đã có: chỉ cho phép khi tài khoản đó chưa xác thực (đặt mật khẩu mới, rồi gửi mã mới).
-   * Tài khoản đã xác thực → báo email đã được đăng ký.
+   * Đăng ký lại bằng email đã có. Tài khoản đã xác thực → báo email đã được đăng ký.
+   * Tài khoản chưa xác thực: KHÔNG đổi mật khẩu hay tên (người gọi chưa chứng minh là chủ email), chỉ đánh dấu
+   * signup_contested để lúc nhập mã đúng thì bắt đặt lại mật khẩu, rồi gửi lại mã như bình thường.
    */
-  async reclaimUnverifiedSignup({ email, password, fullName }) {
+  async reclaimUnverifiedSignup({ email }) {
     const existing = await SupabaseAuthModel.findByEmail(normalize(email));
     if (!existing || isConfirmed(existing)) {
       throw AppError.conflict("Email này đã được đăng ký. Vui lòng đăng nhập.", "EMAIL_ALREADY_REGISTERED");
     }
-    const authUser = await SupabaseAuthModel.updateUser(existing.id, {
-      password,
-      user_metadata: { ...existing.user_metadata, full_name: fullName || existing.user_metadata?.full_name || "" },
-    });
-    await UserModel.syncAuthUser(authUser, { fullName });
-    return authUser;
+    if (!existing.app_metadata?.signup_contested) {
+      await SupabaseAuthModel.updateUser(existing.id, {
+        app_metadata: { ...existing.app_metadata, signup_contested: true },
+      });
+    }
+    logEvent("reclaim", { user: existing.id, email: maskEmail(normalize(email)) });
+    return existing;
   }
 
   /**

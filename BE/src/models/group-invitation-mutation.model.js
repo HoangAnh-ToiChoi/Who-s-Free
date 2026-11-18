@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "../configs/db.config.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { invitationStore as store } from "./group-invitation.store.js";
 import { findById, INVITATION_COLUMNS } from "./group-invitation-query.model.js";
+import { appConfig } from "../configs/app.config.js";
 
 // NODE_ENV=test dùng store trong bộ nhớ làm test double; môi trường thật chỉ đọc/ghi DB,
 // lỗi DB được ném ra để service/controller báo lỗi thật thay vì giả vờ thành công.
-const isTest = () => process.env.NODE_ENV === "test";
+const isTest = () => appConfig.isTest;
 
 export async function create({ id, groupId, email, role = "member", tokenHash, invitedBy, expiresAt }) {
   const inviteId = id || randomUUID();

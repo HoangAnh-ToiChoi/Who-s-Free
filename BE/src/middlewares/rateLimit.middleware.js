@@ -1,12 +1,13 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../controllers/response.controller.js";
+import { appConfig } from "../configs/app.config.js";
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 
 const rateLimitMessage = (errorCode, message) =>
     ApiResponse.error(errorCode, message);
 
-const skipInTest = () => process.env.NODE_ENV === "test";
+const skipInTest = () => appConfig.isTest;
 
 // Limiter chạy trước validate nên body có thể thiếu email hoặc sai kiểu.
 export const normalizeEmail = (value) =>

@@ -1,9 +1,10 @@
-import supabase, { supabaseAdmin } from "../configs/supabase.config.js";
+import supabase, { supabaseAdmin, supabaseConfig } from "../configs/supabase.config.js";
+import { appConfig } from "../configs/app.config.js";
 
 /** Data access adapter for Supabase Auth and its admin user directory. */
 class SupabaseAuthModel {
   static getAdminClient() {
-    if (process.env.NODE_ENV === "test" || !supabaseAdmin?.auth?.admin) {
+    if (appConfig.isTest || !supabaseAdmin?.auth?.admin) {
       return supabase;
     }
     return supabaseAdmin;
@@ -56,7 +57,7 @@ class SupabaseAuthModel {
   }
 
   static hasValidAdminRoleKey() {
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    const key = supabaseConfig.serviceRoleKey;
     if (!key) return false;
     if (key.startsWith("sb_publishable_") || key.startsWith("pk_")) return false;
     return true;
@@ -91,6 +92,11 @@ class SupabaseAuthModel {
     const { data, error } = await this.getAdminClient().auth.admin.updateUserById(userId, attributes);
     if (error) throw error;
     return data?.user || null;
+  }
+
+  static async deleteUser(userId) {
+    const { error } = await this.getAdminClient().auth.admin.deleteUser(userId);
+    if (error) throw error;
   }
 
   static updatePassword(userId, newPassword) {

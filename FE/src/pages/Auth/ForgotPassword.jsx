@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Mail,
@@ -21,11 +21,14 @@ import OtpCodeInput, { OTP_LENGTH } from "./components/OtpCodeInput";
 function ForgotPassword() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { state } = useLocation();
+  // Đến từ màn xác thực email khi email từng bị đăng ký nhiều lần: điền sẵn email, nhắc đặt mật khẩu mới
+  const mustResetPassword = state?.notice === "passwordResetRequired";
   const { forgotPassword, verifyOtp } = useAuth();
 
   // Luồng 2 bước: EMAIL -> OTP
   const [step, setStep] = useState("EMAIL"); // "EMAIL" | "OTP"
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(state?.email || "");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [emailError, setEmailError] = useState(null);
@@ -123,6 +126,12 @@ function ForgotPassword() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               {t("auth.forgotTitle")}
             </h1>
+            {mustResetPassword && (
+              <div role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-800">
+                <p className="font-bold">{t("auth.verifyResetTitle")}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed">{t("auth.verifyResetDesc")}</p>
+              </div>
+            )}
           </div>
 
           {/* Form Email — Chống trình duyệt tự lưu autofill */}
