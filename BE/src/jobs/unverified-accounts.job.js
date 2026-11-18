@@ -10,12 +10,14 @@ export default {
     const accounts = await CleanupModel.findStaleUnverifiedAccounts(jobConfig.unverifiedAccountDays);
     const results = await Promise.allSettled(
       accounts.map(async ({ id }) => {
-        await CleanupModel.deletePublicUser(id);
+        if (!(await CleanupModel.deletePublicUserIfUnverified(id))) return "skipped";
         await SupabaseAuthModel.deleteUser(id);
+        return "deleted";
       }),
     );
+    const count = (value) => results.filter((r) => r.value === value).length;
     const failedIds = accounts.filter((_, i) => results[i].status === "rejected").map((a) => a.id);
     if (failedIds.length) console.warn("[unverified-accounts] không xoá được:", failedIds.join(", "));
-    return { found: accounts.length, deleted: accounts.length - failedIds.length, failed: failedIds.length };
+    return { found: accounts.length, deleted: count("deleted"), skipped: count("skipped"), failed: failedIds.length };
   },
 };

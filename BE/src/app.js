@@ -25,6 +25,11 @@ app.use(cors(corsOptions));
 app.use(morgan(appConfig.isProduction ? "combined" : "dev"));
 app.use(express.json({ limit: "256kb" }));
 app.use(express.urlencoded({ extended: true, limit: "256kb" }));
+// Express 5 để req.body = undefined khi request không có body (Express 4 là {}): giữ {} để controller destructure an toàn
+app.use((req, res, next) => {
+  req.body ??= {};
+  next();
+});
 app.use(cookieParser());
 
 // ─── Healthcheck Route ───────────────────────────────────────────────────────

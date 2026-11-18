@@ -44,15 +44,18 @@ test("otp-cleanup: xoá OTP quên mật khẩu + xoá mã băm xác thực email
   assert.deepEqual(runs, [{ name: "otp-cleanup", stats }]);
 });
 
-test("unverified-accounts: một tài khoản xoá lỗi không chặn các tài khoản khác", async () => {
+test("unverified-accounts: lỗi một tài khoản không chặn tài khoản khác; ai vừa xác thực thì bỏ qua", async () => {
   fakeRuns();
   mocks.push(mock.method(console, "warn", () => {}));
-  fake(CleanupModel, "findStaleUnverifiedAccounts", async (days) => (assert.equal(days, 7), [{ id: "a" }, { id: "b" }]));
-  fake(CleanupModel, "deletePublicUser", async () => {});
+  const deleted = [];
+  fake(CleanupModel, "findStaleUnverifiedAccounts", async (days) => (assert.equal(days, 7), [{ id: "a" }, { id: "b" }, { id: "c" }]));
+  fake(CleanupModel, "deletePublicUserIfUnverified", async (id) => id !== "c");
   fake(SupabaseAuthModel, "deleteUser", async (id) => {
     if (id === "b") throw new Error("supabase down");
+    deleted.push(id);
   });
-  assert.deepEqual(await jobService.run("unverified-accounts"), { found: 2, deleted: 1, failed: 1 });
+  assert.deepEqual(await jobService.run("unverified-accounts"), { found: 3, deleted: 1, skipped: 1, failed: 1 });
+  assert.deepEqual(deleted, ["a"], "tài khoản c vừa xác thực không bị xoá khỏi Supabase");
 });
 
 test("job lỗi: ghi error vào job_runs rồi ném tiếp", async () => {

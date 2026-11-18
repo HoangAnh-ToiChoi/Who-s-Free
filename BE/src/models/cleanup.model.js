@@ -44,9 +44,21 @@ class CleanupModel {
     return rows;
   }
 
-  /** Xoá hồ sơ public.users (tài khoản chưa xác thực không có nhóm hay lịch nào). */
-  static async deletePublicUser(userId) {
-    await query("DELETE FROM public.users WHERE id = $1;", [userId]);
+  /**
+   * Xoá hồ sơ public.users nếu NGAY LÚC NÀY tài khoản vẫn chưa xác thực (người dùng có thể vừa nhập mã
+   * sau lúc job lấy danh sách). Trả về false nếu tài khoản đã xác thực → không được xoá.
+   */
+  static async deletePublicUserIfUnverified(userId) {
+    const { rows } = await query(
+      `WITH still_unverified AS (
+         SELECT 1 FROM auth.users WHERE id = $1 AND email_confirmed_at IS NULL
+       ), removed AS (
+         DELETE FROM public.users WHERE id = $1 AND EXISTS (SELECT 1 FROM still_unverified) RETURNING 1
+       )
+       SELECT EXISTS (SELECT 1 FROM still_unverified) AS unverified;`,
+      [userId]
+    );
+    return rows[0].unverified;
   }
 }
 

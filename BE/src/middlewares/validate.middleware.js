@@ -29,8 +29,9 @@ export const validate = (schema, source = "body") => {
       return next(AppError.badRequest(message, "VALIDATION_ERROR", details));
     }
 
-    // Cập nhật lại dữ liệu đã qua sanitize vào request
-    req[source] = result.data;
+    // Cập nhật lại dữ liệu đã qua sanitize vào request.
+    // Express 5: req.query chỉ có getter nên phải định nghĩa lại thuộc tính thay vì gán.
+    Object.defineProperty(req, source, { value: result.data, writable: true, configurable: true, enumerable: true });
     return next();
   };
 };

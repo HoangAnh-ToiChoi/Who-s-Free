@@ -85,6 +85,13 @@ test("tài khoản chưa xác thực quá 7 ngày: chỉ lấy đúng tài kho�
   const stale = await CleanupModel.findStaleUnverifiedAccounts(7);
   assert.deepEqual(stale.filter((a) => EMAILS.includes(a.email)).map((a) => a.id), [USER_OLD]);
 
+  // Vừa xác thực trước lúc xoá → không xoá hồ sơ
+  await query("INSERT INTO public.users (id, email, full_name) VALUES ($1, $2, 'x'), ($3, $4, 'y') ON CONFLICT DO NOTHING;", [USER_OLD, EMAILS[0], USER_OK, EMAILS[2]]);
+  assert.equal(await CleanupModel.deletePublicUserIfUnverified(USER_OK), false);
+  assert.equal((await query("SELECT 1 FROM public.users WHERE id = $1;", [USER_OK])).rowCount, 1);
+  assert.equal(await CleanupModel.deletePublicUserIfUnverified(USER_OLD), true);
+  assert.equal((await query("SELECT 1 FROM public.users WHERE id = $1;", [USER_OLD])).rowCount, 0);
+
   await query("DELETE FROM auth.users WHERE id = $1;", [USER_OLD]);
   const { rows } = await query("SELECT user_id FROM public.email_verifications WHERE email = $1;", [EMAILS[0]]);
   assert.deepEqual(rows, [{ user_id: null }]);

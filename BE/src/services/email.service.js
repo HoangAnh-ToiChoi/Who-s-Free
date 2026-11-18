@@ -10,9 +10,13 @@ class EmailService {
     const config = getEmailConfig();
 
     // Trong môi trường test hoặc local chưa cấu hình email: Log OTP ra console để kiểm thử
-    if (!config || appConfig.isTest) {
+    // Chỉ test / máy dev chưa cấu hình email mới in mã ra log; production thiếu cấu hình thì báo lỗi, không lộ OTP
+    if (appConfig.isTest || (!config && !appConfig.isProduction)) {
       console.log(`[EmailService] Password reset OTP for ${email}: ${otp}`);
       return { id: "dev-mock-email-id" };
+    }
+    if (!config) {
+      throw new AppError("Dịch vụ email chưa được cấu hình đầy đủ.", 503, "EMAIL_NOT_CONFIGURED");
     }
 
     return deliver(config, {
@@ -26,9 +30,12 @@ class EmailService {
 
   static async sendEmailVerificationOtp({ email, otp, expiresInMinutes }) {
     const config = getEmailConfig();
-    if (!config || appConfig.isTest) {
+    if (appConfig.isTest || (!config && !appConfig.isProduction)) {
       console.log(`[EmailService] Email verification OTP for ${email}: ${otp}`);
       return { id: "dev-mock-email-id" };
+    }
+    if (!config) {
+      throw new AppError("Dịch vụ email chưa được cấu hình đầy đủ.", 503, "EMAIL_NOT_CONFIGURED");
     }
 
     return deliver(config, {
@@ -70,16 +77,13 @@ class EmailService {
 
     const htmlContent = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a;background-color:#ffffff;border-radius:16px;border:1px solid #e2e8f0"><div style="margin-bottom:20px"><h2 style="margin:0;color:#4f46e5;font-size:22px;font-weight:700">Who's Free</h2></div><h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 16px">Lời mời tham gia nhóm</h1><p style="font-size:15px;line-height:1.6;color:#334155;margin:0 0 16px">Xin chào, <strong>${safeInviterName}</strong> đã mời bạn tham gia nhóm <strong>${safeGroupName}</strong> với vai trò <span style="background-color:#e0e7ff;color:#3730a3;padding:2px 8px;border-radius:6px;font-weight:600">${roleLabel}</span>.</p><div style="margin:28px 0;text-align:center"><a href="${safeInviteUrl}" style="background-color:#4f46e5;color:#ffffff;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block">Chấp nhận lời mời</a></div><p style="font-size:13px;color:#64748b;line-height:1.5;margin:0 0 8px">Liên kết có hiệu lực trong vòng <strong>${expiresInHours} giờ</strong> và chỉ áp dụng cho tài khoản đăng ký với email <code>${safeEmail}</code>.</p><p style="font-size:12px;color:#94a3b8;word-break:break-all;margin:16px 0 0">Nếu không bấm được nút trên, hãy sao chép liên kết này vào trình duyệt:<br/><a href="${safeInviteUrl}" style="color:#4f46e5">${safeInviteUrl}</a></p></div>`;
 
-    const result = await deliver(config, {
+    return deliver(config, {
       to: email,
       label: "invitation email",
       subject,
       text: textContent,
       html: htmlContent,
     });
-
-    console.log(`\n📨 [INVITATION SENT SUCCESSFULLY]: Email gửi tới ${email}\n🔗 [INVITE LINK]: ${inviteUrl}\n`);
-    return result;
   }
 
   /**
