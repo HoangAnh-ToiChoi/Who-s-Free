@@ -10,6 +10,7 @@ import { isLeadOrOwner } from "../utils/permissions.js";
 import { toPublicInvitation } from "../utils/mappers/invitation.mapper.js";
 import { toPublicGroup } from "../utils/mappers/group.mapper.js";
 import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
+import { appConfig } from "../configs/app.config.js";
 
 class GroupInvitationService {
     // Dùng ở createInvitation, getPendingInvitations, revokeInvitation, resendInvitation
@@ -58,7 +59,7 @@ class GroupInvitationService {
             expiresAt,
         });
 
-        const inviteUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/invite/${token}`;
+        const inviteUrl = `${appConfig.clientOrigin}/invite/${token}`;
         const inviterName = callerMember?.full_name || callerMember?.name || "Quản trị viên";
 
         try {

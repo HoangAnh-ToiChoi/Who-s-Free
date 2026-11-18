@@ -1,0 +1,51 @@
+# Sao lưu DB Supabase mỗi ngày (pg_dump), lưu thành artifact của GitHub Actions trong 14 ngày.
+# Cần secret của repo:
+#   SUPABASE_DB_URL    chuỗi kết nối "Session pooler" (cổng 5432) trong Supabase → Connect. Không dùng cổng 6543.
+#   BACKUP_PASSPHRASE  (nên có) mật khẩu mã hoá file sao lưu bằng gpg; thiếu thì file KHÔNG được mã hoá.
+# Lịch chỉ chạy trên nhánh mặc định (main). Chạy tay: tab Actions → DB backup → Run workflow.
+name: DB backup
+
+on:
+  schedule:
+    - cron: "15 20 * * *" # 03:15 giờ Việt Nam
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Dump database (PostgreSQL 17)
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$DB_URL" || { echo "Thiếu secret SUPABASE_DB_URL"; exit 1; }
+          FILE="whosfree-$(date -u +%Y%m%d-%H%M).dump"
+          docker run --rm -e DB_URL -v "$PWD:/out" postgres:17 \
+            pg_dump "$DB_URL" --format=custom --no-owner --no-privileges \
+              --schema=public --schema=auth --file="/out/$FILE"
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+          ls -lh "$FILE"
+
+      - name: Encrypt
+        env:
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -n "$PASSPHRASE" ]; then
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$PASSPHRASE" --symmetric --cipher-algo AES256 "$FILE"
+            rm "$FILE"
+            echo "FILE=$FILE.gpg" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Chưa có BACKUP_PASSPHRASE, file sao lưu không được mã hoá"
+          fi
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: ${{ env.FILE }}
+          retention-days: 14
+          if-no-files-found: error

@@ -1,8 +1,9 @@
 import SessionDeadlineModel from "../models/session-deadline.model.js";
 import EmailDeadlineService from "./email-deadline.service.js";
+import { appConfig } from "../configs/app.config.js";
 
 const sessionUrl = (s) =>
-  `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/groups/${s.group_id}/matrix/${s.slug}`;
+  `${appConfig.clientOrigin}/groups/${s.group_id}/matrix/${s.slug}`;
 
 /**
  * Gửi mail cho các session đã giành được quyền gửi (claimed). Mỗi session một batch tới owner/lead.

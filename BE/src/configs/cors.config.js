@@ -1,8 +1,6 @@
-// CLIENT_ORIGINS (nhiều origin, ngăn cách bằng dấu phẩy) hoặc fallback CLIENT_ORIGIN
-export const allowedOrigins = (process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "http://localhost:5173")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
+import { appConfig } from "./app.config.js";
+
+export const allowedOrigins = appConfig.clientOrigins;
 
 export const corsOptions = {
   origin: (origin, callback) => {

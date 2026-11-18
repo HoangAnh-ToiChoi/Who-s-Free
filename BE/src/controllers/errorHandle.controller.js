@@ -1,5 +1,6 @@
 import ApiResponse from "./response.controller.js";
 import { resolveError } from "../configs/error.config.js";
+import { appConfig } from "../configs/app.config.js";
 
 /**
  * AppError - Lớp định nghĩa lỗi tập trung (Centralized Operational Error)
@@ -60,7 +61,7 @@ class ErrorHandleController {
     // Production: giấu chi tiết lỗi hệ thống
     if (statusCode >= 500) {
       console.error("🔥 [INTERNAL SERVER ERROR]:", err);
-      if (process.env.NODE_ENV === "production") {
+      if (appConfig.isProduction) {
         message = "Lỗi hệ thống nội bộ. Vui lòng thử lại sau.";
         details = null;
       }

@@ -1,4 +1,5 @@
 import { allowedOrigins } from "./cors.config.js";
+import { appConfig } from "./app.config.js";
 
 export const helmetOptions = {
   contentSecurityPolicy: {
@@ -8,7 +9,7 @@ export const helmetOptions = {
       frameAncestors: ["'none'"],
     },
   },
-  hsts: process.env.NODE_ENV === "production"
+  hsts: appConfig.isProduction
     ? { maxAge: 15552000, includeSubDomains: true }
     : false,
 };

@@ -1,5 +1,6 @@
 import { AppError } from "../controllers/errorHandle.controller.js";
 import { escapeHtml, getEmailConfig, deliver, deliverBatch } from "./email-delivery.service.js";
+import { appConfig } from "../configs/app.config.js";
 
 /**
  * EmailService - Gửi email thông báo và mã xác thực
@@ -9,7 +10,7 @@ class EmailService {
     const config = getEmailConfig();
 
     // Trong môi trường test hoặc local chưa cấu hình email: Log OTP ra console để kiểm thử
-    if (!config || process.env.NODE_ENV === "test") {
+    if (!config || appConfig.isTest) {
       console.log(`[EmailService] Password reset OTP for ${email}: ${otp}`);
       return { id: "dev-mock-email-id" };
     }
@@ -25,7 +26,7 @@ class EmailService {
 
   static async sendEmailVerificationOtp({ email, otp, expiresInMinutes }) {
     const config = getEmailConfig();
-    if (!config || process.env.NODE_ENV === "test") {
+    if (!config || appConfig.isTest) {
       console.log(`[EmailService] Email verification OTP for ${email}: ${otp}`);
       return { id: "dev-mock-email-id" };
     }
@@ -46,7 +47,7 @@ class EmailService {
     const config = getEmailConfig();
 
     // Trong môi trường test: log URL ra console để kiểm thử
-    if (process.env.NODE_ENV === "test") {
+    if (appConfig.isTest) {
       console.log(`[EmailService] Group invite for ${email}: ${inviteUrl}`);
       return { id: "test-mock-email-id" };
     }
@@ -88,7 +89,7 @@ class EmailService {
   static async sendSessionFinalized({ emails, sessionTitle, whenLabel, note, sessionUrl }) {
     const config = getEmailConfig();
 
-    if (process.env.NODE_ENV === "test") {
+    if (appConfig.isTest) {
       console.log(`[EmailService] Session finalized for ${emails.length} recipients: ${whenLabel}`);
       return { total: emails.length, sent: emails.length, failed: 0 };
     }

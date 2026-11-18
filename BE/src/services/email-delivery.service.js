@@ -1,4 +1,5 @@
 import { AppError } from "../controllers/errorHandle.controller.js";
+import { emailConfig } from "../configs/email.config.js";
 
 export const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
   "&": "&amp;",
@@ -15,24 +16,15 @@ const SEND_FAILED_MESSAGE = "Không thể gửi email lúc này. Vui lòng thử
  * Trả về null nếu provider được chọn chưa đủ cấu hình.
  */
 export function getEmailConfig() {
-  const provider = (process.env.EMAIL_PROVIDER || "resend").toLowerCase();
+  const { provider, brevo, resend } = emailConfig;
 
   if (provider === "brevo") {
-    const apiKey = process.env.BREVO_API_KEY;
-    const senderEmail = process.env.BREVO_SENDER_EMAIL;
-    if (!apiKey || !senderEmail) return null;
-    return {
-      provider,
-      apiKey,
-      senderEmail,
-      senderName: process.env.BREVO_SENDER_NAME || "Who's Free",
-    };
+    if (!brevo.apiKey || !brevo.senderEmail) return null;
+    return { provider, apiKey: brevo.apiKey, senderEmail: brevo.senderEmail, senderName: brevo.senderName };
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
-  if (!apiKey || !from) return null;
-  return { provider: "resend", apiKey, from };
+  if (!resend.apiKey || !resend.from) return null;
+  return { provider: "resend", apiKey: resend.apiKey, from: resend.from };
 }
 
 /** Gọi API của provider; trả về JSON phản hồi hoặc ném AppError. */

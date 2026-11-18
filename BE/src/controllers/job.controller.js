@@ -1,11 +1,11 @@
 import { sendSuccess } from "./response.controller.js";
-import sessionDeadlineService from "../services/session-deadline.service.js";
+import jobService from "../services/job.service.js";
 
 class JobController {
-  /** POST /api/jobs/session-deadlines - Đóng session quá hạn + gửi mail nhắc/đã đóng (cron gọi) */
-  async runSessionDeadlines(req, res) {
-    const data = await sessionDeadlineService.run();
-    return sendSuccess(res, data, "Đã chạy job hạn session");
+  /** POST /api/jobs/:name - Chạy job định kỳ theo tên (cron gọi, xác thực bằng x-job-secret) */
+  async run(req, res) {
+    const data = await jobService.run(req.params.name);
+    return sendSuccess(res, data, `Đã chạy job ${req.params.name}`);
   }
 }
 

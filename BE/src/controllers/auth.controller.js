@@ -5,6 +5,7 @@ import TokenService from "../services/token.service.js";
 import { AppError } from "./errorHandle.controller.js";
 import { getSafeReturnUrl } from "../utils/safeReturnUrl.js";
 import { deviceFromRequest } from "../utils/deviceKind.js";
+import { appConfig } from "../configs/app.config.js";
 
 const authService = new AuthService();
 const recoveryService = new RecoveryService();
@@ -59,7 +60,7 @@ class AuthController {
    */
   async googleOAuth(req, res) {
     const returnUrl = getSafeReturnUrl(req.query.returnUrl);
-    const clientUrl = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const clientUrl = appConfig.clientOrigin;
     const callbackUrl = new URL("/auth/callback", clientUrl);
     callbackUrl.searchParams.set("returnUrl", returnUrl);
     const redirectTo = callbackUrl.toString();
@@ -77,7 +78,7 @@ class AuthController {
    */
   async googleCallback(req, res) {
     const { code, error: providerError } = req.query;
-    const clientUrl = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const clientUrl = appConfig.clientOrigin;
     const returnUrl = getSafeReturnUrl(req.cookies?.oauth_return_url);
     res.clearCookie("oauth_return_url", { path: "/" });
 

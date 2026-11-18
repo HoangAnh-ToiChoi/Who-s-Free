@@ -9,6 +9,7 @@ import { pool } from "./configs/db.config.js";
 import { corsOptions } from "./configs/cors.config.js";
 import { helmetOptions } from "./configs/helmet.config.js";
 import errorHandleController from "./controllers/errorHandle.controller.js";
+import { appConfig } from "./configs/app.config.js";
 
 const app = express();
 
@@ -21,7 +22,7 @@ app.use(helmet(helmetOptions));
 
 // ─── Core Middleware ─────────────────────────────────────────────────────────
 app.use(cors(corsOptions));
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(morgan(appConfig.isProduction ? "combined" : "dev"));
 app.use(express.json({ limit: "256kb" }));
 app.use(express.urlencoded({ extended: true, limit: "256kb" }));
 app.use(cookieParser());
@@ -40,7 +41,7 @@ app.get("/api/health", async (req, res) => {
   } catch {
     // In production, a DB outage makes the service unavailable.
     // In other environments, the server is still functional without a DB (e.g., local dev, tests).
-    if (process.env.NODE_ENV === "production") {
+    if (appConfig.isProduction) {
       return res.status(503).json(
         ApiResponse.error("SERVICE_UNAVAILABLE", "Database không khả dụng"),
       );

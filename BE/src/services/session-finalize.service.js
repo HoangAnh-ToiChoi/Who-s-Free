@@ -11,6 +11,7 @@ import { loadSchedule } from "../schedule/index.js";
 import EmailService from "./email.service.js";
 import RealtimeService from "./realtime.service.js";
 import { buildScheduleWorkbook, XLSX_MIME } from "./schedule-export.service.js";
+import { appConfig } from "../configs/app.config.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /** Thời gian giữ trạng thái "đang chốt" mỗi lần trưởng nhóm mở/gia hạn (FE gia hạn mỗi 3 phút khi bảng còn mở). */
@@ -93,7 +94,7 @@ class SessionFinalizeService {
 
   async #notifyFinalized(session, { date, startMinutes, endMinutes, note }) {
     const contacts = await SessionModel.findGroupContacts(session.group_id);
-    const sessionUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/groups/${session.group_id}/matrix/${session.slug}`;
+    const sessionUrl = `${appConfig.clientOrigin}/groups/${session.group_id}/matrix/${session.slug}`;
     const { formatDateLabel, formatRange } = await loadSchedule();
     const whenLabel = `${formatDateLabel(date)}, ${formatRange(startMinutes, endMinutes)}`;
 

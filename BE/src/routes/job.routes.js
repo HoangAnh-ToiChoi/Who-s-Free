@@ -4,7 +4,7 @@ import { requireJobSecret } from "../middlewares/job-secret.middleware.js";
 
 const router = Router();
 
-// Không qua AuthMiddleware: xác thực bằng x-job-secret
-router.post("/session-deadlines", requireJobSecret, jobController.runSessionDeadlines);
+// Không qua AuthMiddleware: xác thực bằng x-job-secret. Danh sách job: src/jobs/*.job.js
+router.post("/:name", requireJobSecret, jobController.run);
 
 export default router;
