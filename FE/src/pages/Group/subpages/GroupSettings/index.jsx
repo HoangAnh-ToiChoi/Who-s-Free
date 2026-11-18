@@ -62,7 +62,7 @@ function GroupSettings({ group, onChanged }) {
         <div className="rounded-2xl border border-rose-200/80 bg-white p-4 shadow-xs sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-2.5">
-              <TriangleAlert size={16} className="mt-0.5 shrink-0 text-rose-500" />
+              <TriangleAlert size={16} className="mt-0.5 shrink-0 text-rose-600" />
               <div>
                 <h3 className="text-sm font-bold text-slate-900">{t("groupActions.dangerZone")}</h3>
                 <p className="mt-0.5 text-xs text-slate-500">{t("groupActions.deleteDesc")}</p>
@@ -70,9 +70,8 @@ function GroupSettings({ group, onChanged }) {
             </div>
             <Button
               type="button"
-              variant="outline"
               onClick={() => setDialog("delete")}
-              className="h-9.5 shrink-0 cursor-pointer gap-1.5 rounded-xl border-rose-200 bg-rose-50/80 px-4 text-xs font-semibold text-rose-600 hover:bg-rose-100 hover:text-rose-700"
+              className="h-9.5 shrink-0 cursor-pointer gap-1.5 rounded-xl border border-rose-600 bg-rose-600 px-4 text-xs font-semibold text-white shadow-xs hover:bg-rose-700"
             >
               <Trash2 size={14} />
               {t("groupActions.delete")}

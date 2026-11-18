@@ -366,21 +366,23 @@ function Register() {
             />
             <span className="text-xs text-slate-600 leading-snug">
               {t("auth.termsAgree")}{" "}
-              <a
-                href="#terms"
-                onClick={(e) => e.preventDefault()}
+              <Link
+                to="/terms"
+                target="_blank"
+                rel="noopener"
                 className="font-semibold text-indigo-600 hover:underline"
               >
                 {t("auth.termsOfService")}
-              </a>{" "}
+              </Link>{" "}
               {t("auth.and")}{" "}
-              <a
-                href="#privacy"
-                onClick={(e) => e.preventDefault()}
+              <Link
+                to="/privacy"
+                target="_blank"
+                rel="noopener"
                 className="font-semibold text-indigo-600 hover:underline"
               >
                 {t("auth.privacyPolicy")}
-              </a>
+              </Link>
             </span>
           </label>
           {errors.agreeTerms && (

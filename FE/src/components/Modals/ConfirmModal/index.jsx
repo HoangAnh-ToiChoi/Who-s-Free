@@ -5,16 +5,21 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 
+// Nút xác nhận và biểu tượng tô đặc để người dùng thấy ngay đâu là hành động nguy hiểm
 const TONES = {
   danger: {
-    icon: "text-rose-600",
-    iconWrapper: "bg-rose-50 border-rose-200/80 text-rose-600",
-    confirm: "text-rose-600 border-rose-200/90 bg-rose-50/80 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300",
+    icon: "text-white",
+    iconWrapper: "bg-rose-600 border-rose-600",
+    confirm: "text-white border-rose-600 bg-rose-600 hover:bg-rose-700 hover:border-rose-700",
+    hint: "text-rose-700",
+    focus: "focus-visible:border-rose-500 focus-visible:ring-rose-500/20",
   },
   warning: {
-    icon: "text-amber-600",
-    iconWrapper: "bg-amber-50 border-amber-200/80 text-amber-600",
-    confirm: "text-amber-700 border-amber-300/90 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 hover:border-amber-400",
+    icon: "text-white",
+    iconWrapper: "bg-amber-500 border-amber-500",
+    confirm: "text-white border-amber-600 bg-amber-600 hover:bg-amber-700 hover:border-amber-700",
+    hint: "text-amber-800",
+    focus: "focus-visible:border-amber-500 focus-visible:ring-amber-500/20",
   },
 };
 
@@ -71,7 +76,7 @@ function ConfirmModal({
             disabled={isLoading || blocked}
             onClick={() => onConfirm?.()}
             className={cn(
-              "h-9.5 px-4 rounded-xl text-xs font-semibold gap-1.5 border transition-all cursor-pointer shadow-2xs active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
+              "h-9.5 px-4 rounded-xl text-xs font-semibold gap-1.5 border transition-all cursor-pointer shadow-xs active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45",
               styles.confirm
             )}
           >
@@ -79,12 +84,13 @@ function ConfirmModal({
             <span>{confirmText}</span>
           </Button>
 
-          {/* Nút an toàn (Giữ lại/Hủy) nằm bên PHẢI với tông màu thương hiệu Indigo chuẩn Who's Free */}
+          {/* Nút an toàn (Giữ lại/Hủy) nằm bên PHẢI, màu trung tính để nút hành động đỏ nổi bật */}
           <Button
             type="button"
+            variant="outline"
             disabled={isLoading}
             onClick={() => handleOpenChange(false)}
-            className="h-9.5 min-w-[95px] px-5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs cursor-pointer active:scale-[0.98] transition-all justify-center"
+            className="h-9.5 min-w-[95px] px-5 rounded-xl text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer active:scale-[0.98] transition-all justify-center"
           >
             <span>{cancelText}</span>
           </Button>
@@ -96,13 +102,18 @@ function ConfirmModal({
           {children}
           {requireText && (
             <>
-              {requireTextHint && <p className="text-xs text-slate-600">{requireTextHint}</p>}
+              {requireTextHint && (
+                <p className={cn("text-xs font-semibold", styles.hint)}>
+                  {requireTextHint}{" "}
+                  <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-slate-900 select-all">{requireText}</span>
+                </p>
+              )}
               <Input
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
                 placeholder={requireText}
                 autoComplete="off"
-                className="h-10 rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-sm"
+                className={cn("h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm", styles.focus)}
               />
             </>
           )}
