@@ -3,9 +3,13 @@ import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import ApiResponse from "./utils/ApiResponse.js";
+import ApiResponse from "./controllers/response.controller.js";
 import apiRoutes from "./routes/index.js";
 import { pool } from "./configs/db.config.js";
+import { corsOptions } from "./configs/cors.config.js";
+import { helmetOptions } from "./configs/helmet.config.js";
+import errorHandleController from "./controllers/errorHandle.controller.js";
+import { appConfig } from "./configs/app.config.js";
 
 const app = express();
 
@@ -13,42 +17,19 @@ const app = express();
 // Tin đúng 2 hop để req.ip (rate limit, log) là IP người dùng chứ không phải IP của Vercel.
 app.set("trust proxy", 2);
 
-// ─── Allowed Origins (comma-separated CLIENT_ORIGINS or fallback to CLIENT_ORIGIN) ─
-const allowedOrigins = (process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "http://localhost:5173")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
-
 // ─── Security Headers ────────────────────────────────────────────────────────
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        connectSrc: ["'self'", ...allowedOrigins, "https://*.supabase.co"],
-        frameAncestors: ["'none'"],
-      },
-    },
-    hsts: process.env.NODE_ENV === "production"
-      ? { maxAge: 15552000, includeSubDomains: true }
-      : false,
-  }),
-);
+app.use(helmet(helmetOptions));
 
 // ─── Core Middleware ─────────────────────────────────────────────────────────
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      // Origin lạ: không gắn header CORS nên trình duyệt tự chặn (không ném lỗi 500)
-      callback(null, false);
-    },
-    credentials: true,
-  }),
-);
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(cors(corsOptions));
+app.use(morgan(appConfig.isProduction ? "combined" : "dev"));
 app.use(express.json({ limit: "256kb" }));
 app.use(express.urlencoded({ extended: true, limit: "256kb" }));
+// Express 5 để req.body = undefined khi request không có body (Express 4 là {}): giữ {} để controller destructure an toàn
+app.use((req, res, next) => {
+  req.body ??= {};
+  next();
+});
 app.use(cookieParser());
 
 // ─── Healthcheck Route ───────────────────────────────────────────────────────
@@ -65,7 +46,7 @@ app.get("/api/health", async (req, res) => {
   } catch {
     // In production, a DB outage makes the service unavailable.
     // In other environments, the server is still functional without a DB (e.g., local dev, tests).
-    if (process.env.NODE_ENV === "production") {
+    if (appConfig.isProduction) {
       return res.status(503).json(
         ApiResponse.error("SERVICE_UNAVAILABLE", "Database không khả dụng"),
       );
@@ -82,80 +63,8 @@ app.get("/api/health", async (req, res) => {
 // ─── API Routes ──────────────────────────────────────────────────────────────
 app.use("/api", apiRoutes);
 
-// ─── Global 404 Handler ──────────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json(
-    ApiResponse.error(
-      "ROUTE_NOT_FOUND",
-      `Đường dẫn [${req.method}] ${req.originalUrl} không tồn tại`,
-    ),
-  );
-});
-
-// ─── Global Error Handler ────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-  let statusCode = err.statusCode || 500;
-  let errorCode =
-    err.errorCode ||
-    (statusCode >= 500 ? "INTERNAL_SERVER_ERROR" : "BAD_REQUEST");
-  let message = err.message || "Đã xảy ra lỗi không xác định";
-  let details = err.details || null;
-
-  // 1. Zod Validation
-  if (err.name === "ZodError" || err.issues) {
-    statusCode = 400;
-    errorCode = "VALIDATION_ERROR";
-    const issues = err.issues || [];
-    message = issues[0]?.message || "Dữ liệu yêu cầu không hợp lệ";
-    details = issues.map((issue) => ({
-      field: issue.path.join("."),
-      message: issue.message,
-    }));
-  }
-
-  // 2. JWT
-  if (err.name === "JsonWebTokenError") {
-    statusCode = 401;
-    errorCode = "INVALID_TOKEN";
-    message = "Mã token xác thực không hợp lệ hoặc đã bị thay đổi";
-  } else if (err.name === "TokenExpiredError") {
-    statusCode = 401;
-    errorCode = "TOKEN_EXPIRED";
-    message = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-  }
-
-  // 3. Malformed JSON
-  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-    statusCode = 400;
-    errorCode = "MALFORMED_JSON";
-    message = "Cú pháp JSON trong request body không hợp lệ";
-  }
-
-  // 4. PostgreSQL error codes
-  if (err.code === "23505") {
-    statusCode = 409;
-    errorCode = "RESOURCE_ALREADY_EXISTS";
-    message = "Dữ liệu đã tồn tại trong hệ thống";
-  } else if (err.code === "23503") {
-    statusCode = 400;
-    errorCode = "INVALID_REFERENCE";
-    message = "Dữ liệu liên kết không tồn tại hoặc không hợp lệ";
-  } else if (err.code === "22P02") {
-    statusCode = 400;
-    errorCode = "INVALID_DATA_FORMAT";
-    message = "Định dạng dữ liệu không hợp lệ";
-  }
-
-  // 5. Protect internals in production
-  if (statusCode >= 500) {
-    console.error("🔥 [INTERNAL SERVER ERROR]:", err);
-    if (process.env.NODE_ENV === "production") {
-      message = "Lỗi hệ thống nội bộ. Vui lòng thử lại sau.";
-      details = null;
-    }
-  }
-
-  res.status(statusCode).json(ApiResponse.error(errorCode, message, details));
-});
+// ─── 404 + Global Error Handler ──────────────────────────────────────────────
+app.use(errorHandleController.notFound);
+app.use(errorHandleController.handle);
 
 export default app;

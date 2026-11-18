@@ -14,6 +14,7 @@ import { formatUser } from "~/utils/authUser";
 import { normalizeEmail, sendAuthRequest } from "./authRequest";
 import { getStoredUser, setStoredUser, clearStoredUserData } from "./authStorage";
 import { createPasswordResetOtp, verifyOtp, resetPassword } from "./passwordResetService";
+import { verifyEmailCode, resendVerificationEmail } from "./emailVerificationService";
 
 export { getStoredUser, setStoredUser };
 
@@ -73,17 +74,25 @@ function postWithCookie(endpoint, body) {
 }
 
 /**
- * Đăng ký tài khoản người dùng mới
+ * Đăng ký tài khoản mới. Chưa đăng nhập: trả { requiresVerification, email, codeSent, resendInSeconds, ... }
+ * để chuyển sang màn nhập mã xác thực email.
  * @param {{ fullName: string, email: string, password: string }} payload
  */
-export async function register({ fullName, email, password }) {
-  const normalizedEmail = normalizeEmail(email);
-  const res = await postWithCookie("/auth/register", {
-    fullName: fullName.trim(),
-    email: normalizedEmail,
-    password,
+export function register({ fullName, email, password }) {
+  return sendAuthRequest("/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ fullName: fullName.trim(), email: normalizeEmail(email), password }),
   });
-  return startSession(res, res?.user || res || { fullName, email: normalizedEmail });
+}
+
+/**
+ * Nhập đúng mã xác thực email → bắt đầu phiên đăng nhập.
+ * Email từng bị đăng ký nhiều lần: BE trả { passwordResetRequired } và không cấp phiên.
+ */
+export async function verifyEmail({ email, otp }) {
+  const res = await verifyEmailCode({ email, otp });
+  if (res?.passwordResetRequired) return res;
+  return startSession(res, res?.user);
 }
 
 /**
@@ -211,6 +220,8 @@ export const authService = {
   getMe,
   createPasswordResetOtp,
   verifyOtp,
+  verifyEmail,
+  resendVerificationEmail,
   resetPassword,
   getStoredUser,
   setStoredUser,

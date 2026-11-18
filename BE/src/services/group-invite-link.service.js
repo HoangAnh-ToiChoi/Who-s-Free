@@ -2,13 +2,14 @@ import crypto from "node:crypto";
 import GroupModel from "../models/group.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
 import GroupInviteLinkModel from "../models/group-invite-link.model.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import {
   toPublicInviteLink,
   toPublicJoinPreview,
 } from "../utils/mappers/group-invite-link.mapper.js";
 import { toPublicGroup } from "../utils/mappers/group.mapper.js";
 import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
+import { appConfig } from "../configs/app.config.js";
 
 /**
  * GroupInviteLinkService - Quản lý liên kết tham gia nhóm trực tiếp
@@ -21,7 +22,7 @@ import { toPublicMember } from "../utils/mappers/group-member.mapper.js";
  */
 class GroupInviteLinkService {
   constructor() {
-    this.clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    this.clientOrigin = appConfig.clientOrigin;
   }
 
   /**

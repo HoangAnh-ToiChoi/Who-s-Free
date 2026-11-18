@@ -1,37 +1,28 @@
-import supabase, { supabaseAdmin } from "../configs/supabase.config.js";
+import supabase, { supabaseAdmin, supabaseConfig } from "../configs/supabase.config.js";
+import { appConfig } from "../configs/app.config.js";
 
 /** Data access adapter for Supabase Auth and its admin user directory. */
 class SupabaseAuthModel {
   static getAdminClient() {
-    if (process.env.NODE_ENV === "test" || !supabaseAdmin?.auth?.admin) {
+    if (appConfig.isTest || !supabaseAdmin?.auth?.admin) {
       return supabase;
     }
     return supabaseAdmin;
   }
 
-  static async createUser({ email, password, fullName }) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName || "" } },
-    });
-
-    if (error) throw error;
-    return data?.user || null;
-  }
-
   /**
-   * Tạo tài khoản đã xác nhận email (dùng khi người dùng đi vào từ link lời mời gửi tới chính email đó).
+   * Tạo tài khoản email + mật khẩu qua Admin API (Supabase không tự gửi thư xác nhận — BE tự gửi OTP qua Brevo).
+   * confirmed = true: đã xác nhận sẵn (người đi vào từ link lời mời gửi tới chính email đó).
    * Cần SUPABASE_SERVICE_ROLE_KEY hợp lệ.
    */
-  static async createConfirmedUser({ email, password, fullName }) {
+  static async createUser({ email, password, fullName, confirmed = false }) {
     if (!this.hasValidAdminRoleKey()) {
-      throw new Error("Thiếu SUPABASE_SERVICE_ROLE_KEY hợp lệ để tạo tài khoản từ lời mời");
+      throw new Error("Thiếu SUPABASE_SERVICE_ROLE_KEY hợp lệ để tạo tài khoản");
     }
     const { data, error } = await this.getAdminClient().auth.admin.createUser({
       email,
       password,
-      email_confirm: true,
+      email_confirm: confirmed,
       user_metadata: { full_name: fullName || "" },
     });
     if (error) throw error;
@@ -66,7 +57,7 @@ class SupabaseAuthModel {
   }
 
   static hasValidAdminRoleKey() {
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    const key = supabaseConfig.serviceRoleKey;
     if (!key) return false;
     if (key.startsWith("sb_publishable_") || key.startsWith("pk_")) return false;
     return true;
@@ -96,12 +87,20 @@ class SupabaseAuthModel {
     }
   }
 
-  static async updatePassword(userId, newPassword) {
-    const { data, error } = await this.getAdminClient().auth.admin.updateUserById(userId, {
-      password: newPassword,
-    });
+  /** Cập nhật tài khoản qua Admin API (vd { password }, { email_confirm: true }, { user_metadata }). */
+  static async updateUser(userId, attributes) {
+    const { data, error } = await this.getAdminClient().auth.admin.updateUserById(userId, attributes);
     if (error) throw error;
     return data?.user || null;
+  }
+
+  static async deleteUser(userId) {
+    const { error } = await this.getAdminClient().auth.admin.deleteUser(userId);
+    if (error) throw error;
+  }
+
+  static updatePassword(userId, newPassword) {
+    return this.updateUser(userId, { password: newPassword });
   }
 
   static async signOut() {

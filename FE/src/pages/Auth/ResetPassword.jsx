@@ -96,9 +96,6 @@ function ResetPassword() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           {t("auth.resetTitle")}
         </h1>
-        <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-          {t("auth.resetSubtitle")}
-        </p>
       </div>
 
       {/* Cảnh báo nếu chưa qua bước xác thực OTP */}

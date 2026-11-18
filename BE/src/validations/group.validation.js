@@ -9,14 +9,14 @@ export const MAX_GROUP_CAPACITY = 30;
 export const createGroupSchema = z
   .object({
     name: z
-      .string({ required_error: "Tên nhóm là bắt buộc" })
+      .string({ error: "Tên nhóm là bắt buộc" })
       .trim()
       .min(2, "Tên nhóm phải có tối thiểu 2 ký tự")
       .max(100, "Tên nhóm không được vượt quá 100 ký tự"),
     category: z.enum(["work", "hangout", "other"]).optional().default("work"),
     description: z.string().trim().max(500, "Mô tả tối đa 500 ký tự").optional().default(""),
     capacity: z.coerce
-      .number({ invalid_type_error: "Sức chứa phải là số nguyên" })
+      .number({ error: "Sức chứa phải là số nguyên" })
       .int("Sức chứa phải là số nguyên")
       .min(2, "Sức chứa tối thiểu 2 người")
       .max(MAX_GROUP_CAPACITY, `Sức chứa tối đa ${MAX_GROUP_CAPACITY} người`)
@@ -34,7 +34,7 @@ export const updateGroupSchema = z
     category: z.enum(["work", "hangout", "other"]).optional(),
     description: z.string().trim().max(500, "Mô tả tối đa 500 ký tự").optional(),
     capacity: z.coerce
-      .number({ invalid_type_error: "Sức chứa phải là số nguyên" })
+      .number({ error: "Sức chứa phải là số nguyên" })
       .int("Sức chứa phải là số nguyên")
       .min(2, "Sức chứa tối thiểu 2 người")
       .max(MAX_GROUP_CAPACITY, `Sức chứa tối đa ${MAX_GROUP_CAPACITY} người`)
@@ -71,7 +71,7 @@ export const addMemberSchema = z
 export const createInvitationSchema = z
   .object({
     email: z
-      .string({ required_error: "Email là bắt buộc" })
+      .string({ error: "Email là bắt buộc" })
       .trim()
       .email("Email không đúng định dạng")
       .toLowerCase(),

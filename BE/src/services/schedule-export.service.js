@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { buildHourGrid, formatDateLabel, formatRange } from "../utils/schedule.js";
+import { buildHourGrid, formatDateLabel, formatRange } from "../schedule/schedule.js";
 
 export const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 

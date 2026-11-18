@@ -1,6 +1,7 @@
 import { query } from "../configs/db.config.js";
 import SupabaseAuthModel from "./supabase-auth.model.js";
 import { isUuid } from "../utils/uuid.js";
+import { appConfig } from "../configs/app.config.js";
 
 /** Data access for application users (public.users profile fields only). */
 class UserModel {
@@ -35,7 +36,7 @@ class UserModel {
       updated_at: new Date().toISOString(),
     };
 
-    if (process.env.NODE_ENV === "test") {
+    if (appConfig.isTest) {
       this.#pruneUserCache();
       if (userRecord.id) {
         this._inMemoryUsers.set(userRecord.id, userRecord);
@@ -102,10 +103,11 @@ class UserModel {
   }
 
   static async createConfirmedInAuth({ email, password, fullName }) {
-    const authUser = await SupabaseAuthModel.createConfirmedUser({
+    const authUser = await SupabaseAuthModel.createUser({
       email: email.toLowerCase(),
       password,
       fullName,
+      confirmed: true,
     });
     return this.syncAuthUser(authUser, { fullName });
   }

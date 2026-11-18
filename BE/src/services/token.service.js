@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { REFRESH_TTL_DAYS } from "../models/refresh-session.model.js";
+import { appConfig } from "../configs/app.config.js";
+import { jwtConfig } from "../configs/jwt.config.js";
 
 /**
  * TokenService - Quản lý việc cấp phát và xác thực Token, cấu hình Cookie
@@ -12,8 +14,12 @@ import { REFRESH_TTL_DAYS } from "../models/refresh-session.model.js";
  */
 class TokenService {
   static JWT_ALGORITHM = "HS256";
-  static JWT_ISSUER = process.env.JWT_ISSUER || "whosfree-api";
-  static JWT_AUDIENCE = process.env.JWT_AUDIENCE || "whosfree-client";
+  static get JWT_ISSUER() {
+    return jwtConfig.issuer;
+  }
+  static get JWT_AUDIENCE() {
+    return jwtConfig.audience;
+  }
 
   static ACCESS_TOKEN_EXPIRES = "15m"; // 15 phút
   static ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // 15 phút tính theo ms
@@ -36,7 +42,7 @@ class TokenService {
         token_type: "access",
         ...(sessionId && { sid: sessionId }),
       },
-      process.env.JWT_SECRET,
+      jwtConfig.secret,
       {
         algorithm: this.JWT_ALGORITHM,
         expiresIn: this.ACCESS_TOKEN_EXPIRES,
@@ -48,7 +54,7 @@ class TokenService {
 
   /** Verify an application access token with one strict claim/algorithm policy. */
   static verifyAccessToken(token) {
-    if (!process.env.JWT_SECRET) {
+    if (!jwtConfig.secret) {
       throw AppError.internal("Lỗi cấu hình máy chủ", "JWT_SECRET_MISSING");
     }
     if (!token) {
@@ -57,7 +63,7 @@ class TokenService {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      decoded = jwt.verify(token, jwtConfig.secret, {
         algorithms: [this.JWT_ALGORITHM],
         issuer: this.JWT_ISSUER,
         audience: this.JWT_AUDIENCE,
@@ -110,7 +116,7 @@ class TokenService {
         purpose: "password_reset",
         jti: crypto.randomUUID(),
       },
-      process.env.JWT_SECRET,
+      jwtConfig.secret,
       {
         algorithm: this.JWT_ALGORITHM,
         expiresIn: this.RESET_TOKEN_EXPIRES,
@@ -129,7 +135,7 @@ class TokenService {
     }
 
     try {
-      const decoded = jwt.verify(resetToken, process.env.JWT_SECRET, {
+      const decoded = jwt.verify(resetToken, jwtConfig.secret, {
         algorithms: [this.JWT_ALGORITHM],
         issuer: this.JWT_ISSUER,
         audience: this.JWT_AUDIENCE,
@@ -155,7 +161,7 @@ class TokenService {
   static cookieOptions(maxAgeMs) {
     return {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: appConfig.isProduction,
       // FE gọi BE qua rewrite /api/* của Vercel nên cookie là first-party; "none" (cross-site)
       // bị Safari/iOS chặn và làm mất refresh token.
       sameSite: "lax",
@@ -191,7 +197,7 @@ class TokenService {
   static clearAuthCookies(res) {
     const clearOpts = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: appConfig.isProduction,
       sameSite: "lax",
       path: "/",
     };

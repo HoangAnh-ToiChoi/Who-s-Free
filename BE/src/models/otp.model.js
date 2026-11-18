@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
 import { query } from "../configs/db.config.js";
+import { appConfig } from "../configs/app.config.js";
+import { jwtConfig } from "../configs/jwt.config.js";
 
 /**
  * OtpModel - Data Access Layer cho Thực thể Mã Xác Thực OTP
@@ -15,7 +17,7 @@ class OtpModel {
   static store = new Map();
 
   static #useMemory() {
-    return process.env.NODE_ENV === "test";
+    return appConfig.isTest;
   }
 
   static #normalize(email) {
@@ -23,7 +25,7 @@ class OtpModel {
   }
 
   static #hash(email, otp) {
-    const secret = process.env.JWT_SECRET || "otp-fallback-secret";
+    const secret = jwtConfig.otpSecret;
     return crypto.createHmac("sha256", secret).update(`${email}:${String(otp).trim()}`).digest("hex");
   }
 

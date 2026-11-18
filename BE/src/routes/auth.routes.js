@@ -1,6 +1,9 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth.controller.js";
+import googleAuthController from "../controllers/google-auth.controller.js";
+import recoveryController from "../controllers/recovery.controller.js";
 import AuthMiddleware from "../middlewares/auth.middleware.js";
+import emailVerificationController from "../controllers/email-verification.controller.js";
 import validate from "../middlewares/validate.middleware.js";
 import { authRateLimit, forgotPasswordRateLimit } from "../middlewares/rateLimit.middleware.js";
 import {
@@ -32,6 +35,10 @@ const authController = new AuthController();
  *   POST   /api/auth/verify-otp        → Xác thực OTP 6 số (Zod validated)
  *   POST   /api/auth/reset-password    → Đổi mật khẩu mới (Zod validated)
  *
+ * XÁC THỰC EMAIL (tài khoản đăng ký bằng email + mật khẩu):
+ *   POST   /api/auth/verify-email         → Nhập mã 6 số, đúng thì đăng nhập luôn
+ *   POST   /api/auth/verify-email/resend  → Gửi lại mã
+ *
  * PROTECTED (phải có token):
  *   GET    /api/auth/me                → Lấy thông tin user hiện tại
  */
@@ -39,16 +46,20 @@ const authController = new AuthController();
 // ─── Public Routes ───────────────────────────────────────────────────────────
 router.post("/register", authRateLimit, validate(registerSchema), authController.register);
 router.post("/login", authRateLimit, validate(loginSchema), authController.login);
-router.get("/google", authController.googleOAuth);
-router.get("/google/callback", authController.googleCallback);
-router.post("/google/session", authRateLimit, validate(googleSessionSchema), authController.googleSession);
+router.get("/google", googleAuthController.googleOAuth);
+router.get("/google/callback", googleAuthController.googleCallback);
+router.post("/google/session", authRateLimit, validate(googleSessionSchema), googleAuthController.googleSession);
 router.post("/refresh", authController.refresh);
 router.post("/logout", authController.logout);
 
 // Recovery Flow (Quên mật khẩu qua OTP 6 số)
-router.post("/forgot-password", forgotPasswordRateLimit, validate(forgotPasswordSchema), authController.forgotPassword);
-router.post("/verify-otp", authRateLimit, validate(verifyOtpSchema), authController.verifyOtp);
-router.post("/reset-password", authRateLimit, validate(resetPasswordSchema), authController.resetPassword);
+router.post("/forgot-password", forgotPasswordRateLimit, validate(forgotPasswordSchema), recoveryController.forgotPassword);
+router.post("/verify-otp", authRateLimit, validate(verifyOtpSchema), recoveryController.verifyOtp);
+router.post("/reset-password", authRateLimit, validate(resetPasswordSchema), recoveryController.resetPassword);
+
+// Xác thực email (thân request giống OTP quên mật khẩu: { email, otp } / { email })
+router.post("/verify-email", authRateLimit, validate(verifyOtpSchema), emailVerificationController.verify);
+router.post("/verify-email/resend", forgotPasswordRateLimit, validate(forgotPasswordSchema), emailVerificationController.resend);
 
 // ─── Protected Routes ────────────────────────────────────────────────────────
 router.get("/me", AuthMiddleware.authenticate, authController.getMe);

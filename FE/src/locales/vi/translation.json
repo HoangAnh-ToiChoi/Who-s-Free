@@ -31,7 +31,6 @@
   "groups": {
     "title": "Danh sách nhóm",
     "totalCount": "{{count}} tổng số",
-    "subtitle": "Điều phối ma trận rảnh/bận, lịch họp định kỳ và danh sách thành viên.",
     "createNewGroup": "Tạo nhóm mới",
     "filterAll": "Tất cả nhóm",
     "filterOwner": "Do bạn quản lý",
@@ -134,7 +133,6 @@
   },
   "createCalendarModal": {
     "title": "Tạo lịch trình khảo sát",
-    "subtitle": "Thiết lập cuộc khảo sát ma trận rảnh/bận và đồng bộ lịch trình.",
     "sessionTitle": "Tên sự kiện / Lịch hẹn",
     "sessionTitlePlaceholder": "vd: Học nhóm làm đồ án, Kèo cafe cuối tuần, Xem phim...",
     "category": "Danh mục sự kiện",
@@ -164,7 +162,6 @@
   },
   "inviteModal": {
     "title": "Mời thành viên",
-    "subtitle": "Mời đồng đội tham gia {{groupName}} để cùng đồng bộ lịch trình.",
     "shareLinkHeader": "LIÊN KẾT MỜI THAM GIA",
     "shareLinkDesc": "Bất kỳ ai có liên kết này đều có thể xem lịch và gửi ma trận thời gian rảnh.",
     "copyLink": "Sao chép liên kết",
@@ -322,13 +319,9 @@
   },
   "auth": {
     "loginTitle": "Đăng nhập tài khoản",
-    "loginSubtitle": "Chào mừng bạn trở lại! Tiếp tục đồng bộ lịch trình với nhóm.",
     "registerTitle": "Tạo tài khoản mới",
-    "registerSubtitle": "Tham gia không gian làm việc của bạn và đồng bộ lịch trình dễ dàng.",
     "forgotTitle": "Quên mật khẩu?",
-    "forgotSubtitle": "Nhập email đã đăng ký. Nếu tài khoản tồn tại, mã OTP sẽ được gửi đến email đó.",
     "resetTitle": "Đặt mật khẩu mới",
-    "resetSubtitle": "Chọn mật khẩu mạnh có ít nhất 8 ký tự để bảo vệ tài khoản.",
     "badgeLogin": "XÁC THỰC TÀI KHOẢN",
     "badgeStep1": "BƯỚC 1: ĐĂNG KÝ",
     "badgeStep2": "BƯỚC 2: YÊU CẦU KHÔI PHỤC",
@@ -407,7 +400,23 @@
     "connectingHint": "Hệ thống đang kiểm tra, vui lòng chờ trong giây lát…",
     "inviteCreateNote": "Email này chưa có tài khoản. Nhập họ tên và tạo mật khẩu để tham gia nhóm.",
     "inviteCreatePassword": "Tạo mật khẩu",
-    "sessionRevoked": "Tài khoản của bạn vừa đăng nhập trên một thiết bị khác cùng loại nên phiên trên thiết bị này đã kết thúc. Vui lòng đăng nhập lại."
+    "sessionRevoked": "Tài khoản của bạn vừa đăng nhập trên một thiết bị khác cùng loại nên phiên trên thiết bị này đã kết thúc. Vui lòng đăng nhập lại.",
+    "verifyBadge": "XÁC THỰC EMAIL",
+    "verifyTitle": "Xác thực email của bạn",
+    "verifySentTo": "Mã 6 số đã được gửi tới",
+    "verifyExpires": "Mã có hiệu lực trong 10 phút.",
+    "verifyWrongEmail": "Sai email? Đăng ký lại",
+    "verifyRegisteredTitle": "Đăng ký thành công, còn một bước nữa",
+    "verifyRegisteredDesc": "Không thấy thư sau 1–2 phút? Hãy kiểm tra mục Spam hoặc Quảng cáo.",
+    "verifyLoginTitle": "Tài khoản của bạn cần xác thực email để tiếp tục",
+    "verifyLoginDesc": "Hãy nhập mã mới nhất trong hộp thư, kiểm tra cả mục Spam.",
+    "verifySendFailedTitle": "Chưa gửi được mã",
+    "verifySendFailedDesc": "Vui lòng thử lại sau ít phút bằng nút gửi lại mã.",
+    "verifyResent": "Đã gửi mã mới, hãy kiểm tra hộp thư.",
+    "verifySubmit": "Xác thực và vào Who's Free",
+    "verifyCodeInvalid": "Mã không hợp lệ hoặc đã hết hạn. Vui lòng thử lại hoặc gửi mã mới.",
+    "verifyResetTitle": "Email đã được xác thực, hãy đặt mật khẩu mới",
+    "verifyResetDesc": "Vì lý do bảo mật, mật khẩu cũ của tài khoản này không còn dùng được. Bấm gửi mã để đặt mật khẩu mới."
   },
   "finalize": {
     "button": "Chốt lịch",
@@ -415,7 +424,6 @@
     "exporting": "Đang xuất...",
     "exportDone": "Đã tải file Excel lịch của nhóm.",
     "modalTitle": "Chốt lịch",
-    "modalSubtitle": "Chọn một khung giờ nằm trong các giờ nhóm đã chọn.",
     "noRuns": "Chưa có ai chọn giờ rảnh nên chưa thể chốt lịch.",
     "note": "Ghi chú cuối bảng Excel (tuỳ chọn)",
     "notePlaceholder": "Ví dụ: Mọi người nhớ mang máy ảnh",
@@ -477,8 +485,14 @@
       }
     },
     "copyStyle": {
-      "cheerful": { "label": "Vui vẻ", "hint": "Thân thiện, có “nha”, “nè”" },
-      "casual": { "label": "Thẳng kiểu bạn bè", "hint": "Ngắn gọn, nói chuyện ngang ngang" }
+      "cheerful": {
+        "label": "Vui vẻ",
+        "hint": "Thân thiện, có “nha”, “nè”"
+      },
+      "casual": {
+        "label": "Thẳng kiểu bạn bè",
+        "hint": "Ngắn gọn, nói chuyện ngang ngang"
+      }
     }
   },
   "system": {
@@ -530,7 +544,6 @@
   },
   "sessionActions": {
     "editTitle": "Sửa lịch trình",
-    "editSubtitle": "Đổi tên hoặc khoảng thời gian khảo sát.",
     "titleLabel": "Tên lịch trình",
     "dateLabel": "Khoảng thời gian khảo sát",
     "finalizedDateLocked": "Lịch đã chốt nên không đổi được khoảng ngày. Hãy huỷ chốt trước.",
@@ -544,7 +557,6 @@
     "edit": "Sửa nhóm",
     "delete": "Xóa nhóm",
     "editTitle": "Sửa thông tin nhóm",
-    "editSubtitle": "Đổi tên nhóm hoặc số thành viên tối đa.",
     "nameLabel": "Tên nhóm",
     "capacityLabel": "Sức chứa",
     "capacityTooSmall": "Nhóm đang có {{count}} thành viên",

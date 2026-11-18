@@ -1,10 +1,14 @@
+import ApiResponse from "./response.controller.js";
+import { resolveError } from "../configs/error.config.js";
+import { appConfig } from "../configs/app.config.js";
+
 /**
  * AppError - Lớp định nghĩa lỗi tập trung (Centralized Operational Error)
  *
  * Cho phép ném lỗi từ Service/Middleware với HTTP Status Code, Error Code và Details rõ ràng,
  * giúp Controller và Global Error Handler tự động nhận diện và xử lý triệt để.
  */
-class AppError extends Error {
+export class AppError extends Error {
   constructor(message, statusCode = 500, errorCode = "INTERNAL_SERVER_ERROR", details = null) {
     super(message);
     this.statusCode = statusCode;
@@ -40,4 +44,31 @@ class AppError extends Error {
   }
 }
 
-export default AppError;
+// Mọi lỗi từ controller / service / model đều rơi về đây (nhờ next(err) hoặc throw)
+class ErrorHandleController {
+  notFound(req, res) {
+    res.status(404).json(
+      ApiResponse.error(
+        "ROUTE_NOT_FOUND",
+        `Đường dẫn [${req.method}] ${req.originalUrl} không tồn tại`,
+      ),
+    );
+  }
+
+  handle(err, req, res, next) {
+    let { statusCode, errorCode, message, details } = resolveError(err);
+
+    // Production: giấu chi tiết lỗi hệ thống
+    if (statusCode >= 500) {
+      console.error("🔥 [INTERNAL SERVER ERROR]:", err);
+      if (appConfig.isProduction) {
+        message = "Lỗi hệ thống nội bộ. Vui lòng thử lại sau.";
+        details = null;
+      }
+    }
+
+    res.status(statusCode).json(ApiResponse.error(errorCode, message, details));
+  }
+}
+
+export default new ErrorHandleController();

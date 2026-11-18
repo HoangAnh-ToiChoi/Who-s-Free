@@ -90,11 +90,18 @@ export function AuthProvider({ children }) {
     return { ...result, user };
   }, [verifyAuthenticatedUser]);
 
-  const register = useCallback(async ({ fullName, email, password }) => {
-    const result = await authService.register({ fullName, email, password });
-    const currentUser = await verifyAuthenticatedUser();
-    return { ...result, user: currentUser };
+  // Đăng ký chưa đăng nhập ngay: trả thông tin để chuyển sang màn nhập mã xác thực email
+  const register = useCallback(({ fullName, email, password }) => {
+    return authService.register({ fullName, email, password });
+  }, []);
+
+  const verifyEmail = useCallback(async ({ email, otp }) => {
+    const result = await authService.verifyEmail({ email, otp });
+    if (result?.passwordResetRequired) return result;
+    return await verifyAuthenticatedUser();
   }, [verifyAuthenticatedUser]);
+
+  const resendVerificationEmail = useCallback((email) => authService.resendVerificationEmail(email), []);
 
   const registerWithInvitation = useCallback(async ({ token, fullName, password }) => {
     const result = await authService.registerWithInvitation({ token, fullName, password });
@@ -139,6 +146,8 @@ export function AuthProvider({ children }) {
     isLoading,
     login,
     register,
+    verifyEmail,
+    resendVerificationEmail,
     registerWithInvitation,
     handleGoogleSession,
     fetchMe,

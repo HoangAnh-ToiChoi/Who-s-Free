@@ -3,6 +3,7 @@ import { after, afterEach, before, beforeEach, mock, test } from "node:test";
 import { once } from "node:events";
 import jwt from "jsonwebtoken";
 import { installFakeRefreshSessions } from "./helpers/fakeRefreshSessions.js";
+import { installFakeEmailVerifications } from "./helpers/fakeEmailVerifications.js";
 
 const TEST_JWT_SECRET = "auth-integration-test-secret-at-least-32-characters";
 const TEST_REFRESH_SECRET = "auth-integration-refresh-secret-at-least-32-characters";
@@ -13,6 +14,14 @@ const TEST_USER = {
   user_metadata: { full_name: "Auth Test" },
   role: "authenticated",
   created_at: "2026-01-01T00:00:00.000Z",
+  email_confirmed_at: "2026-01-01T00:00:00.000Z",
+};
+const NEW_EMAIL = "new-user@example.com";
+const NEW_USER = {
+  ...TEST_USER,
+  id: "00000000-0000-0000-0000-000000000002",
+  email: NEW_EMAIL,
+  email_confirmed_at: null,
 };
 
 let app;
@@ -23,6 +32,9 @@ let RecoveryService;
 let UserModel;
 let RefreshSessionModel;
 let sessions;
+let verifications;
+let EmailService;
+let sentCodes;
 let TokenService;
 let pool;
 let server;
@@ -108,7 +120,31 @@ function setDefaultAuthMocks() {
       data: { user: TEST_USER },
       error: null,
     }));
+    stub(admin, "createUser", async ({ email, user_metadata, email_confirm }) => ({
+      data: { user: { ...NEW_USER, email, user_metadata, email_confirmed_at: email_confirm ? new Date().toISOString() : null } },
+      error: null,
+    }));
   }
+  stub(EmailService, "sendEmailVerificationOtp", async ({ email, otp }) => {
+    sentCodes.push({ email, otp });
+    return { id: "test" };
+  });
+}
+
+/** Admin API thấy NEW_USER (chưa xác thực) bên cạnh TEST_USER; updateUserById ghi nhận việc xác nhận email. */
+function withUnverifiedNewUser() {
+  const state = { user: { ...NEW_USER }, updates: [] };
+  for (const admin of new Set([supabase.auth.admin, supabaseAdmin?.auth?.admin].filter(Boolean))) {
+    stub(admin, "listUsers", async () => ({ data: { users: [TEST_USER, state.user] }, error: null }));
+    stub(admin, "getUserById", async () => ({ data: { user: state.user }, error: null }));
+    stub(admin, "updateUserById", async (id, attributes) => {
+      state.updates.push({ id, attributes });
+      if (attributes.email_confirm) state.user.email_confirmed_at = new Date().toISOString();
+      if (attributes.app_metadata) state.user.app_metadata = attributes.app_metadata;
+      return { data: { user: state.user }, error: null };
+    });
+  }
+  return state;
 }
 
 before(async () => {
@@ -116,6 +152,7 @@ before(async () => {
   process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.JWT_REFRESH_SECRET = TEST_REFRESH_SECRET;
   process.env.CLIENT_ORIGIN = "http://localhost:5173";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "test-service-role-key";
 
   ({ default: app } = await import("../src/app.js"));
   ({ pool } = await import("../src/configs/db.config.js"));
@@ -128,6 +165,10 @@ before(async () => {
     id, email: TEST_EMAIL, full_name: "Auth Test", avatar_url: null, created_at: TEST_USER.created_at,
   }));
   ({ default: TokenService } = await import("../src/services/token.service.js"));
+  ({ default: EmailService } = await import("../src/services/email.service.js"));
+  verifications = installFakeEmailVerifications(
+    (await import("../src/models/email-verification.model.js")).default
+  );
 
   server = app.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -136,6 +177,7 @@ before(async () => {
 
 after(async () => {
   sessions.restore();
+  verifications.restore();
   await new Promise((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve()))
   );
@@ -144,6 +186,8 @@ after(async () => {
 beforeEach(() => {
   AuthService.otpStore.clear();
   sessions.rows.clear();
+  verifications.rows.length = 0;
+  sentCodes = [];
   if (RecoveryService?.consumedResetTokens) RecoveryService.consumedResetTokens.clear();
   setDefaultAuthMocks();
 });
@@ -169,34 +213,139 @@ test("register rejects missing fields without calling Supabase", async () => {
   assert.equal(data.success, false);
 });
 
-test("register creates a user and returns the documented response envelope", async () => {
+test("register creates an unverified account, emails a code and does NOT sign in", async () => {
   const { response, data } = await post("/api/auth/register", {
-    fullName: "Auth Test",
-    email: TEST_EMAIL,
+    fullName: "New User",
+    email: NEW_EMAIL,
     password: "StrongPassword123!",
   });
   assert.equal(response.status, 201);
-  assert.equal(data.success, true);
-  // Envelope mới: { user, accessToken } — user fields nằm trong data.data.user
-  assert.equal(data.data.user.email, TEST_EMAIL);
-  assert.equal(data.data.user.fullName, "Auth Test");
-  assert.equal(data.data.user.password, undefined);
-  assert.ok(data.data.accessToken, "accessToken phải có trong response");
-  assert.equal(data.data.refreshToken, undefined, "refreshToken không được lộ trong JSON");
+  assert.equal(data.data.requiresVerification, true);
+  assert.equal(data.data.email, NEW_EMAIL);
+  assert.equal(data.data.codeSent, true);
+  assert.equal(data.data.accessToken, undefined);
+  assert.deepEqual(response.headers.getSetCookie(), []);
+  assert.equal(sentCodes.length, 1);
+  assert.match(sentCodes[0].otp, /^\d{6}$/);
+  assert.equal(verifications.rows[0].reason, "register");
+  assert.notEqual(verifications.rows[0].otpHash, sentCodes[0].otp, "chỉ lưu HMAC, không lưu mã gốc");
 });
 
-test("register surfaces provider failure as a client error", async () => {
-  stub(supabase.auth, "signUp", async () => ({
-    data: { user: null },
-    error: new Error("Email already registered"),
-  }));
+test("register with an email that is already verified returns 409", async () => {
+  for (const admin of new Set([supabase.auth.admin, supabaseAdmin?.auth?.admin].filter(Boolean))) {
+    stub(admin, "createUser", async () => ({ data: { user: null }, error: Object.assign(new Error("A user with this email address has already been registered"), { code: "email_exists" }) }));
+  }
   const { response, data } = await post("/api/auth/register", {
     fullName: "Auth Test",
     email: TEST_EMAIL,
     password: "StrongPassword123!",
   });
-  assert.equal(response.status, 400);
-  assert.equal(data.success, false);
+  assert.equal(response.status, 409);
+  assert.equal(data.error, "EMAIL_ALREADY_REGISTERED");
+});
+
+test("verify-email: wrong code gets a generic message, right code signs in and confirms the email", async () => {
+  const state = withUnverifiedNewUser();
+  await post("/api/auth/register", { fullName: "New User", email: NEW_EMAIL, password: "StrongPassword123!" });
+  const otp = sentCodes[0].otp;
+  const wrong = otp === "111111" ? "222222" : "111111";
+
+  const bad = await post("/api/auth/verify-email", { email: NEW_EMAIL, otp: wrong });
+  assert.equal(bad.response.status, 400);
+  assert.equal(bad.data.error, "VERIFY_CODE_INVALID");
+  assert.doesNotMatch(bad.data.message, /lần/, "không tiết lộ số lần thử còn lại");
+
+  const ok = await post("/api/auth/verify-email", { email: NEW_EMAIL, otp });
+  assert.equal(ok.response.status, 200);
+  assert.ok(ok.data.data.accessToken);
+  assert.match(ok.response.headers.getSetCookie().join(";"), /refresh_token=rt_/);
+  assert.ok(state.updates.some((u) => u.attributes.email_confirm === true));
+  assert.equal(verifications.rows[0].status, "verified");
+
+  const reused = await post("/api/auth/verify-email", { email: NEW_EMAIL, otp });
+  assert.equal(reused.data.error, "VERIFY_CODE_INVALID");
+});
+
+test("verify-email: 5 wrong codes lock the code; even the right code then fails the same way", async () => {
+  withUnverifiedNewUser();
+  await post("/api/auth/register", { fullName: "New User", email: NEW_EMAIL, password: "StrongPassword123!" });
+  const otp = sentCodes[0].otp;
+  const wrong = otp === "111111" ? "222222" : "111111";
+  for (let i = 0; i < 5; i += 1) await post("/api/auth/verify-email", { email: NEW_EMAIL, otp: wrong });
+  assert.equal(verifications.rows[0].status, "locked");
+  const { data } = await post("/api/auth/verify-email", { email: NEW_EMAIL, otp });
+  assert.equal(data.error, "VERIFY_CODE_INVALID");
+});
+
+test("login with correct password but unverified email → 403 EMAIL_NOT_VERIFIED, new code, no cookies", async () => {
+  withUnverifiedNewUser();
+  stub(supabase.auth, "signInWithPassword", async () => ({
+    data: { user: null },
+    error: Object.assign(new Error("Email not confirmed"), { code: "email_not_confirmed" }),
+  }));
+  const { response, data } = await post("/api/auth/login", { email: NEW_EMAIL, password: "StrongPassword123!" });
+  assert.equal(response.status, 403);
+  assert.equal(data.error, "EMAIL_NOT_VERIFIED");
+  assert.equal(data.details.email, NEW_EMAIL);
+  assert.equal(data.details.codeSent, true);
+  assert.deepEqual(response.headers.getSetCookie(), []);
+  assert.equal(verifications.rows[0].reason, "login");
+});
+
+test("resend: waits 60s between codes; unknown email answers like a normal send", async () => {
+  withUnverifiedNewUser();
+  await post("/api/auth/register", { fullName: "New User", email: NEW_EMAIL, password: "StrongPassword123!" });
+  const tooSoon = await post("/api/auth/verify-email/resend", { email: NEW_EMAIL });
+  assert.equal(tooSoon.response.status, 429);
+  assert.equal(tooSoon.data.error, "VERIFY_RESEND_WAIT");
+  assert.ok(tooSoon.data.details.retryAfterSeconds > 0);
+
+  verifications.rows[0].sentAt = new Date(Date.now() - 61_000);
+  const again = await post("/api/auth/verify-email/resend", { email: NEW_EMAIL });
+  assert.equal(again.response.status, 200);
+  assert.equal(sentCodes.length, 2);
+  assert.equal(verifications.rows[0].status, "superseded");
+
+  const unknown = await post("/api/auth/verify-email/resend", { email: "nobody@example.com" });
+  assert.equal(unknown.response.status, 200);
+  assert.equal(sentCodes.length, 2, "email lạ không gửi gì");
+});
+
+test("đăng ký lại email chưa xác thực KHÔNG đổi mật khẩu; nhập mã đúng thì bắt đặt lại mật khẩu, không cấp phiên", async () => {
+  const state = withUnverifiedNewUser();
+  for (const admin of new Set([supabase.auth.admin, supabaseAdmin?.auth?.admin].filter(Boolean))) {
+    stub(admin, "createUser", async () => ({ data: { user: null }, error: Object.assign(new Error("already registered"), { code: "email_exists" }) }));
+  }
+  // Kẻ tấn công đăng ký lại bằng email của nạn nhân (đang chờ xác thực)
+  const reclaim = await post("/api/auth/register", { fullName: "Attacker", email: NEW_EMAIL, password: "AttackerPassword1!" });
+  assert.equal(reclaim.response.status, 201);
+  assert.ok(!state.updates.some((u) => u.attributes.password), "không được ghi đè mật khẩu");
+  assert.ok(!state.updates.some((u) => u.attributes.user_metadata), "không được đổi tên");
+  assert.equal(state.user.app_metadata.signup_contested, true);
+
+  // Chủ email nhập đúng mã: email được xác thực, mật khẩu bị thay ngẫu nhiên, không cấp phiên
+  const otp = sentCodes.at(-1).otp;
+  const verified = await post("/api/auth/verify-email", { email: NEW_EMAIL, otp });
+  assert.equal(verified.response.status, 200);
+  assert.equal(verified.data.data.passwordResetRequired, true);
+  assert.equal(verified.data.data.accessToken, undefined);
+  assert.deepEqual(verified.response.headers.getSetCookie(), []);
+  const reset = state.updates.find((u) => u.attributes.password);
+  assert.ok(reset && reset.attributes.password !== "AttackerPassword1!");
+  assert.equal(reset.attributes.email_confirm, true);
+  assert.equal(state.user.app_metadata.signup_contested, false);
+});
+
+test("Google login into an unverified self-signup replaces its password", async () => {
+  const state = withUnverifiedNewUser();
+  await post("/api/auth/register", { fullName: "New User", email: NEW_EMAIL, password: "AttackerPassword1!" });
+  stub(supabase.auth, "exchangeCodeForSession", async () => ({ data: { user: { ...NEW_USER, email_confirmed_at: new Date().toISOString() } }, error: null }));
+  const response = await fetch(`${baseUrl}/api/auth/google/callback?code=abc`, { redirect: "manual" });
+  assert.ok(response.status >= 300 && response.status < 400);
+  const reset = state.updates.find((u) => u.attributes.password);
+  assert.ok(reset, "mật khẩu cũ phải bị thay");
+  assert.notEqual(reset.attributes.password, "AttackerPassword1!");
+  assert.equal(verifications.rows.at(-1).reason, "oauth");
 });
 
 test("login rejects missing fields", async () => {

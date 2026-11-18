@@ -99,7 +99,6 @@ function EditGroupModal({ open, onOpenChange, group, onSubmit }) {
       open={open}
       onOpenChange={onOpenChange}
       title={t("groupActions.editTitle")}
-      subtitle={t("groupActions.editSubtitle")}
       icon={<Pencil size={16} strokeWidth={2.2} />}
       maxWidth="sm:max-w-[460px]"
       className="gap-6"

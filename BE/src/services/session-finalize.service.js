@@ -1,16 +1,17 @@
 import SessionModel from "../models/session.model.js";
 import AvailabilityModel from "../models/availability.model.js";
 import GroupMemberModel from "../models/group-member.model.js";
-import AppError from "../utils/AppError.js";
+import { AppError } from "../controllers/errorHandle.controller.js";
 import { ErrorCodes } from "../constants/errorCodes.js";
 import { toPublicSession } from "../utils/mappers/session.mapper.js";
 import { isLeadOrOwner } from "../utils/permissions.js";
 import { toDateString } from "../utils/date.js";
 import { toSafeFileName } from "../utils/fileName.js";
-import { formatDateLabel, formatRange, isWindowSelected } from "../utils/schedule.js";
+import { formatDateLabel, formatRange, isWindowSelected } from "../schedule/schedule.js";
 import EmailService from "./email.service.js";
 import RealtimeService from "./realtime.service.js";
 import { buildScheduleWorkbook, XLSX_MIME } from "./schedule-export.service.js";
+import { appConfig } from "../configs/app.config.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /** Thời gian giữ trạng thái "đang chốt" mỗi lần trưởng nhóm mở/gia hạn (FE gia hạn mỗi 3 phút khi bảng còn mở). */
@@ -91,7 +92,7 @@ class SessionFinalizeService {
 
   async #notifyFinalized(session, { date, startMinutes, endMinutes, note }) {
     const contacts = await SessionModel.findGroupContacts(session.group_id);
-    const sessionUrl = `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/groups/${session.group_id}/matrix/${session.slug}`;
+    const sessionUrl = `${appConfig.clientOrigin}/groups/${session.group_id}/matrix/${session.slug}`;
     const whenLabel = `${formatDateLabel(date)}, ${formatRange(startMinutes, endMinutes)}`;
 
     const emails = contacts.map((c) => c.email).filter(Boolean);

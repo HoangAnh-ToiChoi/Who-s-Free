@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { query } from "../configs/db.config.js";
+import { appConfig } from "../configs/app.config.js";
 
 /**
  * GroupInviteLinkModel - Data Access Layer cho Bảng public.group_invite_links
@@ -32,7 +33,7 @@ class GroupInviteLinkModel {
 
     this.store.set(linkId, { ...record });
 
-    if (process.env.NODE_ENV === "test") {
+    if (appConfig.isTest) {
       return record;
     }
 
@@ -64,7 +65,7 @@ class GroupInviteLinkModel {
   static async revokeActiveByGroupId(groupId, revokedBy) {
     if (!groupId) return;
 
-    if (process.env.NODE_ENV !== "test") {
+    if (!appConfig.isTest) {
       try {
         const sql = `
           UPDATE public.group_invite_links
@@ -91,7 +92,7 @@ class GroupInviteLinkModel {
   static async findActiveByGroupId(groupId) {
     if (!groupId) return null;
 
-    if (process.env.NODE_ENV !== "test") {
+    if (!appConfig.isTest) {
       try {
         const sql = `
           SELECT * FROM public.group_invite_links
@@ -125,7 +126,7 @@ class GroupInviteLinkModel {
   static async findByToken(token) {
     if (!token) return null;
 
-    if (process.env.NODE_ENV !== "test") {
+    if (!appConfig.isTest) {
       try {
         const sql = `
           SELECT 

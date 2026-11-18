@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import ExcelJS from "exceljs";
-import { buildHourGrid, formatDateLabel, isWindowSelected } from "../../src/utils/schedule.js";
+import { buildHourGrid, formatDateLabel, isWindowSelected } from "../../src/schedule/schedule.js";
 import { buildScheduleWorkbook, heatColor } from "../../src/services/schedule-export.service.js";
 
 const rows = [
