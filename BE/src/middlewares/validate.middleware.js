@@ -1,3 +1,4 @@
+import "../configs/zod.config.js";
 import { AppError } from "../controllers/errorHandle.controller.js";
 
 /**
