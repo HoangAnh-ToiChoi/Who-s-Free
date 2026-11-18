@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { loadSchedule } from "../schedule/index.js";
+import { buildHourGrid, formatDateLabel, formatRange } from "../schedule/schedule.js";
 
 export const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -65,7 +65,6 @@ function styleCell(cell, { value, font, fill, bordered = false }) {
  */
 export async function buildScheduleWorkbook({ title, rows, note = null, finalized = null }) {
   const theme = SCHEDULE_THEME;
-  const { buildHourGrid, formatDateLabel, formatRange } = await loadSchedule();
   const { dates, hours, entries } = buildHourGrid(rows);
   const maxCount = Math.max(1, ...Object.values(entries).map((people) => people.length));
   const workbook = new ExcelJS.Workbook();

@@ -7,7 +7,7 @@ import { toPublicSession } from "../utils/mappers/session.mapper.js";
 import { isLeadOrOwner } from "../utils/permissions.js";
 import { toDateString } from "../utils/date.js";
 import { toSafeFileName } from "../utils/fileName.js";
-import { loadSchedule } from "../schedule/index.js";
+import { formatDateLabel, formatRange, isWindowSelected } from "../schedule/schedule.js";
 import EmailService from "./email.service.js";
 import RealtimeService from "./realtime.service.js";
 import { buildScheduleWorkbook, XLSX_MIME } from "./schedule-export.service.js";
@@ -74,8 +74,6 @@ class SessionFinalizeService {
       AppError.badRequest("Khung giờ chốt phải nằm trong các giờ mà nhóm đã chọn", ErrorCodes.INVALID_FINAL_SLOT);
     if (!DATE_PATTERN.test(date)) throw invalidSlot();
 
-    const { isWindowSelected } = await loadSchedule();
-
     // Kiểm tra trên lịch mới nhất và ghi chốt trong cùng một lần khoá phiên (xem SessionModel.finalizeLocked)
     const result = await SessionModel.finalizeLocked(
       session.id,
@@ -95,7 +93,6 @@ class SessionFinalizeService {
   async #notifyFinalized(session, { date, startMinutes, endMinutes, note }) {
     const contacts = await SessionModel.findGroupContacts(session.group_id);
     const sessionUrl = `${appConfig.clientOrigin}/groups/${session.group_id}/matrix/${session.slug}`;
-    const { formatDateLabel, formatRange } = await loadSchedule();
     const whenLabel = `${formatDateLabel(date)}, ${formatRange(startMinutes, endMinutes)}`;
 
     const emails = contacts.map((c) => c.email).filter(Boolean);

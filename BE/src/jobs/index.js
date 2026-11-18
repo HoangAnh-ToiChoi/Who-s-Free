@@ -1,6 +1,4 @@
-import { readdirSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { loadModules } from "../utils/loadModules.js";
 
 /**
  * Danh sách job định kỳ. Mỗi file *.job.js export default { name, schedule, description, run, selfLogged? }.
@@ -11,17 +9,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
  *
  * Sao lưu DB không chạy ở đây (Render không có pg_dump): xem .github/workflows/db-backup.yml.
  */
-const dir = path.dirname(fileURLToPath(import.meta.url));
-let cached;
-
-const loadJobs = () => {
-  cached ??= Promise.all(
-    readdirSync(dir)
-      .filter((file) => file.endsWith(".job.js"))
-      .map((file) => import(pathToFileURL(path.join(dir, file)).href).then((m) => m.default)),
-  ).then((jobs) => new Map(jobs.map((job) => [job.name, job])));
-  return cached;
-};
+const loadJobs = async () =>
+  new Map((await loadModules(import.meta.url, ".job.js")).map(({ module }) => [module.default.name, module.default]));
 
 export const getJob = async (name) => (await loadJobs()).get(name) ?? null;
 export const listJobs = async () => [...(await loadJobs()).values()];
