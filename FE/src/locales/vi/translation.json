@@ -414,7 +414,9 @@
     "verifySendFailedDesc": "Vui lòng thử lại sau ít phút bằng nút gửi lại mã.",
     "verifyResent": "Đã gửi mã mới, hãy kiểm tra hộp thư.",
     "verifySubmit": "Xác thực và vào Who's Free",
-    "verifyCodeInvalid": "Mã không hợp lệ hoặc đã hết hạn. Vui lòng thử lại hoặc gửi mã mới."
+    "verifyCodeInvalid": "Mã không hợp lệ hoặc đã hết hạn. Vui lòng thử lại hoặc gửi mã mới.",
+    "verifyResetTitle": "Email đã được xác thực, hãy đặt mật khẩu mới",
+    "verifyResetDesc": "Vì lý do bảo mật, mật khẩu cũ của tài khoản này không còn dùng được. Bấm gửi mã để đặt mật khẩu mới."
   },
   "finalize": {
     "button": "Chốt lịch",

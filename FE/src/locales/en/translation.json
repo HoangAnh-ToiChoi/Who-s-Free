@@ -414,7 +414,9 @@
     "verifySendFailedDesc": "Please try again in a few minutes with the resend button.",
     "verifyResent": "A new code is on its way, check your inbox.",
     "verifySubmit": "Verify and enter Who's Free",
-    "verifyCodeInvalid": "The code is invalid or has expired. Try again or request a new code."
+    "verifyCodeInvalid": "The code is invalid or has expired. Try again or request a new code.",
+    "verifyResetTitle": "Email verified, please set a new password",
+    "verifyResetDesc": "For security reasons the previous password of this account no longer works. Send a code to set a new one."
   },
   "finalize": {
     "button": "Finalize",

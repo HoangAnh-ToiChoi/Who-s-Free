@@ -96,7 +96,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const verifyEmail = useCallback(async ({ email, otp }) => {
-    await authService.verifyEmail({ email, otp });
+    const result = await authService.verifyEmail({ email, otp });
+    if (result?.passwordResetRequired) return result;
     return await verifyAuthenticatedUser();
   }, [verifyAuthenticatedUser]);
 

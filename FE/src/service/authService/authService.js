@@ -85,9 +85,13 @@ export function register({ fullName, email, password }) {
   });
 }
 
-/** Nhập đúng mã xác thực email → bắt đầu phiên đăng nhập. */
+/**
+ * Nhập đúng mã xác thực email → bắt đầu phiên đăng nhập.
+ * Email từng bị đăng ký nhiều lần: BE trả { passwordResetRequired } và không cấp phiên.
+ */
 export async function verifyEmail({ email, otp }) {
   const res = await verifyEmailCode({ email, otp });
+  if (res?.passwordResetRequired) return res;
   return startSession(res, res?.user);
 }
 

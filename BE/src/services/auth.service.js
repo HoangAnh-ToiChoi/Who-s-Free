@@ -56,7 +56,7 @@ class AuthService {
       if (!isEmailTaken(err)) {
         throw AppError.badRequest(err.message || "Đăng ký tài khoản thất bại", "REGISTER_FAILED");
       }
-      authUser = await emailVerification.reclaimUnverifiedSignup({ email: normalizedEmail, password, fullName });
+      authUser = await emailVerification.reclaimUnverifiedSignup({ email: normalizedEmail });
     }
 
     const delivery = await emailVerification.dispatch({ userId: authUser.id, email: normalizedEmail }, "register", device);
