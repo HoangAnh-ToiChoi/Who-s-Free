@@ -562,7 +562,7 @@
     "capacityTooSmall": "The group has {{count}} members",
     "deleteTitle": "Delete \"{{name}}\"?",
     "deleteDesc": "All schedules, availability and members of this group will be deleted permanently.",
-    "deleteTypeHint": "Type the group name to confirm:",
+    "deleteTypeHint": "Type the group name below to unlock Delete forever:",
     "deleteConfirm": "Delete forever",
     "dangerZone": "Danger zone",
     "currentMembers": "{{count}} members now"
