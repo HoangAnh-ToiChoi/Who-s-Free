@@ -1,4 +1,11 @@
 {
+  "permissions": {
+    "ask": [
+      "mcp__plugin_playwright_playwright",
+      "mcp__plugin_browser-use_browser-use",
+      "mcp__claude-in-chrome"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {
